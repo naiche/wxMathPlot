@@ -38,6 +38,7 @@ enum
     mpID_FIT = 2000,
     mpID_ZOOM_IN,
     mpID_ZOOM_OUT,
+    mpID_CENTER,
 };
 
 //-----------------------------------------------------------------------------
@@ -187,8 +188,9 @@ public:
     void SetScaleY(double scaleY) { if (scaleY!=0) m_scaleY=scaleY; UpdateAll(); }
     void SetPosX(double posX) { m_posX=posX; UpdateAll(); }
     void SetPosY(double posY) { m_posY=posY; UpdateAll(); }
+    void SetPos( double posX, double posY) { m_posX=posX; m_posY=posY; UpdateAll(); }
 
-    void Fit();
+    void Fit(bool aspect = false);
     void ZoomIn();
     void ZoomOut();
 
@@ -197,13 +199,14 @@ public:
 protected:
     void OnPaint        (wxPaintEvent   &event);
     void OnSize         (wxSizeEvent    &event);
+    void OnScroll2(wxScrollWinEvent &event);
     void OnShowPopupMenu(wxMouseEvent   &event);
+    void OnCenter       (wxCommandEvent &event);
     void OnFit          (wxCommandEvent &event);
     void OnZoomIn       (wxCommandEvent &event);
     void OnZoomOut      (wxCommandEvent &event);
+
     bool UpdateBBox();
-    
-    void OnScroll2(wxScrollWinEvent &event);
 
     wxList m_layers;
     wxMenu m_popmenu;
@@ -218,6 +221,8 @@ protected:
     double m_posY;
     int    m_scrX;
     int    m_scrY;
+    int    m_clickedX;
+    int    m_clickedY;
 
     DECLARE_CLASS(mpWindow)
     DECLARE_EVENT_TABLE()

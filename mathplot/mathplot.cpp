@@ -292,6 +292,7 @@ BEGIN_EVENT_TABLE(mpWindow, wxScrolledWindow)
 
     EVT_MIDDLE_UP( mpWindow::OnShowPopupMenu)
     EVT_RIGHT_UP ( mpWindow::OnShowPopupMenu)
+    EVT_MENU( mpID_CENTER,  mpWindow::OnCenter)
     EVT_MENU( mpID_FIT,     mpWindow::OnFit)
     EVT_MENU( mpID_ZOOM_IN, mpWindow::OnZoomIn)
     EVT_MENU( mpID_ZOOM_OUT,mpWindow::OnZoomOut)
@@ -306,6 +307,7 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_minX   = m_minY   = 0;
     m_maxX   = m_maxY   = 0;
 
+    m_popmenu.Append( mpID_CENTER,   _("Center"),   _("Center plot view to this position"));
     m_popmenu.Append( mpID_FIT,      _("Fit"),      _("Set plot view to show all items"));
     m_popmenu.Append( mpID_ZOOM_IN,  _("Zoom in"),  _("Zoom in plot view."));
     m_popmenu.Append( mpID_ZOOM_OUT, _("Zoom out"), _("Zoom out plot view."));
@@ -313,6 +315,7 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_layers.DeleteContents(TRUE);
     SetBackgroundColour( *wxWHITE );
     EnableScrolling(FALSE, FALSE);
+    SetSizeHints(128, 128);
 
     UpdateAll();
 }
@@ -321,7 +324,7 @@ mpWindow::~mpWindow()
 {
 }
 
-void mpWindow::Fit()
+void mpWindow::Fit(bool aspect)
 {
     if (UpdateBBox())
     {
@@ -340,6 +343,13 @@ void mpWindow::Fit()
         {
             m_scaleY = cy/d;
             m_posY = m_minY + d/2;
+        }
+
+        if (aspect)
+        {
+            double s = (m_scaleX + m_scaleY)/2;
+            m_scaleX = s;
+            m_scaleY = s;
         }
 
         UpdateAll();
@@ -362,6 +372,8 @@ void mpWindow::ZoomOut()
 
 void mpWindow::OnShowPopupMenu(wxMouseEvent &event)
 {
+    m_clickedX = event.GetX();
+    m_clickedY = event.GetY();
     PopupMenu( &m_popmenu, event.GetX(), event.GetY());
 }
 
@@ -370,8 +382,19 @@ void mpWindow::OnFit(wxCommandEvent &event)
     Fit();
 }
 
+void mpWindow::OnCenter(wxCommandEvent &event)
+{
+    int cx, cy;
+    GetClientSize(&cx, &cy);
+    SetPos( (double)(m_clickedX-cx/2) / m_scaleX + m_posX, (double)(cy/2-m_clickedY) / m_scaleY + m_posY);
+}
+
 void mpWindow::OnZoomIn(wxCommandEvent &event)
 {
+    int cx, cy;
+    GetClientSize(&cx, &cy);
+    m_posX = (double)(m_clickedX-cx/2) / m_scaleX + m_posX;
+    m_posY = (double)(cy/2-m_clickedY) / m_scaleY + m_posY;
     ZoomIn();
 }
 
@@ -425,7 +448,6 @@ void mpWindow::OnScroll2(wxScrollWinEvent &event)
     if (event.GetOrientation() == wxHORIZONTAL)
     {
         SetPosX( (double)px / GetScaleX() + m_minX + (double)(width>>1)/GetScaleX());
-        wxLogMessage(wxT("X %d -> %f"), px, GetPosX());
     }
     else
     {
