@@ -185,6 +185,8 @@ public:
                      int flags = 0);
     ~mpWindow();
 
+    wxMenu* GetPopupMenu() { return &m_popmenu; }
+
     void AddLayer( mpLayer* layer);
     void DelLayer( mpLayer* layer);
 

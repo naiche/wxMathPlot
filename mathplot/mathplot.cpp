@@ -149,10 +149,23 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 
     double x, y;
     Rewind();
-    while (GetNextXY(x, y))
+
+    if (m_pen.GetWidth() <= 1)
     {
-        dc.DrawPoint( (wxCoord) ((x - w.GetPosX()) * w.GetScaleX()) ,
-                      (wxCoord) ((w.GetPosY() - y) * w.GetScaleY()) );
+        while (GetNextXY(x, y))
+        {
+            dc.DrawPoint( (wxCoord) ((x - w.GetPosX()) * w.GetScaleX()) ,
+                          (wxCoord) ((w.GetPosY() - y) * w.GetScaleY()) );
+        }
+    }
+    else
+    {
+        while (GetNextXY(x, y))
+        {
+            dc.DrawCircle( (wxCoord) ((x - w.GetPosX()) * w.GetScaleX()) ,
+                           (wxCoord) ((w.GetPosY() - y) * w.GetScaleY()) , 
+                           m_pen.GetWidth() );
+        }
     }
 
     if (!m_name.IsEmpty())
