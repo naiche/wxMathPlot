@@ -101,7 +101,7 @@ class WXDLLEXPORT mpFX : public mpLayer
 public:
     mpFX(wxString name = wxEmptyString, int flags = mpALIGN_RIGHT);
 
-    virtual double GetY( double x ) { return x; }
+    virtual double GetY( double x ) = 0;
     virtual void Plot(wxDC & dc, mpWindow & w);
 
 protected:
@@ -115,7 +115,7 @@ class WXDLLEXPORT mpFY : public mpLayer
 public:
     mpFY(wxString name = wxEmptyString, int flags = mpALIGN_TOP);
 
-    virtual double GetX( double y ) { return y; }
+    virtual double GetX( double y ) = 0;
     virtual void Plot(wxDC & dc, mpWindow & w);
 
 protected:
@@ -130,7 +130,7 @@ public:
     mpFXY(wxString name = wxEmptyString, int flags = mpALIGN_NE);
 
     virtual void Rewind() = 0;
-    virtual bool GetNextXY(double & x, double & y ) = 0;
+    virtual bool GetNextXY(double & x, double & y) = 0;
 
     virtual void Plot(wxDC & dc, mpWindow & w);
 

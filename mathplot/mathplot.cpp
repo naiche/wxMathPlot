@@ -65,7 +65,7 @@ mpLayer::mpLayer()
 // mpLayer implementations - functions
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(mpFX, mpLayer)
+IMPLEMENT_ABSTRACT_CLASS(mpFX, mpLayer)
 
 mpFX::mpFX(wxString name, int flags)
 { 
@@ -100,7 +100,7 @@ void mpFX::Plot(wxDC & dc, mpWindow & w)
     }
 }
 
-IMPLEMENT_CLASS(mpFY, mpLayer)
+IMPLEMENT_ABSTRACT_CLASS(mpFY, mpLayer)
 
 mpFY::mpFY(wxString name, int flags)
 { 
@@ -135,7 +135,7 @@ void mpFY::Plot(wxDC & dc, mpWindow & w)
     }
 }
 
-IMPLEMENT_CLASS(mpFXY, mpLayer)
+IMPLEMENT_ABSTRACT_CLASS(mpFXY, mpLayer)
 
 mpFXY::mpFXY(wxString name, int flags)
 { 
