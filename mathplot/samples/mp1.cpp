@@ -23,7 +23,7 @@
 
 class MySIN;
 class MyCOSinverse;
-class MyLisajoux;
+class MyLissajoux;
 class MyFrame;
 class MyApp;
 
@@ -51,14 +51,14 @@ public:
     virtual double GetMaxX() { return  m_amp; }
 };
 
-// MyLisajoux
+// MyLissajoux
 
-class MyLisajoux : public mpFXY
+class MyLissajoux : public mpFXY
 {
     double m_rad;
     int    m_idx;
 public:
-    MyLisajoux(double rad) { m_rad=rad; m_idx=0; }
+    MyLissajoux(double rad) : mpFXY( wxT("Lissajoux")) { m_rad=rad; m_idx=0; }
     virtual bool GetNextXY( double & x, double & y )
     {
         if (m_idx < 360)
@@ -146,16 +146,17 @@ MyFrame::MyFrame()
     SetMenuBar( menu_bar );
     CreateStatusBar(1);
 
-    MyLisajoux* l;
+    mpLayer* l;
 
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
     m_plot->AddLayer(     new mpScaleX );
     m_plot->AddLayer(     new mpScaleY );
     m_plot->AddLayer(     new MySIN( 50.0, 220.0 ) );
     m_plot->AddLayer(     new MyCOSinverse( 50.0, 100.0 ) );
-    m_plot->AddLayer( l = new MyLisajoux( 125.0 ) );
+    m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
   
-    wxPen mypen(*wxRED, 10, wxSOLID);
+    // set a nice pen for the lissajoux
+    wxPen mypen(*wxRED, 5, wxSOLID);
     l->SetPen( mypen);
 
     m_log = new wxTextCtrl( this, -1, wxT("This is the log window.\n"), wxPoint(0,0), wxSize(100,100), wxTE_MULTILINE );

@@ -77,9 +77,20 @@ void mpFX::Plot(wxDC & dc, mpWindow & w)
 {
     dc.SetPen( m_pen);
 
-    for (wxCoord i = -(w.GetScrX()>>1); i < (w.GetScrX()>>1); ++i)
+    if (m_pen.GetWidth() <= 1) 
     {
-        dc.DrawPoint(i, (wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY()));
+        for (wxCoord i = -(w.GetScrX()>>1); i < (w.GetScrX()>>1); ++i)
+        {
+            dc.DrawPoint(i, (wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY()));
+        }
+    }
+    else
+    {
+        for (wxCoord i = -(w.GetScrX()>>1); i < (w.GetScrX()>>1); ++i)
+        {
+            wxCoord c = (wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY());
+            dc.DrawLine( i, c, i, c);
+        }
     }
 
     if (!m_name.IsEmpty())
@@ -112,9 +123,22 @@ void mpFY::Plot(wxDC & dc, mpWindow & w)
 {
     dc.SetPen( m_pen);
 
-    for (wxCoord i = -(w.GetScrY()>>1); i < (w.GetScrY()>>1); ++i)
+    wxCoord i;
+
+    if (m_pen.GetWidth() <= 1) 
     {
-        dc.DrawPoint((wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -i);
+        for (i = -(w.GetScrY()>>1); i < (w.GetScrY()>>1); ++i)
+        {
+            dc.DrawPoint((wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -i);
+        }
+    }
+    else
+    {
+        for (i = -(w.GetScrY()>>1); i < (w.GetScrY()>>1); ++i)
+        {
+            wxCoord c =  (wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX());
+            dc.DrawLine(c, -i, c, -i);
+        }
     }
 
     if (!m_name.IsEmpty())
@@ -150,7 +174,10 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
     double x, y;
     Rewind();
 
-    if (m_pen.GetWidth() <= 1)
+    // for some reason DrawPoint does not use the current pen,
+    // so we use DrawLine for fat pens
+
+    if (m_pen.GetWidth() <= 1) 
     {
         while (GetNextXY(x, y))
         {
@@ -162,9 +189,9 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
     {
         while (GetNextXY(x, y))
         {
-            dc.DrawCircle( (wxCoord) ((x - w.GetPosX()) * w.GetScaleX()) ,
-                           (wxCoord) ((w.GetPosY() - y) * w.GetScaleY()) , 
-                           m_pen.GetWidth() );
+            wxCoord cx = (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
+            wxCoord cy = (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
+            dc.DrawLine(cx, cy, cx, cy);
         }
     }
 
@@ -175,26 +202,35 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
         wxCoord tx, ty;
         dc.GetTextExtent(m_name, &tx, &ty);
 
-        if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+        // xxx implement else ... if (!HasBBox())
         {
-            tx = (w.GetScrX()>>1) - tx - 8;
-            ty = (w.GetScrY()>>1) - 8;
+            const int sx = w.GetScrX()>>1;
+            const int sy = w.GetScrY()>>1;
+
+            if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+            {
+                tx = sx - tx - 8;
+                ty = -sy + 8;
+            }
+            else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+            {
+                tx = -sx + 8;
+                ty = -sy + 8;
+            }
+            else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+            {
+                tx = -sx + 8;
+                ty = sy - 8 - ty;
+            }
+            else
+            {
+                tx = sx - tx - 8;
+                ty = sy - 8 - ty;
+            }
         }
-        else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
-        {
-            tx = -(w.GetScrX()>>1) + 8;
-            ty = (w.GetScrY()>>1) - 8;
-        }
-        else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
-        {
-            tx = -(w.GetScrX()>>1) + 8;
-            ty = -(w.GetScrY()>>1) - 8 - ty;
-        }
-        else
-        {
-            tx = (w.GetScrX()>>1) - tx - 8;
-            ty = -(w.GetScrY()>>1) - 8 - ty;
-        }
+        //else
+        //{
+        //}
 
         dc.DrawText( m_name, tx, ty);
     }
@@ -476,10 +512,11 @@ void mpWindow::OnSize( wxSizeEvent &event )
     UpdateAll();
 }
 
-void mpWindow::AddLayer( mpLayer* layer)
+bool mpWindow::AddLayer( mpLayer* layer)
 {
-    m_layers.Append( layer);
+    bool ret = m_layers.Append( layer) != NULL;
     UpdateAll();
+    return ret;
 }
 
 void mpWindow::DelLayer( mpLayer* layer)
@@ -526,7 +563,7 @@ void mpWindow::OnScroll2(wxScrollWinEvent &event)
 
 bool mpWindow::UpdateBBox()
 {
-    bool first = true;
+    bool first = TRUE;
 
     wxNode *node = m_layers.GetFirst();
 
@@ -538,7 +575,7 @@ bool mpWindow::UpdateBBox()
         {
             if (first)
             {
-                first = false;
+                first = FALSE;
                 m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
                 m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
             }
@@ -551,7 +588,7 @@ bool mpWindow::UpdateBBox()
         node = node->GetNext();
     }
 
-    return first == false;
+    return first == FALSE;
 }
 
 void mpWindow::UpdateAll()

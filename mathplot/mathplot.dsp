@@ -93,29 +93,5 @@ SOURCE=.\mathplot.cpp
 
 SOURCE=.\mathplot.h
 # End Source File
-# Begin Source File
-
-SOURCE=.\plot_dwn.xpm
-# End Source File
-# Begin Source File
-
-SOURCE=.\plot_enl.xpm
-# End Source File
-# Begin Source File
-
-SOURCE=.\plot_shr.xpm
-# End Source File
-# Begin Source File
-
-SOURCE=.\plot_up.xpm
-# End Source File
-# Begin Source File
-
-SOURCE=.\plot_zin.xpm
-# End Source File
-# Begin Source File
-
-SOURCE=.\plot_zot.xpm
-# End Source File
 # End Target
 # End Project
