@@ -39,6 +39,7 @@ enum
     mpID_ZOOM_IN,
     mpID_ZOOM_OUT,
     mpID_CENTER,
+    mpID_LOCKASPECT,
 };
 
 //-----------------------------------------------------------------------------
@@ -84,11 +85,16 @@ protected:
 // mpLayer implementations - functions
 //-----------------------------------------------------------------------------
 
-#define mpALIGN_RIGHT  0x01
-#define mpALIGN_CENTER 0x02
-#define mpALIGN_LEFT   0x04
+#define mpALIGNMASK    0x03
+#define mpALIGN_RIGHT  0x00
+#define mpALIGN_CENTER 0x01
+#define mpALIGN_LEFT   0x02
 #define mpALIGN_TOP    mpALIGN_RIGHT
 #define mpALIGN_BOTTOM mpALIGN_LEFT
+#define mpALIGN_NE     0x00
+#define mpALIGN_NW     0x01
+#define mpALIGN_SW     0x02
+#define mpALIGN_SE     0x03
 
 class WXDLLEXPORT mpFX : public mpLayer
 {
@@ -121,7 +127,7 @@ protected:
 class WXDLLEXPORT mpFXY : public mpLayer
 {
 public:
-    mpFXY(wxString name = wxEmptyString, int flags = 0);
+    mpFXY(wxString name = wxEmptyString, int flags = mpALIGN_NE);
 
     virtual int  GetNumSamples() { return 0; }
     virtual void GetXY( int n, double & x, double & y ) {}
@@ -190,7 +196,9 @@ public:
     void SetPosY(double posY) { m_posY=posY; UpdateAll(); }
     void SetPos( double posX, double posY) { m_posX=posX; m_posY=posY; UpdateAll(); }
 
-    void Fit(bool aspect = false);
+    void LockAspect(bool enable = TRUE);
+
+    void Fit();
     void ZoomIn();
     void ZoomOut();
 
@@ -205,11 +213,13 @@ protected:
     void OnFit          (wxCommandEvent &event);
     void OnZoomIn       (wxCommandEvent &event);
     void OnZoomOut      (wxCommandEvent &event);
+    void OnLockAspect   (wxCommandEvent &event);
 
     bool UpdateBBox();
 
     wxList m_layers;
     wxMenu m_popmenu;
+    bool  m_lockaspect;
 
     double m_minX;
     double m_maxX;

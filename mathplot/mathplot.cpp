@@ -89,9 +89,9 @@ void mpFX::Plot(wxDC & dc, mpWindow & w)
         wxCoord tx, ty;
         dc.GetTextExtent(m_name, &tx, &ty);
 
-        if (m_flags & mpALIGN_RIGHT)
+        if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
             tx = (w.GetScrX()>>1) - tx - 8;
-        else if (m_flags & mpALIGN_CENTER)
+        else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
             tx = -tx/2;
         else
             tx = -(w.GetScrX()>>1) + 8;
@@ -124,9 +124,9 @@ void mpFY::Plot(wxDC & dc, mpWindow & w)
         wxCoord tx, ty;
         dc.GetTextExtent(m_name, &tx, &ty);
 
-        if (m_flags & mpALIGN_TOP)
+        if ((m_flags & mpALIGNMASK) == mpALIGN_TOP)
             ty = (w.GetScrY()>>1) - 8;
-        else if (m_flags & mpALIGN_CENTER)
+        else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
             ty = 16 - ty/2;
         else
             ty = -(w.GetScrY()>>1) + 8;
@@ -154,6 +154,37 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
         GetXY(i, x, y);
         dc.DrawPoint( (wxCoord) ((x - w.GetPosX()) * w.GetScaleX()) ,
                       (wxCoord) ((w.GetPosY() - y) * w.GetScaleY()) );
+    }
+
+    if (!m_name.IsEmpty())
+    {
+        dc.SetFont(m_font);
+
+        wxCoord tx, ty;
+        dc.GetTextExtent(m_name, &tx, &ty);
+
+        if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+        {
+            tx = (w.GetScrX()>>1) - tx - 8;
+            ty = (w.GetScrY()>>1) - 8;
+        }
+        else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+        {
+            tx = -(w.GetScrX()>>1) + 8;
+            ty = (w.GetScrY()>>1) - 8;
+        }
+        else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+        {
+            tx = -(w.GetScrX()>>1) + 8;
+            ty = -(w.GetScrY()>>1) - 8 - ty;
+        }
+        else
+        {
+            tx = (w.GetScrX()>>1) - tx - 8;
+            ty = -(w.GetScrY()>>1) - 8 - ty;
+        }
+
+        dc.DrawText( m_name, tx, ty);
     }
 }
 
@@ -196,7 +227,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
     }
     else
     {
-        tmp=4-tmp;
+        tmp=8-tmp;
         fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
     }
 
@@ -254,7 +285,7 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     }
     else
     {
-        tmp=4-tmp;
+        tmp=8-tmp;
         fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
     }
 
@@ -292,10 +323,11 @@ BEGIN_EVENT_TABLE(mpWindow, wxScrolledWindow)
 
     EVT_MIDDLE_UP( mpWindow::OnShowPopupMenu)
     EVT_RIGHT_UP ( mpWindow::OnShowPopupMenu)
-    EVT_MENU( mpID_CENTER,  mpWindow::OnCenter)
-    EVT_MENU( mpID_FIT,     mpWindow::OnFit)
-    EVT_MENU( mpID_ZOOM_IN, mpWindow::OnZoomIn)
-    EVT_MENU( mpID_ZOOM_OUT,mpWindow::OnZoomOut)
+    EVT_MENU( mpID_CENTER,    mpWindow::OnCenter)
+    EVT_MENU( mpID_FIT,       mpWindow::OnFit)
+    EVT_MENU( mpID_ZOOM_IN,   mpWindow::OnZoomIn)
+    EVT_MENU( mpID_ZOOM_OUT,  mpWindow::OnZoomOut)
+    EVT_MENU( mpID_LOCKASPECT,mpWindow::OnLockAspect)
 END_EVENT_TABLE()
 
 mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int flag )
@@ -307,10 +339,13 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_minX   = m_minY   = 0;
     m_maxX   = m_maxY   = 0;
 
-    m_popmenu.Append( mpID_CENTER,   _("Center"),   _("Center plot view to this position"));
-    m_popmenu.Append( mpID_FIT,      _("Fit"),      _("Set plot view to show all items"));
-    m_popmenu.Append( mpID_ZOOM_IN,  _("Zoom in"),  _("Zoom in plot view."));
-    m_popmenu.Append( mpID_ZOOM_OUT, _("Zoom out"), _("Zoom out plot view."));
+    m_lockaspect = FALSE;
+
+    m_popmenu.Append( mpID_CENTER,     _("Center"),      _("Center plot view to this position"));
+    m_popmenu.Append( mpID_FIT,        _("Fit"),         _("Set plot view to show all items"));
+    m_popmenu.Append( mpID_ZOOM_IN,    _("Zoom in"),     _("Zoom in plot view."));
+    m_popmenu.Append( mpID_ZOOM_OUT,   _("Zoom out"),    _("Zoom out plot view."));
+    m_popmenu.AppendCheckItem( mpID_LOCKASPECT, _("Lock aspect"), _("Lock horizontal and vertical zoom aspect."));
 
     m_layers.DeleteContents(TRUE);
     SetBackgroundColour( *wxWHITE );
@@ -324,7 +359,7 @@ mpWindow::~mpWindow()
 {
 }
 
-void mpWindow::Fit(bool aspect)
+void mpWindow::Fit()
 {
     if (UpdateBBox())
     {
@@ -345,7 +380,7 @@ void mpWindow::Fit(bool aspect)
             m_posY = m_minY + d/2;
         }
 
-        if (aspect)
+        if (m_lockaspect)
         {
             double s = (m_scaleX + m_scaleY)/2;
             m_scaleX = s;
@@ -370,11 +405,32 @@ void mpWindow::ZoomOut()
     UpdateAll();
 }
 
+void mpWindow::LockAspect(bool enable)
+{
+    m_lockaspect = enable;
+
+    m_popmenu.Check(mpID_LOCKASPECT, enable);
+
+    if (m_lockaspect)
+    {
+        double s = (m_scaleX + m_scaleY)/2;
+        m_scaleX = s;
+        m_scaleY = s;
+    }
+
+    UpdateAll();
+}
+
 void mpWindow::OnShowPopupMenu(wxMouseEvent &event)
 {
     m_clickedX = event.GetX();
     m_clickedY = event.GetY();
     PopupMenu( &m_popmenu, event.GetX(), event.GetY());
+}
+
+void mpWindow::OnLockAspect(wxCommandEvent &event)
+{
+    LockAspect( !m_popmenu.IsChecked(mpID_LOCKASPECT) );
 }
 
 void mpWindow::OnFit(wxCommandEvent &event)
