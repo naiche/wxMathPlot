@@ -36,19 +36,6 @@
 
 #include <math.h>
 
-// ----------------------------------------------------------------------------
-// XPMs
-// ----------------------------------------------------------------------------
-
-//#if !defined(__WXMSW__) && !defined(__WXPM__)
-    #include "plot_enl.xpm"
-    #include "plot_shr.xpm"
-    #include "plot_zin.xpm"
-    #include "plot_zot.xpm"
-    #include "plot_up.xpm"
-    #include "plot_dwn.xpm"
-//#endif
-
 //-----------------------------------------------------------------------------
 // mpLayer
 //-----------------------------------------------------------------------------
@@ -284,7 +271,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
     tmp=-65535;
     for (;n < end; n += step)
     {
-        const int p = (n - w.GetPosX()) * w.GetScaleX();
+        const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
         dc.DrawLine( p, orgy, p, orgy+4);
 
         s.Printf(fmt, n);
@@ -342,7 +329,7 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     tmp=65536;
     for (;n < end; n += step)
     {
-        const int p = (w.GetPosY() - n) * w.GetScaleY();
+        const int p = (int)((w.GetPosY() - n) * w.GetScaleY());
         dc.DrawLine( orgx, p, orgx+4, p);
 
         s.Printf(fmt, n);
@@ -600,8 +587,8 @@ void mpWindow::UpdateAll()
 
         const int sx = (int)((m_maxX - m_minX) * GetScaleX());
         const int sy = (int)((m_maxY - m_minY) * GetScaleY());
-        const int px = (GetPosX() - m_minX) * GetScaleX() - (cx>>1);
-        const int py = (GetPosY() - m_minY) * GetScaleY() - (cy>>1);;
+        const int px = (int)((GetPosX() - m_minX) * GetScaleX() - (cx>>1));
+        const int py = (int)((GetPosY() - m_minY) * GetScaleY() - (cy>>1));
         SetScrollbars( 1, 1, sx, sy, px, py);
     }
 

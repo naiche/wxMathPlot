@@ -48,7 +48,7 @@
 #endif
 
 #include "wx/defs.h"
-
+#include "wx/menu.h"
 #include "wx/scrolwin.h"
 #include "wx/event.h"
 #include "wx/dynarray.h"
