@@ -223,6 +223,16 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
     }
 }
 
+mpAX::mpAX(wxString name, int flags) : mpFX(name, flags)
+{
+}
+
+double mpAX::GetY( double x )
+{
+    return GetY( (int)x);
+}
+
+
 //-----------------------------------------------------------------------------
 // mpLayer implementations - furniture (scales, ...)
 //-----------------------------------------------------------------------------

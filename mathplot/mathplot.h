@@ -329,6 +329,28 @@ protected:
     DECLARE_CLASS(mpFXY)
 };
 
+class WXDLLEXPORT mpAX : public mpFX
+{
+protected:
+    virtual double GetY( double x );
+
+public:
+    /** @param name  Label
+        @param flags Label alignment, pass one of #mpALIGN_RIGHT, #mpALIGN_CENTER, #mpALIGN_LEFT.
+    */
+    mpAX(wxString name = wxEmptyString, int flags = mpALIGN_RIGHT);
+
+    /** Get function value for argument.
+        Override this function in your implementation.
+        @param x Argument
+        @return Function value
+    */
+    virtual double GetY( int x ) = 0;
+
+
+    DECLARE_CLASS(mpFX)
+};
+
 /*@}*/
 
 //-----------------------------------------------------------------------------
