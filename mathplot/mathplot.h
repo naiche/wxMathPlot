@@ -21,6 +21,7 @@
 #include "wx/event.h"
 #include "wx/dynarray.h"
 
+
 //-----------------------------------------------------------------------------
 // classes
 //-----------------------------------------------------------------------------
@@ -59,7 +60,8 @@ class WXDLLEXPORT mpLayer : public wxObject
 public:
     mpLayer();
 
-    virtual double GetMinX() { return -1.0; }
+    virtual bool   HasBBox() { return true; }
+    virtual double GetMinX() { return  1.0; }
     virtual double GetMaxX() { return  1.0; }
     virtual double GetMinY() { return -1.0; }
     virtual double GetMaxY() { return  1.0; }
@@ -149,6 +151,7 @@ class WXDLLEXPORT mpScaleX : public mpLayer
 public:
     mpScaleX(wxString name = wxT("X"));
     virtual void Plot(wxDC & dc, mpWindow & w);
+    virtual bool HasBBox() { return false; }
     
     DECLARE_CLASS(mpScaleX)
 };
@@ -158,6 +161,7 @@ class WXDLLEXPORT mpScaleY : public mpLayer
 public:
     mpScaleY(wxString name = wxT("Y"));
     virtual void Plot(wxDC & dc, mpWindow & w);
+    virtual bool HasBBox() { return false; }
 
 protected:
 

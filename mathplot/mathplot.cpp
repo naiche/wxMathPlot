@@ -513,24 +513,32 @@ void mpWindow::OnScroll2(wxScrollWinEvent &event)
 
 bool mpWindow::UpdateBBox()
 {
+    bool first = true;
+
     wxNode *node = m_layers.GetFirst();
 
-    if (!node)  return FALSE;
-
-    mpLayer* f = (mpLayer*)node->GetData();
-
-    m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
-    m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
-
-    for(;;)
+    while(node)
     {
-        node = node->GetNext(); if (node==NULL) break;
-        f = (mpLayer*)node->GetData();
-        if (f->GetMinX()<m_minX) m_minX=f->GetMinX(); if (f->GetMaxX()>m_maxX) m_maxX=f->GetMaxX();
-        if (f->GetMinY()<m_minY) m_minY=f->GetMinY(); if (f->GetMaxY()>m_maxY) m_maxY=f->GetMaxY();
+        mpLayer* f = (mpLayer*)node->GetData();
+
+        if (f->HasBBox())
+        {
+            if (first)
+            {
+                first = false;
+                m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
+                m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
+            }
+            else
+            {
+                if (f->GetMinX()<m_minX) m_minX=f->GetMinX(); if (f->GetMaxX()>m_maxX) m_maxX=f->GetMaxX();
+                if (f->GetMinY()<m_minY) m_minY=f->GetMinY(); if (f->GetMaxY()>m_maxY) m_maxY=f->GetMaxY();
+            }
+        }
+        node = node->GetNext();
     }
 
-    return TRUE;
+    return first == false;
 }
 
 void mpWindow::UpdateAll()
