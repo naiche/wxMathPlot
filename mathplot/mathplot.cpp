@@ -147,11 +147,10 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 {
     dc.SetPen( m_pen);
 
-    const int numsamples = GetNumSamples();
     double x, y;
-    for (int i = 0; i <= numsamples; ++i)
+    Rewind();
+    while (GetNextXY(x, y))
     {
-        GetXY(i, x, y);
         dc.DrawPoint( (wxCoord) ((x - w.GetPosX()) * w.GetScaleX()) ,
                       (wxCoord) ((w.GetPosY() - y) * w.GetScaleY()) );
     }

@@ -129,8 +129,9 @@ class WXDLLEXPORT mpFXY : public mpLayer
 public:
     mpFXY(wxString name = wxEmptyString, int flags = mpALIGN_NE);
 
-    virtual int  GetNumSamples() { return 0; }
-    virtual void GetXY( int n, double & x, double & y ) {}
+    virtual void Rewind() = 0;
+    virtual bool GetNextXY(double & x, double & y ) = 0;
+
     virtual void Plot(wxDC & dc, mpWindow & w);
 
 protected:

@@ -56,14 +56,24 @@ public:
 class MyLisajoux : public mpFXY
 {
     double m_rad;
+    int    m_idx;
 public:
-    MyLisajoux(double rad) { m_rad=rad; }
-    virtual void GetXY( int n, double & x, double & y )
-    { 
-        x = m_rad * cos(n/6.283185*360);
-        y = m_rad * sin(n/6.283185*360*3);
+    MyLisajoux(double rad) { m_rad=rad; m_idx=0; }
+    virtual bool GetNextXY( double & x, double & y )
+    {
+        if (m_idx < 360)
+        {
+            x = m_rad * cos(m_idx / 6.283185*360);
+            y = m_rad * sin(m_idx / 6.283185*360*3);
+            m_idx++;
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
     }
-    virtual int GetNumSamples() { return 360; }
+    virtual void Rewind() { m_idx=0; }
     virtual double GetMinX() { return -m_rad; }
     virtual double GetMaxX() { return  m_rad; }
     virtual double GetMinY() { return -m_rad; }
