@@ -1,0 +1,34 @@
+wxMathPlot is a framework for mathematical graph plotting in wxWindows.
+
+For more information go to
+https://sourceforge.net/projects/wxmathplot/
+http://wxmathplot.sourceforge.net/
+
+Installing
+----------
+
+wxMathPlot comes with a Makefile to build a static library.
+It requires wxWindows 2.x to be installed.
+
+To build and install wxMathPlot simpy type 
+
+make
+make install
+
+This will install headers to
+/usr/local/include
+
+and the static lib to
+/usr/local/lib
+
+Samples
+-------
+
+A subdirectory 'samples' contains sample applications using wxMathLib.
+To build these, type:
+
+cd samples
+make
+
+
+David Schalig, email sf(at)schalig.org

@@ -22,7 +22,7 @@ $(TARGET): $(HEADERS) $(OBJS)
 	$(AR) r $(TARGET) $(OBJS)
 	ranlib $(TARGET)
 
-install:
+install: $(TARGET)
 	@install -v -d $(INSTALLDIR)/lib $(INSTALLDIR)/include
 	@install -v $(HEADERS) $(INSTALLDIR)/include
 	@install -v $(TARGET) $(INSTALLDIR)/lib
