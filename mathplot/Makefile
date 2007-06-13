@@ -2,14 +2,15 @@ WEBDIR     ?= ../htdocs
 TEMPDIR    ?= /tmp
 
 INSTALLDIR ?= /usr/local
-TARGET     ?= libmathplot.a
+TARGET     ?= lib/libmathplot.a
+DEBUGFLAGS  = -g -ggdb
 CXXFLAGS   += `wx-config --cxxflags`
 LINKFLAGS  += `wx-config --libs`
 SOURCES     = mathplot.cpp
 HEADERS     = mathplot.h
 VERSION     = `cat VERSION`
 .SUFFIXES: .o .cpp
-.PHONY: install default clean cleanvc doxygen
+.PHONY: install default clean cleanvc doxygen debug
 
 OBJS = $(SOURCES:.cpp=.o)
 
@@ -50,3 +51,7 @@ sourcerelease:
 	gzip -9 wxmathplot-$(VERSION).tar
 	rm -rf $(TEMPDIR)/wxmathplot-$(VERSION)
 
+debug: $(HEADERS) $(SOURCES)
+	$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) $(CXXINCLUDES) $(SOURCES) -o $(OBJS)
+	$(AR) r $(TARGET) $(OBJS)
+	ranlib $(TARGET)

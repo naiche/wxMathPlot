@@ -2,14 +2,16 @@
 // Name:        mathplot.cpp
 // Purpose:     Framework for mathematical graph plotting in wxWindows
 // Author:      David Schalig
-// Modified by:
+// Modified by: Davide Rondini
 // Created:     21/07/2003
-// Copyright:   (c) David Schalig
+// Last edit:   13/06/2007
+// Copyright:   (c) David Schalig, Davide Rondini
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifdef __GNUG__
-#pragma implementation "plot.h"
+// #pragma implementation "plot.h"
+#pragma implementation "mathplot.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
@@ -35,6 +37,7 @@
 #include "wx/module.h"
 
 #include <math.h>
+#include <cstdio> // used only for debug
 
 //-----------------------------------------------------------------------------
 // mpLayer
@@ -44,8 +47,8 @@ IMPLEMENT_ABSTRACT_CLASS(mpLayer, wxObject)
 
 mpLayer::mpLayer()
 {
-    SetPen( *wxBLACK_PEN);
-    SetFont(*wxNORMAL_FONT);
+    SetPen((wxPen&) *wxBLACK_PEN);
+    SetFont((wxFont&) *wxNORMAL_FONT);
 }
 
 //-----------------------------------------------------------------------------
@@ -223,16 +226,6 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
     }
 }
 
-mpAX::mpAX(wxString name, int flags) : mpFX(name, flags)
-{
-}
-
-double mpAX::GetY( double x )
-{
-    return GetY( (int)x);
-}
-
-
 //-----------------------------------------------------------------------------
 // mpLayer implementations - furniture (scales, ...)
 //-----------------------------------------------------------------------------
@@ -244,8 +237,8 @@ IMPLEMENT_CLASS(mpScaleX, mpLayer)
 mpScaleX::mpScaleX(wxString name)
 { 
     SetName(name);
-    SetFont(*wxSMALL_FONT);
-    SetPen(*wxGREY_PEN);
+    SetFont( (wxFont&) *wxSMALL_FONT);
+    SetPen( (wxPen&) *wxGREY_PEN);
 }
 
 void mpScaleX::Plot(wxDC & dc, mpWindow & w)
@@ -302,8 +295,8 @@ IMPLEMENT_CLASS(mpScaleY, mpLayer)
 mpScaleY::mpScaleY(wxString name)
 { 
     SetName(name);
-    SetFont(*wxSMALL_FONT);
-    SetPen(*wxGREY_PEN);
+    SetFont( (wxFont&) *wxSMALL_FONT);
+    SetPen( (wxPen&) *wxGREY_PEN);
 }
 
 void mpScaleY::Plot(wxDC & dc, mpWindow & w)
@@ -392,7 +385,8 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_popmenu.Append( mpID_ZOOM_OUT,   _("Zoom out"),    _("Zoom out plot view."));
     m_popmenu.AppendCheckItem( mpID_LOCKASPECT, _("Lock aspect"), _("Lock horizontal and vertical zoom aspect."));
 
-    m_layers.DeleteContents(TRUE);
+    //m_layers.DeleteContents(TRUE);
+    m_layers.clear();
     SetBackgroundColour( *wxWHITE );
     EnableScrolling(FALSE, FALSE);
     SetSizeHints(128, 128);
@@ -416,6 +410,7 @@ void mpWindow::Fit()
         if (d!=0)
         {
             m_scaleX = cx/d;
+            printf("mpWindow::Fit() m_scaleX = %f , cx = %d, d = %f\n", m_scaleX, cx, d);
             m_posX = m_minX + d/2;
         }
         d = m_maxY - m_minY;
@@ -429,6 +424,7 @@ void mpWindow::Fit()
         {
             double s = (m_scaleX + m_scaleY)/2;
             m_scaleX = s;
+            printf("mpWindow::Fit(lock) m_scaleX = %f\n", m_scaleX);
             m_scaleY = s;
         }
 
@@ -440,14 +436,18 @@ void mpWindow::ZoomIn()
 {
     m_scaleX = m_scaleX * 2;
     m_scaleY = m_scaleY * 2;
+    printf("mpWindow::ZoomIn() m_scaleX = %f ,", m_scaleX);
     UpdateAll();
+    printf("mpWindow::ZoomIn() m_scaleX(Updated) = %f\n", m_scaleX);
 }
 
 void mpWindow::ZoomOut()
 {
     m_scaleX = m_scaleX / 2;
     m_scaleY = m_scaleY / 2;
+    printf("mpWindow::ZoomOut() m_scaleX = %f ,", m_scaleX);
     UpdateAll();
+    printf("mpWindow::ZoomOut() m_scaleX(Updated) = %f\n", m_scaleX);
 }
 
 void mpWindow::LockAspect(bool enable)
@@ -511,33 +511,59 @@ void mpWindow::OnSize( wxSizeEvent &event )
 
 bool mpWindow::AddLayer( mpLayer* layer)
 {
-    bool ret = m_layers.Append( layer) != NULL;
+    if (layer != NULL) {
+    	int layNo = m_layers.size();
+    	m_layers[layNo] = layer;
+    	UpdateAll();
+    	return true;
+    	};
+    return false;
+    // Old version, using wxList
+    /*bool ret = m_layers.Append( layer) != NULL;
     UpdateAll();
-    return ret;
+    return ret;*/
 }
 
-void mpWindow::DelLayer( mpLayer* layer)
+bool mpWindow::DelLayer( mpLayer* layer)
 {
-    m_layers.DeleteObject( layer);
-    UpdateAll();
+    //m_layers.DeleteObject( layer);
+    // New version, using wxHashMap, and with layer presence check
+    wxLayerList::iterator layIt;
+    for (layIt = m_layers.begin(); layIt != m_layers.end(); layIt++) {
+    	if (layIt->second == layer) break;
+    	};
+    if (layIt != m_layers.end()) {
+    	m_layers.erase(layIt); // this way only refereice is deleted, layer object still exists!
+    	UpdateAll();
+    	return true;
+    	};
+    return false;
 }
 
 void mpWindow::OnPaint( wxPaintEvent &event )
 {
     wxPaintDC dc(this);
-    dc.BeginDrawing();
+    //dc.BeginDrawing();
 
     dc.GetSize(&m_scrX, &m_scrY);
     dc.SetDeviceOrigin( m_scrX>>1, m_scrY>>1);
 
-    wxNode *node = m_layers.GetFirst();
+    wxLayerList::iterator li;
+    for (li = m_layers.begin(); li != m_layers.end(); li++) {
+    	mpLayer* f = li->second;
+    	//printf("0x%d : plotting layer %d (%s)\n", (unsigned int) this, (unsigned int) f, (const char*) wxConvCurrent->cWX2MB(f->GetName()) );
+    	f->Plot(dc, *this);
+    	};
+
+// old version using wxList
+/*    wxNode *node = m_layers.GetFirst();
     while (node)
     {
         ((mpLayer*)node->GetData())->Plot( dc, *this);
         node = node->GetNext();
     }
-
-    dc.EndDrawing();
+*/
+    //dc.EndDrawing();
 }
 
 void mpWindow::OnScroll2(wxScrollWinEvent &event)
@@ -562,12 +588,16 @@ bool mpWindow::UpdateBBox()
 {
     bool first = TRUE;
 
-    wxNode *node = m_layers.GetFirst();
-
-    while(node)
+    //wxNode *node = m_layers.GetFirst();
+    //printf("0x%d : %d layers\n", (unsigned int) this, m_layers.size());
+    for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++) //while(node)
     {
-        mpLayer* f = (mpLayer*)node->GetData();
-
+        mpLayer* f = li->second; //(mpLayer*)node->GetData();
+        
+        //printf("f = 0x%X (name = %s)\n", (unsigned int) f, (const char*) wxConvCurrent->cWX2MB(f->GetName()));
+        //bool box2 = f->HasBBox();
+        //printf("box2 %d\n", box2);
+        
         if (f->HasBBox())
         {
             if (first)
@@ -582,7 +612,7 @@ bool mpWindow::UpdateBBox()
                 if (f->GetMinY()<m_minY) m_minY=f->GetMinY(); if (f->GetMaxY()>m_maxY) m_maxY=f->GetMaxY();
             }
         }
-        node = node->GetNext();
+        //node = node->GetNext();
     }
 
     return first == FALSE;
@@ -590,7 +620,10 @@ bool mpWindow::UpdateBBox()
 
 void mpWindow::UpdateAll()
 {
-    if (UpdateBBox())
+    //printf("placeholder 1\n");
+    bool box = UpdateBBox();
+    //printf("placeholder 3 (Box = %d)\n", (int) box);
+    if (box)
     {
         int cx, cy;
         GetClientSize( &cx, &cy);
@@ -604,4 +637,26 @@ void mpWindow::UpdateAll()
 
     FitInside();
     Refresh( TRUE );
+}
+
+void mpWindow::SetScaleX(double scaleX)
+{
+    if (scaleX!=0) m_scaleX=scaleX;
+    printf("mpWindow::SetScaleX() m_scaleX = %f, scaleX = %f ", m_scaleX, scaleX);
+    UpdateAll();
+    printf(" m_scaleX(Updated) = %f\n", m_scaleX);
+}
+
+// New methods implemented by Davide Rondini
+
+unsigned int mpWindow::CountLayers()
+{	
+    //wxNode *node = m_layers.GetFirst();
+    unsigned int layerNo = 0;
+    for(wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+    	{
+        if (li->second->HasBBox()) layerNo++;
+	// node = node->GetNext();
+    	};
+    return layerNo;
 }

@@ -2,9 +2,10 @@
 // Name:        mathplot.h
 // Purpose:     Framework for mathematical graph plotting in wxWindows
 // Author:      David Schalig
-// Modified by:
+// Modified by: Davide Rondini
 // Created:     21/07/2003
-// Copyright:   (c) David Schalig
+// Last edit:   13/06/2007
+// Copyright:   (c) David Schalig, Davide Rondini
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -91,6 +92,8 @@ class WXDLLEXPORT mpLayer : public wxObject
 {
 public:
     mpLayer();
+    
+    virtual ~mpLayer() {};
 
     /** Check whether this layer has a bounding box.
         The default implementation returns \a TRUE. Overide and return
@@ -329,28 +332,6 @@ protected:
     DECLARE_CLASS(mpFXY)
 };
 
-class WXDLLEXPORT mpAX : public mpFX
-{
-protected:
-    virtual double GetY( double x );
-
-public:
-    /** @param name  Label
-        @param flags Label alignment, pass one of #mpALIGN_RIGHT, #mpALIGN_CENTER, #mpALIGN_LEFT.
-    */
-    mpAX(wxString name = wxEmptyString, int flags = mpALIGN_RIGHT);
-
-    /** Get function value for argument.
-        Override this function in your implementation.
-        @param x Argument
-        @return Function value
-    */
-    virtual double GetY( int x ) = 0;
-
-
-    DECLARE_CLASS(mpFX)
-};
-
 /*@}*/
 
 //-----------------------------------------------------------------------------
@@ -425,6 +406,8 @@ protected:
 #define mpMOUSEMODE_ZOOMBOX 1
 
 /*@}*/
+/** Define the hash map for managing the layer list inside mpWindow */
+WX_DECLARE_HASH_MAP( int, mpLayer*, wxIntegerHash, wxIntegerEqual, wxLayerList );
 
 /** Canvas for plotting mpLayer implementations.
 
@@ -461,31 +444,39 @@ public:
 
     /** Remove a plot layer from the canvas.
         @param layer Pointer to layer. The mpLayer object will be destructed using delete.
+        @return true if layer is deleted correctly
+        
+        N.B. Only the layer reference in the mpWindow is deleted, the layer object still exists!
     */
-    void DelLayer( mpLayer* layer);
+    bool DelLayer( mpLayer* layer);
 
+    
     /** Get current view's X scale.
         See @ref mpLayer::Plot "rules for coordinate transformation"
         @return Scale
     */
-    double GetScaleX(void) const { return m_scaleX; }
+    double GetXscl() { return m_scaleX; }
+    double GetScaleX(void) const{ return m_scaleX; }; // Schaling's method: maybe another method esists with the same name
 
     /** Get current view's Y scale.
         See @ref mpLayer::Plot "rules for coordinate transformation"
         @return Scale
     */
-    double GetScaleY(void) const { return m_scaleY; }
+    double GetYscl() const { return m_scaleY; }
+    double GetScaleY(void) const { return m_scaleY; } // Schaling's method: maybe another method esists with the same name
 
     /** Get current view's X position.
         See @ref mpLayer::Plot "rules for coordinate transformation"
         @return X Position in layer coordinate system, that corresponds to the center point of the view.
     */
+    double GetXpos() const { return m_posX; }
     double GetPosX(void) const { return m_posX; }
 
     /** Get current view's Y position.
         See @ref mpLayer::Plot "rules for coordinate transformation"
         @return Y Position in layer coordinate system, that corresponds to the center point of the view.
     */
+    double GetYpos() const { return m_posY; }
     double GetPosY(void) const { return m_posY; }
 
     /** Get current view's X dimension in device context units.
@@ -507,7 +498,7 @@ public:
     /** Set current view's X scale and refresh display. 
         @param scaleX New scale, must not be 0.
     */
-    void SetScaleX(double scaleX) { if (scaleX!=0) m_scaleX=scaleX; UpdateAll(); }
+    void SetScaleX(double scaleX);
 
     /** Set current view's Y scale and refresh display. 
         @param scaleY New scale, must not be 0.
@@ -558,6 +549,13 @@ public:
     /** Refresh display */
     void UpdateAll();
 
+    // Added methods by Davide Rondini
+    
+    /** Counts the number of plot layers, axis excluded.
+    	\return The number of profiles plotted.
+    */
+    unsigned int CountLayers();
+    
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
     void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes
@@ -571,7 +569,8 @@ protected:
 
     bool UpdateBBox(); //!< Recalculate global layer bounding box
 
-    wxList m_layers;    //!< List of attached plot layers
+    //wxList m_layers;    //!< List of attached plot layers
+    wxLayerList m_layers; //!< List of attached plot layers
     wxMenu m_popmenu;   //!< Canvas' context menu
     bool   m_lockaspect;//!< Scale aspect is locked or not
 

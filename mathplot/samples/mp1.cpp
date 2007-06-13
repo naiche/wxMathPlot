@@ -184,7 +184,7 @@ void MyFrame::OnFit( wxCommandEvent &WXUNUSED(event) )
 
 void MyFrame::OnAbout( wxCommandEvent &WXUNUSED(event) )
 {
-    wxMessageBox( wxT("wxWindows mathplot sample\n(?) 2003 David Schalig"));
+    wxMessageBox( wxT("wxWidgets mathplot sample\n(c) 2003 David Schalig\n(c) 2007 Davide Rondini"));
 }
 
 //-----------------------------------------------------------------------------

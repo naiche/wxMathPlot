@@ -4,6 +4,21 @@ For more information go to
 https://sourceforge.net/projects/wxmathplot/
 http://wxmathplot.sourceforge.net/
 
+0.02 Release notes
+------------------
+
+While the project has been idle for about 4 years, this release simply fixes
+some thing to adapt to new versions of wxWidgets. The use of deprecated
+classes or method has been corrected. Only a simple method for layer
+counting has been added.
+
+wxMathPlot now works on Linux (tested for Mepis 6.5 and Debian Etch using
+wxGTK-2.6), and Windows (built under XP using Visual Studio Express 2005).
+If you experience to test it under other platform, please write me at:
+cdron77(at)sourceforge.net
+
+
+
 Installing
 ----------
 

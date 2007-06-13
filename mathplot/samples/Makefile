@@ -1,5 +1,6 @@
 TARGET     ?= mp1
 CXXINCLUDE +=
+LIBDIR    += -L../lib/
 
 CXXFLAGS  += `wx-config --cxxflags`
 LINKFLAGS += -lmathplot `wx-config --libs`
@@ -17,7 +18,7 @@ default: $(TARGET)
 	$(CXX) -c $(CXXFLAGS) $(CXXINCLUDES) $< -o $@
 
 $(TARGET): $(HEADERS) $(OBJS)
-	$(CXX) -o $(TARGET) $(OBJS) $(LINKFLAGS)
+	$(CXX) -o $(TARGET) $(OBJS) $(LIBDIR) $(LINKFLAGS)
 
 clean:
 	@rm -f $(OBJS) $(TARGET) *~ *.core *.bak *.exe
