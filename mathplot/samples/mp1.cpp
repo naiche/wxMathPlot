@@ -18,6 +18,7 @@
 #include "wx/intl.h"
 
 #include <math.h>
+// #include <time.h>
 
 // derived classes
 
@@ -80,6 +81,8 @@ public:
     virtual double GetMaxY() { return  m_rad; }
 };
 
+
+
 // MyFrame
 
 class MyFrame: public wxFrame
@@ -90,11 +93,16 @@ public:
     void OnAbout( wxCommandEvent &event );
     void OnQuit( wxCommandEvent &event );
     void OnFit( wxCommandEvent &event );
+    void OnAlignXAxis( wxCommandEvent &event );
+    void OnAlignYAxis( wxCommandEvent &event );
+    void OnToggleGrid( wxCommandEvent &event );
 
     mpWindow        *m_plot;
     wxTextCtrl      *m_log;
 
 private:
+    int axesPos[2];
+    bool ticks;
     DECLARE_DYNAMIC_CLASS(MyFrame)
     DECLARE_EVENT_TABLE()
 };
@@ -116,6 +124,9 @@ IMPLEMENT_APP(MyApp)
 enum {
     ID_QUIT  = 108,
     ID_ABOUT,
+    ID_ALIGN_X_AXIS,
+    ID_ALIGN_Y_AXIS,
+    ID_TOGGLE_GRID
 };
 
 IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
@@ -124,6 +135,9 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_ABOUT, MyFrame::OnAbout)
   EVT_MENU(ID_QUIT,  MyFrame::OnQuit)
   EVT_MENU(mpID_FIT, MyFrame::OnFit)
+  EVT_MENU(ID_ALIGN_X_AXIS, MyFrame::OnAlignXAxis)
+  EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
+  EVT_MENU(ID_TOGGLE_GRID, MyFrame::OnToggleGrid)
 END_EVENT_TABLE()
 
 MyFrame::MyFrame()
@@ -138,7 +152,11 @@ MyFrame::MyFrame()
     view_menu->Append( mpID_FIT,      wxT("&Fit bounding box"), wxT("Set plot view to show all items"));
     view_menu->Append( mpID_ZOOM_IN,  wxT("Zoom in"),           wxT("Zoom in plot view."));
     view_menu->Append( mpID_ZOOM_OUT, wxT("Zoom out"),          wxT("Zoom out plot view."));
-
+    view_menu->AppendSeparator();
+    view_menu->Append( ID_ALIGN_X_AXIS, wxT("Switch &X axis align"));
+    view_menu->Append( ID_ALIGN_Y_AXIS, wxT("Switch &Y axis align"));
+    view_menu->Append( ID_TOGGLE_GRID, wxT("Toggle grid/ticks"));
+    
     wxMenuBar *menu_bar = new wxMenuBar();
     menu_bar->Append(file_menu, wxT("&File"));
     menu_bar->Append(view_menu, wxT("&View"));
@@ -149,11 +167,12 @@ MyFrame::MyFrame()
     mpLayer* l;
 
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    m_plot->AddLayer(     new mpScaleX );
-    m_plot->AddLayer(     new mpScaleY );
+    m_plot->AddLayer(     new mpScaleX(wxT("x"), mpALIGN_BOTTOM, true) );
+    m_plot->AddLayer(     new mpScaleY(wxT("y"), mpALIGN_LEFT, true) );
     m_plot->AddLayer(     new MySIN( 50.0, 220.0 ) );
     m_plot->AddLayer(     new MyCOSinverse( 50.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
+    m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
   
     // set a nice pen for the lissajoux
     wxPen mypen(*wxRED, 5, wxSOLID);
@@ -170,6 +189,9 @@ MyFrame::MyFrame()
 
     SetAutoLayout( TRUE );
     SetSizer( topsizer );
+    axesPos[0] = 0;
+    axesPos[1] = 0;
+    ticks = true;
 }
 
 void MyFrame::OnQuit( wxCommandEvent &WXUNUSED(event) )
@@ -185,6 +207,52 @@ void MyFrame::OnFit( wxCommandEvent &WXUNUSED(event) )
 void MyFrame::OnAbout( wxCommandEvent &WXUNUSED(event) )
 {
     wxMessageBox( wxT("wxWidgets mathplot sample\n(c) 2003 David Schalig\n(c) 2007 Davide Rondini"));
+}
+
+void MyFrame::OnAlignXAxis( wxCommandEvent &WXUNUSED(event) )
+{
+    axesPos[0] = (int) (axesPos[0]+1)%5;
+    wxString temp;
+    temp.sprintf(wxT("axesPos = %d\n"), axesPos);
+    m_log->AppendText(temp);
+    if (axesPos[0] == 0)
+        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BORDER_BOTTOM);
+    if (axesPos[0] == 1)
+        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BOTTOM);
+    if (axesPos[0] == 2)
+        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_CENTER);
+    if (axesPos[0] == 3)
+        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_TOP);
+    if (axesPos[0] == 4)
+        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BORDER_TOP);
+    m_plot->UpdateAll();
+}
+
+void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
+{
+    axesPos[1] = (int) (axesPos[1]+1)%5;
+    wxString temp;
+    temp.sprintf(wxT("axesPos = %d\n"), axesPos);
+    m_log->AppendText(temp);
+    if (axesPos[1] == 0)
+        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_BORDER_LEFT);
+    if (axesPos[1] == 1)
+        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_LEFT);
+    if (axesPos[1] == 2)
+        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_CENTER);
+    if (axesPos[1] == 3)
+        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_RIGHT);
+    if (axesPos[1] == 4)
+        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_BORDER_RIGHT);
+    m_plot->UpdateAll();
+}
+
+void MyFrame::OnToggleGrid( wxCommandEvent &WXUNUSED(event) )
+{
+    ticks = !ticks;
+    ((mpScaleX*)(m_plot->GetLayer(0)))->SetTicks(ticks);
+    ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(ticks);
+    m_plot->UpdateAll();
 }
 
 //-----------------------------------------------------------------------------

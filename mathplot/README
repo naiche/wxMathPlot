@@ -4,6 +4,16 @@ For more information go to
 https://sourceforge.net/projects/wxmathplot/
 http://wxmathplot.sourceforge.net/
 
+0.03 Release notes
+------------------
+
+Some useful functionalities has been added.
+The axes now can be set to be drawn on 5 different configurations for each one. In addition to the central mode prevoiusly avalilable, you can draw them to the the borders of the window, or close to the border but with an offset to let labels within. The axes are now always visible when you resize the window. This style is more similar to technical softwares, and more useful, I think.
+Mouse operations are now available for zooming, panning and scrolling the window. You can also activate double buffering of the mpWindow to avoid flickering.
+Three new classes are available, mpText, mpProfile and mpFXYVector. See Changelog for more details.
+
+A special acknowledgement goes to the contributors Jose Luis Blanco and Val Greene who provided a significant part of the new functionalities. 
+
 0.02 Release notes
 ------------------
 

@@ -19,7 +19,7 @@
 
 #include <math.h>
 
-double ld(const double x) { return log(x)/log(2); }
+double ld(const double x) { return log(x)/log(2); };
 
 // derived classes
 

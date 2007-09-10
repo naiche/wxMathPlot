@@ -1,0 +1,31 @@
+Version 0.03 - 2007-07-23
+* Added mpWindow::GetLayer to extract the pointer to a layer and call directly its methods. Please note that you shoud know the position of the layer inside the list whis is internal to mpWindow, but it matches to the order you add layers to the window.
+* Added management for axes position: now axes can be set to be fixed to the borders of he window, or close to them with a small offset, even if you zoom or change the window size. The old behavior is set through mpALIGN_CENTER.
+* Inside mpScaleX and mpScaleY now it is possible to activate dotted grid lines instead of the axes ticks. This is achieved through the "ticks" flag in the constructor, or through the methods SetTicks and GetTicks.
+* A new class is available to plot data, calling mpProfile. It is intended to remove the limit of mpFX, which draws one point per X-scale pixel. This means that if your function has a local high value of derivative (i.e. delta Y is more than noe pixel in scale), the curve appears to be discontinous. mpProfile draws the curve by lines.
+* Corrected the "Lock-aspect menu non-checking" bug.
+* mpWindow has built-in support for mouse-based navigation (pan and zoom). 
+  This can be optionally disabled.
+* mpWindow has "doubleBuffer" support (default=disabled).
+* A new property in mpLayer for the "continuity" of 2D graphs. It can 
+select between drawing a set of separate points, or drawing them as a continuous line.
+* Formula fixed in mpWindow::UpdateAll.
+* A new layer class (mpFXYVector) for drawing 2D graphs from two vectors X and Y.
+* Changes in mpWindow to reduce redundant OnPaint's.
+* Added a macro "MATHPLOT_DO_LOGGING" for enable debug messages. 
+* Added a class mpText which allows to put a text string on a fixed position within the plot frame. In fact, the position is given in percentage of height and width.
+
+Version 0.02 - 2007-06-13
+* Added "debug" target in Makefile, to allow debugging of wxMathPlot;
+* Added method mpWindow::CountLayers, which returns layers number, excluding
+axes;
+* Removed dc.BeginDrawing() and dc.EndDrawing() in mpWindow::OnPaint, which
+are reprecated methods in wxWidgets recent versions;
+* Re-implemented m_layers as a wxHashMap, removing deprecated wxList,
+because it caused some obscure crashes. All methods using it were corrected;
+* Introduced in mpLayer methods GetXscl(), GetYscl(), GetXpos() and
+GetYpos(), replacing respectively GetScaleX(), GetScaleY(), GetPosX() and
+GetPosY(), because the old methods sometimes return some obscure zero
+values. I guess the compiler confuses them with other methods inside the
+wxWidgets inheritance tree. New methods does exactly the same things, but
+appears to be more reliable.
