@@ -24,7 +24,7 @@ counting has been added.
 
 wxMathPlot now works on Linux (tested for Mepis 6.5 and Debian Etch using
 wxGTK-2.6), and Windows (built under XP using Visual Studio Express 2005).
-If you experience to test it under other platform, please write me at:
+If you experience to test it under other platforms, please write me at:
 cdron77(at)sourceforge.net
 
 
@@ -35,7 +35,7 @@ Installing
 wxMathPlot comes with a Makefile to build a static library.
 It requires wxWindows 2.x to be installed.
 
-To build and install wxMathPlot simpy type 
+To build and install wxMathPlot simply type 
 
 make
 make install

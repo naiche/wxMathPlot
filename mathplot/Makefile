@@ -3,7 +3,7 @@ TEMPDIR    ?= /tmp
 
 INSTALLDIR ?= /usr/local
 TARGET     ?= lib/libmathplot.a
-DEBUGFLAGS  = -g -ggdb
+DEBUGFLAGS  = -g -ggdb -Wall -pedantic
 CXXFLAGS   += `wx-config --cxxflags`
 LINKFLAGS  += `wx-config --libs`
 SOURCES     = mathplot.cpp

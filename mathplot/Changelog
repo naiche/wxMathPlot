@@ -1,4 +1,9 @@
-Version 0.03 - 2007-07-23
+Version 0.04 - 2007-10-??
+* Added printing support through class mpPrintout
+* Added methods for rectangular zoom and separated X and Y zoom
+* Fixed text in message box explaining mouse commands 
+
+Version 0.03 - 2007-09-11
 * Added mpWindow::GetLayer to extract the pointer to a layer and call directly its methods. Please note that you shoud know the position of the layer inside the list whis is internal to mpWindow, but it matches to the order you add layers to the window.
 * Added management for axes position: now axes can be set to be fixed to the borders of he window, or close to them with a small offset, even if you zoom or change the window size. The old behavior is set through mpALIGN_CENTER.
 * Inside mpScaleX and mpScaleY now it is possible to activate dotted grid lines instead of the axes ticks. This is achieved through the "ticks" flag in the constructor, or through the methods SetTicks and GetTicks.

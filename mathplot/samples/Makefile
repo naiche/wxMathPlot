@@ -1,8 +1,9 @@
 TARGET     ?= mp1
 CXXINCLUDE +=
 LIBDIR    += -L../lib/
+LIBFILE   =  ../lib/libmathplot.a
 
-CXXFLAGS  += `wx-config --cxxflags`
+CXXFLAGS  += `wx-config --cxxflags` -g -ggdb
 LINKFLAGS += -lmathplot `wx-config --libs`
 
 SOURCES = mp1.cpp
@@ -17,7 +18,7 @@ default: $(TARGET)
 %.o : %.cpp
 	$(CXX) -c $(CXXFLAGS) $(CXXINCLUDES) $< -o $@
 
-$(TARGET): $(HEADERS) $(OBJS)
+$(TARGET): $(HEADERS) $(OBJS) $(LIBFILE)
 	$(CXX) -o $(TARGET) $(OBJS) $(LIBDIR) $(LINKFLAGS)
 
 clean:

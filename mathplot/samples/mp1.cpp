@@ -16,6 +16,7 @@
 #include "wx/sizer.h"
 #include "wx/log.h"
 #include "wx/intl.h"
+#include "wx/print.h"
 
 #include <math.h>
 // #include <time.h>
@@ -92,6 +93,8 @@ public:
 
     void OnAbout( wxCommandEvent &event );
     void OnQuit( wxCommandEvent &event );
+    void OnPrintPreview( wxCommandEvent &event);
+    void OnPrint( wxCommandEvent &event );
     void OnFit( wxCommandEvent &event );
     void OnAlignXAxis( wxCommandEvent &event );
     void OnAlignYAxis( wxCommandEvent &event );
@@ -124,6 +127,8 @@ IMPLEMENT_APP(MyApp)
 enum {
     ID_QUIT  = 108,
     ID_ABOUT,
+    ID_PRINT,
+    ID_PRINT_PREVIEW,
     ID_ALIGN_X_AXIS,
     ID_ALIGN_Y_AXIS,
     ID_TOGGLE_GRID
@@ -134,6 +139,8 @@ IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
 BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_ABOUT, MyFrame::OnAbout)
   EVT_MENU(ID_QUIT,  MyFrame::OnQuit)
+  EVT_MENU(ID_PRINT_PREVIEW, MyFrame::OnPrintPreview)
+  EVT_MENU(ID_PRINT, MyFrame::OnPrint)
   EVT_MENU(mpID_FIT, MyFrame::OnFit)
   EVT_MENU(ID_ALIGN_X_AXIS, MyFrame::OnAlignXAxis)
   EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
@@ -146,7 +153,10 @@ MyFrame::MyFrame()
     wxMenu *file_menu = new wxMenu();
     wxMenu *view_menu = new wxMenu();
 
-    file_menu->Append( ID_ABOUT, wxT("&About.."));
+    file_menu->Append( ID_PRINT_PREVIEW, wxT("Print Pre&view..."));
+    file_menu->Append( ID_PRINT, wxT("&Print..."));
+    file_menu->AppendSeparator();
+    file_menu->Append( ID_ABOUT, wxT("&About..."));
     file_menu->Append( ID_QUIT,  wxT("E&xit\tAlt-X"));
 
     view_menu->Append( mpID_FIT,      wxT("&Fit bounding box"), wxT("Set plot view to show all items"));
@@ -254,6 +264,26 @@ void MyFrame::OnToggleGrid( wxCommandEvent &WXUNUSED(event) )
     ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(ticks);
     m_plot->UpdateAll();
 }
+
+void MyFrame::OnPrintPreview( wxCommandEvent &event)
+{
+      // Pass two printout objects: for preview, and possible printing.
+      mpPrintout *plotPrint = new mpPrintout(m_plot);
+      mpPrintout *plotPrintPreview = new mpPrintout(m_plot);
+      wxPrintPreview *preview = new wxPrintPreview(plotPrintPreview, plotPrint);
+      wxPreviewFrame *frame = new wxPreviewFrame(preview, this, wxT("Print Plot"), wxPoint(100, 100), wxSize(600, 650));
+      frame->Centre(wxBOTH);
+      frame->Initialize();
+      frame->Show(true);
+}
+
+void MyFrame::OnPrint( wxCommandEvent &event )
+{
+      wxPrinter printer;
+      mpPrintout printout(m_plot, wxT("Plot print"));
+      printer.Print(this, &printout, true);
+}
+
 
 //-----------------------------------------------------------------------------
 // MyApp

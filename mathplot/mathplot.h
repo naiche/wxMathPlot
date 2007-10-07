@@ -41,13 +41,13 @@
     have the prefix <i>mp</i>.
 
     @section author Author and license
-    wxMathPlot is published under the terms of the wxWindow license.
-    The original author is David Schalig <mrhill@users.sourceforge.net>.
-    From June 2007 the project is maintained by Davide Rondini. <cdron@users.sourceforge.net>.
+    wxMathPlot is published under the terms of the wxWindow license.<br>
+    The original author is David Schalig <mrhill@users.sourceforge.net>.<br>
+    From June 2007 the project is maintained by Davide Rondini <cdron77@users.sourceforge.net>.<br>
     Authors can be contacted via the wxMathPlot's homepage at
-    http://sourceforge.net/projects/wxmathplot.
-    Contributors:
-    Jose Luis Blanco <jlblanco@ctima.uma.es>, Val Greene.
+    http://sourceforge.net/projects/wxmathplot.<br>
+    Contributors:<br>
+    Jose Luis Blanco, Val Greene.<br>
 */
 
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -63,6 +63,8 @@
 #include "wx/dynarray.h"
 #include "wx/pen.h"
 #include "wx/dcmemory.h"
+#include "wx/string.h"
+#include "wx/print.h"
 
 
 //-----------------------------------------------------------------------------
@@ -78,6 +80,7 @@ class WXDLLEXPORT mpScaleX;
 class WXDLLEXPORT mpScaleY;
 class WXDLLEXPORT mpWindow;
 class WXDLLEXPORT mpText;
+class WXDLLEXPORT mpPrintout;
 
 /** Command IDs used by mpWindow */
 enum
@@ -607,6 +610,7 @@ public:
         @return X dimension. 
     */
     int GetScrX(void) const { return m_scrX; }
+    int GetXScreen(void) const { return m_scrX; }
 
     /** Get current view's Y dimension in device context units.
         Usually this is equal to wxDC::GetSize, but it might differ thus mpLayer
@@ -615,6 +619,7 @@ public:
         @return Y dimension. 
     */
     int GetScrY(void) const { return m_scrY; }
+    int GetYScreen(void) const { return m_scrY; }
 
     /** Set current view's X scale and refresh display. 
         @param scaleX New scale, must not be 0.
@@ -674,6 +679,18 @@ public:
 
     /** Zoom out current view and refresh display */
     void ZoomOut();
+    
+    /** Zoom in current view along X and refresh display */
+    void ZoomInX();
+    /** Zoom out current view along X and refresh display */
+    void ZoomOutX();
+    /** Zoom in current view along Y and refresh display */
+    void ZoomInY();
+    /** Zoom out current view along Y and refresh display */
+    void ZoomOutY();
+    
+    /** Zoom view fitting given coordinates to the window */
+    void ZoomRect(wxPoint p0, wxPoint p1);
 
     /** Refresh display */
     void UpdateAll();
@@ -684,6 +701,10 @@ public:
     	\return The number of profiles plotted.
     */
     unsigned int CountLayers();
+    
+    /** Draws the mpWindow on a page for printing
+        \param print the mpPrintout where to print the graph */
+    //void PrintGraph(mpPrintout *print);
     
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
@@ -699,6 +720,8 @@ protected:
     void OnMouseHelp     (wxCommandEvent   &event); //!< Context menu handler
     void OnMouseWheel    (wxMouseEvent     &event); //!< Mouse handler for the wheel
     void OnMouseMove     (wxMouseEvent     &event); //!< Mouse handler for mouse motion (for pan)
+    void OnMouseLeftDown (wxMouseEvent     &event); //!< Mouse left click (for rect zoom)
+    void OnMouseLeftRelease (wxMouseEvent  &event); //!< Mouse left click (for rect zoom)
 
     /** Recalculate global layer bounding box, and save it in m_minX,...
       * \return true if there is any valid BBox information.
@@ -730,6 +753,7 @@ protected:
     bool          m_enableMouseNavigation;  //!< For pan/zoom with the mouse.
     bool          m_mouseMovedAfterRightClick;
     long          m_mouseRClick_X,m_mouseRClick_Y; //!< For the right button "drag" feature
+    int         m_mouseLClick_X, m_mouseLClick_Y; //!< Starting coords for rectangular zoom selection
 
     DECLARE_CLASS(mpWindow)
     DECLARE_EVENT_TABLE()
@@ -855,6 +879,29 @@ protected:
     DECLARE_CLASS(mpText)
 };
 
+
+//-----------------------------------------------------------------------------
+// mpPrintout - provided by Davide Rondini
+//-----------------------------------------------------------------------------
+
+/** Printout class used by mpWindow to draw in the objects to be printed.
+    The object itself can then used by the default wxWidgets printing system
+    to print mppWindow objects.
+*/
+class WXDLLEXPORT mpPrintout : public wxPrintout
+{
+public:
+    mpPrintout(mpWindow* drawWindow, wxChar *title = _T("wxMathPlot print output"));
+    virtual ~mpPrintout() {};
+    
+    void SetDrawState(bool drawState) {drawn = drawState;};
+    bool OnPrintPage(int page);
+    bool HasPage(int page);
+    
+private:
+    bool drawn;
+    mpWindow *plotWindow;
+};
 
 /*@}*/
 

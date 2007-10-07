@@ -21,7 +21,7 @@
 
 // Comment out for release operation:
 // (Added by J.L.Blanco, Aug 2007)
-// #define MATHPLOT_DO_LOGGING
+//#define MATHPLOT_DO_LOGGING
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -44,7 +44,7 @@
 #include <wx/module.h>
 #include <wx/msgdlg.h>
 
-#include <math.h>
+#include <cmath>
 #include <cstdio> // used only for debug
 
 //-----------------------------------------------------------------------------
@@ -497,6 +497,8 @@ BEGIN_EVENT_TABLE(mpWindow, wxScrolledWindow)
     EVT_RIGHT_UP ( mpWindow::OnShowPopupMenu)
     EVT_MOUSEWHEEL( mpWindow::OnMouseWheel )   // JLB
     EVT_MOTION( mpWindow::OnMouseMove )   // JLB
+    EVT_LEFT_DOWN( mpWindow::OnMouseLeftDown)
+    EVT_LEFT_UP( mpWindow::OnMouseLeftRelease)
 
     EVT_MENU( mpID_CENTER,    mpWindow::OnCenter)
     EVT_MENU( mpID_FIT,       mpWindow::OnFit)
@@ -631,7 +633,37 @@ void mpWindow::OnMouseMove(wxMouseEvent     &event)
 #ifdef MATHPLOT_DO_LOGGING
         wxLogMessage(_("[mpWindow::OnMouseMove] Ax:%i Ay:%i"),Ax,Ay);
 #endif
+    } else {
+        if (event.m_leftDown) {
+            wxPaintDC dc(this);
+            wxPen pen(*wxLIGHT_GREY, 1, wxDOT);
+            dc.SetPen(pen);
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, abs(m_mouseLClick_X - event.GetX()), abs(m_mouseLClick_Y - event.GetY()));
+            UpdateAll();
+        }
     }
+    event.Skip();
+}
+
+void mpWindow::OnMouseLeftDown (wxMouseEvent &event)
+{
+    m_mouseLClick_X = event.GetX();
+    m_mouseLClick_Y = event.GetY();
+#ifdef MATHPLOT_DO_LOGGING
+    wxLogMessage(_("mpWindow::OnMouseLeftDown() X = %d , Y = %d"), event.GetX(), event.GetY());/*m_mouseLClick_X, m_mouseLClick_Y);*/
+#endif
+    event.Skip();
+}
+
+void mpWindow::OnMouseLeftRelease (wxMouseEvent &event)
+{
+    wxPoint release(event.GetX(), event.GetY());
+    wxPoint press(m_mouseLClick_X, m_mouseLClick_Y);
+    if (release != press) {
+        ZoomRect(press, release);
+    }
+    event.Skip();
 }
 
 void mpWindow::Fit()
@@ -703,6 +735,57 @@ void mpWindow::ZoomOut()
 #endif
 }
 
+void mpWindow::ZoomInX()
+{
+    m_scaleX = m_scaleX * 2;
+    UpdateAll();
+}
+
+void mpWindow::ZoomOutX()
+{
+    m_scaleX = m_scaleX / 2;
+    UpdateAll();
+}
+
+void mpWindow::ZoomInY()
+{
+    m_scaleY = m_scaleY * 2;
+    UpdateAll();
+}
+
+void mpWindow::ZoomOutY()
+{
+    m_scaleY = m_scaleY / 2;
+    UpdateAll();
+}
+
+
+void mpWindow::ZoomRect(wxPoint p0, wxPoint p1)
+{
+    int deltaX = abs(p0.x - p1.x);
+    int deltaY = abs(p0.y - p1.y);
+    double scaleFactorX = (double) deltaX/m_scrX;
+    double scaleFactorY = (double) deltaY/m_scrY;
+    double scaleFactor = (scaleFactorX > scaleFactorY) ? scaleFactorX : scaleFactorY;
+#ifdef MATHPLOT_DO_LOGGING
+    wxLogMessage(_("mpWindow::ZoomRect() scaleX = %f, scaleY = %f, Scale Factor = %f"), scaleFactorX, scaleFactorY, scaleFactor);
+#endif
+
+    m_scaleX = m_scaleX / scaleFactor;
+    m_scaleY = m_scaleY / scaleFactor;
+
+#ifdef MATHPLOT_DO_LOGGING
+    wxLogMessage(_("mpWindow::ZoomRect() m_scaleX = %f"), m_scaleX);
+#endif
+
+    UpdateAll();
+
+#ifdef MATHPLOT_DO_LOGGING
+    wxLogMessage(_("mpWindow::ZoomRect() m_scaleX(Updated) = %f"), m_scaleX);
+#endif
+
+}
+
 void mpWindow::LockAspect(bool enable)
 {
     m_lockaspect = enable;
@@ -743,10 +826,11 @@ void mpWindow::OnLockAspect(wxCommandEvent &event)
 void mpWindow::OnMouseHelp(wxCommandEvent &event)
 {
     wxMessageBox(_("Supported Mouse commands:\n \
-        - Mouse Move+CTRL: Pan (Move)\n \
+        - Mouse Left Click + Move: Rectangular zoom\n \
+        - Mouse Right Click + Move: Pan (Move)\n \
         - Mouse Wheel: Vertical scroll\n \
-        - Mouse Wheel+SHIFT: Horizontal scroll\n \
-        - Mouse Wheel+CTRL: Zoom in/out"),_("wxMathPlot help"),wxOK,this);
+        - Mouse Wheel + SHIFT: Horizontal scroll\n \
+        - Mouse Wheel + CTRL: Zoom in/out"),_("wxMathPlot help"),wxOK,this);
 }
 
 void mpWindow::OnFit(wxCommandEvent &event)
@@ -929,9 +1013,7 @@ bool mpWindow::UpdateBBox()
 
 void mpWindow::UpdateAll()
 {
-    //printf("placeholder 1\n");
     bool box = UpdateBBox();
-    //printf("placeholder 3 (Box = %d)\n", (int) box);
     if (box)
     {
         int cx, cy;
@@ -960,9 +1042,7 @@ void mpWindow::UpdateAll()
 void mpWindow::SetScaleX(double scaleX)
 {
     if (scaleX!=0) m_scaleX=scaleX;
-    //printf("mpWindow::SetScaleX() m_scaleX = %f, scaleX = %f ", m_scaleX, scaleX);
     UpdateAll();
-    //printf(" m_scaleX(Updated) = %f\n", m_scaleX);
 }
 
 // New methods implemented by Davide Rondini
@@ -981,7 +1061,7 @@ unsigned int mpWindow::CountLayers()
 
 mpLayer* mpWindow::GetLayer(int position)
 {
-    if ((position >= m_layers.size()) || position < 0) return NULL;
+    if ((position >= (int) m_layers.size()) || position < 0) return NULL;
     return m_layers[position];
 }
 
@@ -1111,4 +1191,43 @@ void mpText::Plot(wxDC & dc, mpWindow & w)
     dc.DrawText( GetName(),
     (int)((((float)width/100.0) * m_offsety) + left - (tw/2)),
     (int)((((float)height/100.0) * m_offsetx) - bottom) );
+}
+
+//-----------------------------------------------------------------------------
+// mpPrintout - provided by Davide Rondini
+//-----------------------------------------------------------------------------
+
+mpPrintout::mpPrintout(mpWindow *drawWindow, wxChar *title) : wxPrintout(title)
+{
+    drawn = false;
+    plotWindow = drawWindow;
+}
+
+bool mpPrintout::OnPrintPage(int page)
+{
+   wxDC *trgDc = GetDC();
+   if ((trgDc) && (page == 1)) {
+        int m_prnX, m_prnY;
+        trgDc->GetSize(&m_prnX, &m_prnY);
+        // Draw background:
+        trgDc->SetDeviceOrigin(0,0);
+        trgDc->SetPen( *wxTRANSPARENT_PEN );
+        wxBrush brush( plotWindow->GetBackgroundColour() );
+        trgDc->SetBrush( brush );
+        trgDc->DrawRectangle(0,0,m_prnX,m_prnY);
+            
+        // Draw all the layers:
+        trgDc->SetDeviceOrigin( m_prnX>>1, m_prnY>>1);  // Origin at the center
+        mpLayer *layer;
+        for (int li = 0; li <= plotWindow->CountLayers(); li++) {
+            layer = plotWindow->GetLayer(li);
+            layer->Plot(*trgDc, *plotWindow);
+        };
+   }
+   return true;
+}
+
+bool mpPrintout::HasPage(int page)
+{
+    return (page == 1);
 }
