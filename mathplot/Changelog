@@ -1,4 +1,16 @@
 Version 0.04 - 2007-10-??
+* A MS Visual Studio 2005 solution has been created for the library and the three examples ("mathplot.sln").
+* A new example "sample3" has been added to demonstrate a moving "car" over a background occupancy gridmap.
+* New class "mpBitmapLayer" displays an image in a given rectagular area in graph coordinates.
+* New class implementing "mpMovableObject": "mpPolygon" an arbitrary shape (or a cloud of points if m_continuity=false). 
+  This class is esentially similar to mpFXY, but mpMovableObject-capable.
+* New class implementing "mpMovableObject": "mpCovarianceEllipse" a 2D ellipse given by its covariance matrix.
+* A new virtual class "mpMovableObject" has been introduced for translating and rotating objects (a 2D rigid transformation).
+* A new option added to mpLayer, for optionally disabling showing the name of the layer if it is not null (prior default behavior).
+  This option is accesible through mpLayer::ShowName. By default, all classes has m_showName set to true (compatible with existing code).
+* Added options to "mpWindow::DelLayer" to allow the automatic deletion of the layer object, and to avoid the automatic refresh of the window.
+   The default parameters make this method compatible with prior code.
+* Added a method for retrieving a given mpLayer from a mpWindow by its name (mpWindow::GetLayerByName).
 * Added printing support through class mpPrintout
 * Added methods for rectangular zoom and separated X and Y zoom
 * Fixed text in message box explaining mouse commands 

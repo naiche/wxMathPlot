@@ -1,7 +1,7 @@
 TARGET     ?= mp1
 CXXINCLUDE +=
-LIBDIR    += -L../lib/
-LIBFILE   =  ../lib/libmathplot.a
+LIBDIR    += -L../../lib/
+LIBFILE   =  ../../lib/libmathplot.a
 
 CXXFLAGS  += `wx-config --cxxflags` -g -ggdb
 LINKFLAGS += -lmathplot `wx-config --libs`

@@ -9,7 +9,7 @@
 #include "wx/wx.h"
 #endif
 
-#include "../mathplot.h"
+#include "../../mathplot.h"
 
 #include "wx/image.h"
 #include "wx/listctrl.h"
@@ -202,6 +202,8 @@ MyFrame::MyFrame()
     axesPos[0] = 0;
     axesPos[1] = 0;
     ticks = true;
+
+	m_plot->EnableDoubleBuffer(true);
 }
 
 void MyFrame::OnQuit( wxCommandEvent &WXUNUSED(event) )

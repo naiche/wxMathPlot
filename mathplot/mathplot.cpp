@@ -58,6 +58,7 @@ mpLayer::mpLayer()
     SetPen((wxPen&) *wxBLACK_PEN);
     SetFont((wxFont&) *wxNORMAL_FONT);
     m_continuous = FALSE; // Default
+    m_showName   = TRUE;  // Default
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +93,7 @@ void mpFX::Plot(wxDC & dc, mpWindow & w)
         }
     }
 
-    if (!m_name.IsEmpty())
+    if (!m_name.IsEmpty() && m_showName)
     {
         dc.SetFont(m_font);
 
@@ -140,7 +141,7 @@ void mpFY::Plot(wxDC & dc, mpWindow & w)
         }
     }
 
-    if (!m_name.IsEmpty())
+    if (!m_name.IsEmpty() && m_showName)
     {
         dc.SetFont(m_font);
 
@@ -213,7 +214,7 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
         }
     }
 
-    if (!m_name.IsEmpty())
+    if (!m_name.IsEmpty() && m_showName)
     {
         dc.SetFont(m_font);
 
@@ -258,15 +259,15 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 IMPLEMENT_ABSTRACT_CLASS(mpProfile, mpLayer)
 
 mpProfile::mpProfile(wxString name, int flags)
-{ 
+{
     SetName(name);
-    m_flags = flags; 
+    m_flags = flags;
 }
 
 void mpProfile::Plot(wxDC & dc, mpWindow & w)
 {
    dc.SetPen( m_pen);
-   
+
    // Plot profile linking subsequent point of the profile, instead of mpFY, which plots simple points.
    for (wxCoord i = -(w.GetScrX()>>1); i < (w.GetScrX()>>1)-1; ++i)
  	{
@@ -301,7 +302,7 @@ void mpProfile::Plot(wxDC & dc, mpWindow & w)
 IMPLEMENT_CLASS(mpScaleX, mpLayer)
 
 mpScaleX::mpScaleX(wxString name, int flags, bool ticks)
-{ 
+{
     SetName(name);
     SetFont( (wxFont&) *wxSMALL_FONT);
     SetPen( (wxPen&) *wxGREY_PEN);
@@ -314,7 +315,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
     dc.SetPen( m_pen);
     dc.SetFont( m_font);
     int orgy;
-    
+
     const int extend = w.GetScrX()/2;
     if (m_flags == mpALIGN_CENTER)
        orgy   = (int)(w.GetPosY() * w.GetScaleY());
@@ -374,7 +375,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
             tmp=p+tx/2;
         }
     }
-    
+
     if (m_flags != mpALIGN_TOP) {
         dc.GetTextExtent(m_name, &tx, &ty);
         if (m_flags == mpALIGN_BORDER_BOTTOM) {
@@ -388,7 +389,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 IMPLEMENT_CLASS(mpScaleY, mpLayer)
 
 mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
-{ 
+{
     SetName(name);
     SetFont( (wxFont&) *wxSMALL_FONT);
     SetPen( (wxPen&) *wxGREY_PEN);
@@ -401,7 +402,7 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     dc.SetPen( m_pen);
     dc.SetFont( m_font);
 
-    int orgx; 
+    int orgx;
     const int extend = w.GetScrY()/2;
     if (m_flags == mpALIGN_CENTER)
         orgx   = -(int)(w.GetPosX() * w.GetScaleX());
@@ -879,7 +880,10 @@ bool mpWindow::AddLayer( mpLayer* layer)
     return ret;*/
 }
 
-bool mpWindow::DelLayer( mpLayer* layer)
+bool mpWindow::DelLayer(
+    mpLayer*    layer,
+    bool        alsoDeleteObject,
+    bool        refreshDisplay )
 {
     //m_layers.DeleteObject( layer);
     // New version, using wxHashMap, and with layer presence check
@@ -887,11 +891,14 @@ bool mpWindow::DelLayer( mpLayer* layer)
     for (layIt = m_layers.begin(); layIt != m_layers.end(); layIt++) {
     	if (layIt->second == layer) break;
     	};
-    if (layIt != m_layers.end()) {
-    	m_layers.erase(layIt); // this way only refereice is deleted, layer object still exists!
-    	UpdateAll();
+    if (layIt != m_layers.end())
+    {
+        // Also delete the object?
+        if (alsoDeleteObject) delete layIt->second;
+    	m_layers.erase(layIt); // this deleted the reference only
+    	if (refreshDisplay) UpdateAll();
     	return true;
-    	};
+    };
     return false;
 }
 
@@ -1048,7 +1055,7 @@ void mpWindow::SetScaleX(double scaleX)
 // New methods implemented by Davide Rondini
 
 unsigned int mpWindow::CountLayers()
-{	
+{
     //wxNode *node = m_layers.GetFirst();
     unsigned int layerNo = 0;
     for(wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
@@ -1063,6 +1070,14 @@ mpLayer* mpWindow::GetLayer(int position)
 {
     if ((position >= (int) m_layers.size()) || position < 0) return NULL;
     return m_layers[position];
+}
+
+mpLayer* mpWindow::GetLayerByName( const wxString &name)
+{
+    for (wxLayerList::iterator it=m_layers.begin();it!=m_layers.end();it++)
+        if (! it->second->GetName().Cmp( name ) )
+            return it->second;
+    return NULL;    // Not found
 }
 
 //-----------------------------------------------------------------------------
@@ -1159,12 +1174,12 @@ IMPLEMENT_CLASS(mpText, mpLayer)
 mpText::mpText( wxString name, int offsetx, int offsety )
 {
     SetName(name);
-    
+
     if (offsetx >= 0 && offsetx <= 100)
         m_offsetx = offsetx;
     else
         m_offsetx = 5;
-    
+
     if (offsety >= 0 && offsety <= 100)
         m_offsety = offsety;
     else
@@ -1179,15 +1194,15 @@ void mpText::Plot(wxDC & dc, mpWindow & w)
 {
     dc.SetPen(m_pen);
     dc.SetFont(m_font);
-    
+
     wxCoord tw=0, th=0;
     dc.GetTextExtent( GetName(), &tw, &th);
-    
+
     int left = -dc.LogicalToDeviceX(0);
     int width = dc.LogicalToDeviceX(0) - left;
     int bottom = dc.LogicalToDeviceY(0);
     int height = bottom - -dc.LogicalToDeviceY(0);
-    
+
     dc.DrawText( GetName(),
     (int)((((float)width/100.0) * m_offsety) + left - (tw/2)),
     (int)((((float)height/100.0) * m_offsetx) - bottom) );
@@ -1215,11 +1230,11 @@ bool mpPrintout::OnPrintPage(int page)
         wxBrush brush( plotWindow->GetBackgroundColour() );
         trgDc->SetBrush( brush );
         trgDc->DrawRectangle(0,0,m_prnX,m_prnY);
-            
+
         // Draw all the layers:
         trgDc->SetDeviceOrigin( m_prnX>>1, m_prnY>>1);  // Origin at the center
         mpLayer *layer;
-        for (int li = 0; li <= plotWindow->CountLayers(); li++) {
+        for (unsigned int li = 0; li <= plotWindow->CountLayers(); li++) {
             layer = plotWindow->GetLayer(li);
             layer->Plot(*trgDc, *plotWindow);
         };
@@ -1230,4 +1245,375 @@ bool mpPrintout::OnPrintPage(int page)
 bool mpPrintout::HasPage(int page)
 {
     return (page == 1);
+}
+
+
+//-----------------------------------------------------------------------------
+// mpMovableObject - provided by Jose Luis Blanco
+//-----------------------------------------------------------------------------
+void mpMovableObject::TranslatePoint( double x,double y, double &out_x, double &out_y )
+{
+    double ccos = cos( m_reference_phi );  // Avoid computing cos/sin twice.
+    double csin = sin( m_reference_phi );
+
+    out_x = m_reference_x + ccos * x - csin * y;
+    out_y = m_reference_y + csin * x + ccos * y;
+}
+
+// This method updates the buffers m_trans_shape_xs/ys, and the precomputed bounding box.
+void mpMovableObject::ShapeUpdated()
+{
+    // Just in case...
+    if (m_shape_xs.size()!=m_shape_ys.size())
+    {
+        ::wxLogError(wxT("[mpMovableObject::ShapeUpdated] Error, m_shape_xs and m_shape_ys have different lengths!"));
+    }
+    else
+    {
+        double ccos = cos( m_reference_phi );  // Avoid computing cos/sin twice.
+        double csin = sin( m_reference_phi );
+
+        m_trans_shape_xs.resize(m_shape_xs.size());
+        m_trans_shape_ys.resize(m_shape_xs.size());
+
+        std::vector<double>::iterator itXi, itXo;
+        std::vector<double>::iterator itYi, itYo;
+
+        m_bbox_min_x=1e300;
+        m_bbox_max_x=-1e300;
+        m_bbox_min_y=1e300;
+        m_bbox_max_y=-1e300;
+
+        for (itXo=m_trans_shape_xs.begin(),itYo=m_trans_shape_ys.begin(),itXi=m_shape_xs.begin(),itYi=m_shape_ys.begin();
+              itXo!=m_trans_shape_xs.end(); itXo++,itYo++,itXi++,itYi++)
+        {
+            *itXo = m_reference_x + ccos * (*itXi) - csin * (*itYi);
+            *itYo = m_reference_y + csin * (*itXi) + ccos * (*itYi);
+
+            // Keep BBox:
+            if (*itXo < m_bbox_min_x) m_bbox_min_x = *itXo;
+            if (*itXo > m_bbox_max_x) m_bbox_max_x = *itXo;
+            if (*itYo < m_bbox_min_y) m_bbox_min_y = *itYo;
+            if (*itYo > m_bbox_max_y) m_bbox_max_y = *itYo;
+        }
+    }
+}
+
+void mpMovableObject::Plot(wxDC & dc, mpWindow & w)
+{
+    dc.SetPen( m_pen);
+
+
+    std::vector<double>::iterator  itX=m_trans_shape_xs.begin();
+    std::vector<double>::iterator  itY=m_trans_shape_ys.begin();
+
+    if (!m_continuous)
+    {
+        // for some reason DrawPoint does not use the current pen,
+        // so we use DrawLine for fat pens
+        if (m_pen.GetWidth() <= 1)
+        {
+            while (itX!=m_trans_shape_xs.end())
+            {
+                dc.DrawPoint( (wxCoord) (( *(itX++) - w.GetPosX()) * w.GetScaleX()) ,
+                              (wxCoord) ((w.GetPosY() - *(itY++)) * w.GetScaleY()) );
+            }
+        }
+        else
+        {
+            while (itX!=m_trans_shape_xs.end())
+            {
+                wxCoord cx = (wxCoord) ((*(itX++)  - w.GetPosX()) * w.GetScaleX());
+                wxCoord cy = (wxCoord) ((w.GetPosY() - *(itY++)) * w.GetScaleY());
+                dc.DrawLine(cx, cy, cx, cy);
+            }
+        }
+    }
+    else
+    {
+        wxCoord cx0=0,cy0=0;
+        bool    first = TRUE;
+        while (itX!=m_trans_shape_xs.end())
+        {
+            wxCoord cx = (wxCoord) ((*(itX++) - w.GetPosX()) * w.GetScaleX());
+            wxCoord cy = (wxCoord) ((w.GetPosY() - *(itY++)) * w.GetScaleY());
+            if (first)
+            {
+                first=FALSE;
+                cx0=cx;cy0=cy;
+            }
+            dc.DrawLine(cx0, cy0, cx, cy);
+            cx0=cx; cy0=cy;
+        }
+    }
+
+    if (!m_name.IsEmpty() && m_showName)
+    {
+        dc.SetFont(m_font);
+
+        wxCoord tx, ty;
+        dc.GetTextExtent(m_name, &tx, &ty);
+
+        if (HasBBox())
+        {
+            wxCoord sx = (wxCoord) (( m_bbox_max_x - w.GetPosX()) * w.GetScaleX());
+            wxCoord sy = (wxCoord) ((w.GetPosY() - m_bbox_max_y ) * w.GetScaleY());
+
+            tx = sx - tx - 8;
+            ty = sy - 8 - ty;
+        }
+        else
+        {
+            const int sx = w.GetScrX()>>1;
+            const int sy = w.GetScrY()>>1;
+
+            if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+            {
+                tx = sx - tx - 8;
+                ty = -sy + 8;
+            }
+            else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+            {
+                tx = -sx + 8;
+                ty = -sy + 8;
+            }
+            else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+            {
+                tx = -sx + 8;
+                ty = sy - 8 - ty;
+            }
+            else
+            {
+                tx = sx - tx - 8;
+                ty = sy - 8 - ty;
+            }
+        }
+
+        dc.DrawText( m_name, tx, ty);
+    }
+}
+
+//-----------------------------------------------------------------------------
+// mpCovarianceEllipse - provided by Jose Luis Blanco
+//-----------------------------------------------------------------------------
+
+// Called to update the m_shape_xs, m_shape_ys vectors, whenever a parameter changes.
+void mpCovarianceEllipse::RecalculateShape()
+{
+    m_shape_xs.clear();
+    m_shape_ys.clear();
+
+    // Preliminar checks:
+    if (m_quantiles<0)  { ::wxLogError(wxT("[mpCovarianceEllipse] Error: quantiles must be non-negative")); return; }
+    if (m_cov_00<0)     { ::wxLogError(wxT("[mpCovarianceEllipse] Error: cov(0,0) must be non-negative")); return; }
+    if (m_cov_11<0)     { ::wxLogError(wxT("[mpCovarianceEllipse] Error: cov(1,1) must be non-negative")); return; }
+
+    m_shape_xs.resize( m_segments,0 );
+    m_shape_ys.resize( m_segments,0 );
+
+    // Compute the two eigenvalues of the covariance:
+    // -------------------------------------------------
+    double b = -m_cov_00 - m_cov_11;
+    double c = m_cov_00*m_cov_11 - m_cov_01*m_cov_01;
+
+    double D = b*b - 4*c;
+
+    if (D<0)     { ::wxLogError(wxT("[mpCovarianceEllipse] Error: cov is not positive definite")); return; }
+
+    double eigenVal0 =0.5*( -b + sqrt(D) );
+    double eigenVal1 =0.5*( -b - sqrt(D) );
+
+    // Compute the two corresponding eigenvectors:
+    // -------------------------------------------------
+    double  eigenVec0_x,eigenVec0_y;
+    double  eigenVec1_x,eigenVec1_y;
+
+    if (fabs(eigenVal0 - m_cov_00)>1e-6)
+    {
+        double k1x = m_cov_01 / ( eigenVal0 - m_cov_00 );
+        eigenVec0_y = 1;
+        eigenVec0_x = eigenVec0_y * k1x;
+    }
+    else
+    {
+        double k1y = m_cov_01 / ( eigenVal0 - m_cov_11 );
+        eigenVec0_x = 1;
+        eigenVec0_y = eigenVec0_x * k1y;
+    }
+
+    if (fabs(eigenVal1 - m_cov_00)>1e-6)
+    {
+        double k2x = m_cov_01 / ( eigenVal1 - m_cov_00 );
+        eigenVec1_y = 1;
+        eigenVec1_x = eigenVec1_y * k2x;
+    }
+    else
+    {
+        double k2y = m_cov_01 / ( eigenVal1 - m_cov_11 );
+        eigenVec1_x = 1;
+        eigenVec1_y = eigenVec1_x * k2y;
+    }
+
+    // Normalize the eigenvectors:
+    double len = sqrt( eigenVec0_x*eigenVec0_x + eigenVec0_y*eigenVec0_y );
+    eigenVec0_x /= len;  // It *CANNOT* be zero
+    eigenVec0_y /= len;
+
+    len = sqrt( eigenVec1_x*eigenVec1_x + eigenVec1_y*eigenVec1_y );
+    eigenVec1_x /= len;  // It *CANNOT* be zero
+    eigenVec1_y /= len;
+
+
+    // Take the sqrt of the eigenvalues (required for the ellipse scale):
+    eigenVal0 = sqrt(eigenVal0);
+    eigenVal1 = sqrt(eigenVal1);
+
+    // Compute the 2x2 matrix M = diag(eigVal) * (~eigVec)  (each eigen vector is a row):
+    double M_00 = eigenVec0_x * eigenVal0;
+    double M_01 = eigenVec0_y * eigenVal0;
+
+    double M_10 = eigenVec1_x * eigenVal1;
+    double M_11 = eigenVec1_y * eigenVal1;
+
+    // The points of the 2D ellipse:
+    double ang;
+    double Aang = 6.283185308/(m_segments-1);
+    int    i;
+    for (i=0,ang=0;i<m_segments;i++,ang+= Aang )
+    {
+        double ccos = cos(ang);
+        double csin = sin(ang);
+
+        m_shape_xs[i] = m_quantiles * (ccos * M_00 + csin * M_10 );
+        m_shape_ys[i] = m_quantiles * (ccos * M_01 + csin * M_11 );
+    } // end for points on ellipse
+
+
+    ShapeUpdated();
+}
+
+//-----------------------------------------------------------------------------
+// mpPolygon - provided by Jose Luis Blanco
+//-----------------------------------------------------------------------------
+void mpPolygon::setPoints(
+    const std::vector<double>&  points_xs,
+    const std::vector<double>&  points_ys,
+    bool                        closedShape )
+{
+    if ( points_xs.size()!=points_ys.size() )
+    {
+        ::wxLogError(wxT("[mpPolygon] Error: points_xs and points_ys must have the same number of elements"));
+    }
+    else
+    {
+        m_shape_xs = points_xs;
+        m_shape_ys = points_ys;
+
+        if ( closedShape && points_xs.size())
+        {
+            m_shape_xs.push_back( points_xs[0] );
+            m_shape_ys.push_back( points_ys[0] );
+        }
+
+        ShapeUpdated();
+    }
+}
+
+//-----------------------------------------------------------------------------
+// mpBitmapLayer - provided by Jose Luis Blanco
+//-----------------------------------------------------------------------------
+void mpBitmapLayer::GetBitmapCopy( wxImage &outBmp ) const
+{
+    if (m_validImg)
+        outBmp = m_bitmap;
+}
+
+void mpBitmapLayer::SetBitmap( const wxImage &inBmp, double x, double y, double lx, double ly )
+{
+    if (!inBmp.Ok())
+    {
+        ::wxLogError(wxT("[mpBitmapLayer] Assigned bitmap is not Ok()!"));
+    }
+    else
+    {
+        m_bitmap = inBmp; //.GetSubBitmap( wxRect(0, 0, inBmp.GetWidth(), inBmp.GetHeight()));
+        m_min_x = x;
+        m_min_y = y;
+        m_max_x = x+lx;
+        m_max_y = y+ly;
+        m_validImg = true;
+    }
+}
+
+
+void mpBitmapLayer::Plot(wxDC & dc, mpWindow & w)
+{
+    if (m_validImg)
+    {
+        // ** In pixels: **
+        //
+        // (x0,y0) .................  (x1,y0)
+        //    .                          .
+        //    .                          .
+        // (x0,y1) ................   (x1,y1)
+
+        wxCoord x0 = (wxCoord) (( m_min_x - w.GetPosX()) * w.GetScaleX());
+        wxCoord y0 = (wxCoord) (( w.GetPosY() - m_max_y) * w.GetScaleY());
+        wxCoord x1 = (wxCoord) (( m_max_x - w.GetPosX()) * w.GetScaleX());
+        wxCoord y1 = (wxCoord) (( w.GetPosY() - m_min_y) * w.GetScaleY());
+
+        // Build scaled bitmap from the image:
+        if (m_scaledBitmap.GetWidth()!=(x1-x0) || m_scaledBitmap.GetHeight()!=(y1-y0))
+        {
+            m_scaledBitmap = wxBitmap(m_bitmap.Scale(x1-x0,y1-y0));
+        }
+
+        // Draw it:
+        dc. DrawBitmap( m_scaledBitmap, x0,y0, true );
+    }
+
+    if (!m_name.IsEmpty() && m_showName)
+    {
+        dc.SetFont(m_font);
+
+        wxCoord tx, ty;
+        dc.GetTextExtent(m_name, &tx, &ty);
+
+        if (HasBBox())
+        {
+            wxCoord sx = (wxCoord) (( m_max_x - w.GetPosX()) * w.GetScaleX());
+            wxCoord sy = (wxCoord) ((w.GetPosY() - m_max_y ) * w.GetScaleY());
+
+            tx = sx - tx - 8;
+            ty = sy - 8 - ty;
+        }
+        else
+        {
+            const int sx = w.GetScrX()>>1;
+            const int sy = w.GetScrY()>>1;
+
+            if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+            {
+                tx = sx - tx - 8;
+                ty = -sy + 8;
+            }
+            else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+            {
+                tx = -sx + 8;
+                ty = -sy + 8;
+            }
+            else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+            {
+                tx = -sx + 8;
+                ty = sy - 8 - ty;
+            }
+            else
+            {
+                tx = sx - tx - 8;
+                ty = sy - 8 - ty;
+            }
+        }
+
+        dc.DrawText( m_name, tx, ty);
+    }
 }

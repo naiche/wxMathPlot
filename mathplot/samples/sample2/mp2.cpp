@@ -9,7 +9,7 @@
 #include "wx/wx.h"
 #endif
 
-#include "../mathplot.h"
+#include "../../mathplot.h"
 
 #include "wx/image.h"
 #include "wx/listctrl.h"
@@ -27,13 +27,13 @@ class Elias;
 class MyFrame;
 class MyApp;
 
-class FixedBitwidth : public mpAX
+class FixedBitwidth : public mpFX //mpAX
 {
     int m_bitwidth;
 public:
-    FixedBitwidth(int bitwidth) : mpAX( wxT("Feste Bitbreite")) { m_bitwidth = bitwidth; }
+    FixedBitwidth(int bitwidth) : mpFX( wxT("Feste Bitbreite")) { m_bitwidth = bitwidth; }
 
-    virtual double GetY( int x )
+    virtual double GetY( double /*int ?? */ x )
     {
         if (x>=0)
             return m_bitwidth;
@@ -56,26 +56,26 @@ public:
     }
 };
 
-class Elias : public mpAX
+class Elias : public mpFX //mpAX
 {
 public:
-    Elias() : mpAX( wxT("Elias-Kodes")) {}
+    Elias() : mpFX( wxT("Elias-Kodes")) {}
 
-    virtual double GetY( int x )
+    virtual double GetY( double /*int ??*/ x )
     {
         if (x>=1)
-            return floor(ld((double)x)) + 2.0 * floor(ld( 1.0 + floor(ld(x))));
+            return floor(ld(x)) + 2.0 * floor(ld( 1.0 + floor(ld(x))));
         else
             return 0;
     }
 };
 
-class Fibonacci : public mpAX
+class Fibonacci : public mpFX //mpAX
 {
 public:
-    Fibonacci() : mpAX( wxT("Fibonacci-Kodes")) {}
+    Fibonacci() : mpFX( wxT("Fibonacci-Kodes")) {}
 
-    virtual double GetY( int N )
+    virtual double GetY( double N )
     {
         if (N>=1)
         {
