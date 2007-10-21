@@ -1,4 +1,9 @@
 Version 0.04 - 2007-10-??
+* The type for the list of "mpLayer*" has been moved from a wxMap to a standard STL std::deque. 
+   This is because the hash map was being used just to access by layer index, which can be also performed 
+   through the deque index, and to avoid the "type punned" warnings derived from the wxHashMap declaration.
+* Added a new option to "AddLayer" to avoid refreshing the display. Default behavior is to refresh, i.e. backwards compatible.
+* Added "-Wall" to the Makefile.
 * A MS Visual Studio 2005 solution has been created for the library and the three examples ("mathplot.sln").
 * A new example "sample3" has been added to demonstrate a moving "car" over a background occupancy gridmap.
 * New class "mpBitmapLayer" displays an image in a given rectagular area in graph coordinates.

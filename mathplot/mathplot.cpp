@@ -314,7 +314,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 {
     dc.SetPen( m_pen);
     dc.SetFont( m_font);
-    int orgy;
+    int orgy=0;
 
     const int extend = w.GetScrX()/2;
     if (m_flags == mpALIGN_CENTER)
@@ -402,7 +402,7 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     dc.SetPen( m_pen);
     dc.SetFont( m_font);
 
-    int orgx;
+    int orgx=0;
     const int extend = w.GetScrY()/2;
     if (m_flags == mpALIGN_CENTER)
         orgx   = -(int)(w.GetPosX() * w.GetScaleX());
@@ -532,7 +532,6 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_popmenu.AppendCheckItem( mpID_LOCKASPECT, _("Lock aspect"), _("Lock horizontal and vertical zoom aspect."));
     m_popmenu.Append( mpID_HELP_MOUSE,   _("Show mouse commands..."),    _("Show help about the mouse commands."));
 
-    //m_layers.DeleteContents(TRUE);
     m_layers.clear();
     SetBackgroundColour( *wxWHITE );
     EnableScrolling(FALSE, FALSE);
@@ -865,19 +864,14 @@ void mpWindow::OnSize( wxSizeEvent &event )
     UpdateAll();
 }
 
-bool mpWindow::AddLayer( mpLayer* layer)
+bool mpWindow::AddLayer( mpLayer* layer, bool refreshDisplay )
 {
     if (layer != NULL) {
-    	int layNo = m_layers.size();
-    	m_layers[layNo] = layer;
-    	UpdateAll();
+	m_layers.push_back( layer );
+    	if (refreshDisplay) UpdateAll();
     	return true;
     	};
     return false;
-    // Old version, using wxList
-    /*bool ret = m_layers.Append( layer) != NULL;
-    UpdateAll();
-    return ret;*/
 }
 
 bool mpWindow::DelLayer(
@@ -885,20 +879,20 @@ bool mpWindow::DelLayer(
     bool        alsoDeleteObject,
     bool        refreshDisplay )
 {
-    //m_layers.DeleteObject( layer);
-    // New version, using wxHashMap, and with layer presence check
     wxLayerList::iterator layIt;
-    for (layIt = m_layers.begin(); layIt != m_layers.end(); layIt++) {
-    	if (layIt->second == layer) break;
-    	};
-    if (layIt != m_layers.end())
+    for (layIt = m_layers.begin(); layIt != m_layers.end(); layIt++) 
     {
-        // Also delete the object?
-        if (alsoDeleteObject) delete layIt->second;
-    	m_layers.erase(layIt); // this deleted the reference only
-    	if (refreshDisplay) UpdateAll();
-    	return true;
-    };
+    	if (*layIt == layer)
+	{
+	        // Also delete the object?
+        	if (alsoDeleteObject) 
+			delete *layIt;
+	    	m_layers.erase(layIt); // this deleted the reference only
+	    	if (refreshDisplay) 
+			UpdateAll();
+	    	return true;
+	}
+    }
     return false;
 }
 
@@ -949,8 +943,7 @@ void mpWindow::OnPaint( wxPaintEvent &event )
     wxLayerList::iterator li;
     for (li = m_layers.begin(); li != m_layers.end(); li++)
     {
-    	mpLayer* f = li->second;
-    	f->Plot(*trgDc, *this);
+    	(*li)->Plot(*trgDc, *this);
     };
 
     // If doublebuffer, draw now to the window:
@@ -996,7 +989,7 @@ bool mpWindow::UpdateBBox()
 
     for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
     {
-        mpLayer* f = li->second;
+        mpLayer* f = *li;
 
         if (f->HasBBox())
         {
@@ -1060,7 +1053,7 @@ unsigned int mpWindow::CountLayers()
     unsigned int layerNo = 0;
     for(wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
     	{
-        if (li->second->HasBBox()) layerNo++;
+        if ((*li)->HasBBox()) layerNo++;
 	// node = node->GetNext();
     	};
     return layerNo;
@@ -1075,8 +1068,8 @@ mpLayer* mpWindow::GetLayer(int position)
 mpLayer* mpWindow::GetLayerByName( const wxString &name)
 {
     for (wxLayerList::iterator it=m_layers.begin();it!=m_layers.end();it++)
-        if (! it->second->GetName().Cmp( name ) )
-            return it->second;
+        if (! (*it)->GetName().Cmp( name ) )
+            return *it;
     return NULL;    // Not found
 }
 

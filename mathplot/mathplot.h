@@ -67,6 +67,8 @@
 #include "wx/print.h"
 #include "wx/image.h"
 
+#include <deque>
+
 
 //-----------------------------------------------------------------------------
 // classes
@@ -91,7 +93,7 @@ enum
     mpID_ZOOM_OUT,      //!< Zoom out
     mpID_CENTER,        //!< Center view on click position
     mpID_LOCKASPECT,    //!< Lock x/y scaling aspect
-    mpID_HELP_MOUSE,    //!< Shows information about the mouse commands
+    mpID_HELP_MOUSE     //!< Shows information about the mouse commands
 };
 
 //-----------------------------------------------------------------------------
@@ -517,8 +519,9 @@ protected:
 #define mpMOUSEMODE_ZOOMBOX 1
 
 /*@}*/
-/** Define the hash map for managing the layer list inside mpWindow */
-WX_DECLARE_HASH_MAP( int, mpLayer*, wxIntegerHash, wxIntegerEqual, wxLayerList );
+/** Define the type for the list of layers inside mpWindow */
+//WX_DECLARE_HASH_MAP( int, mpLayer*, wxIntegerHash, wxIntegerEqual, wxLayerList );
+typedef std::deque<mpLayer*> wxLayerList;
 
 /** Canvas for plotting mpLayer implementations.
 
@@ -560,10 +563,11 @@ public:
     /** Add a plot layer to the canvas.
         @param layer Pointer to layer. The mpLayer object will get under control of mpWindow,
                      i.e. it will be delete'd on mpWindow destruction
+        @param refreshDisplay States whether to refresh the display (UpdateAll) after adding the layer.
         @retval TRUE Success
         @retval FALSE Failure due to out of memory.
     */
-    bool AddLayer( mpLayer* layer);
+    bool AddLayer( mpLayer* layer, bool refreshDisplay = true);
 
     /** Remove a plot layer from the canvas.
         @param layer Pointer to layer. The mpLayer object will be destructed using delete.
