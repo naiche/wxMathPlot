@@ -1,4 +1,7 @@
 Version 0.04 - 2007-10-??
+* BUG FIXED: mpFXYVector didn't draw the last point in the vector.
+* Added a new method to delete all the layers of a mpWindow (mpWindow::DelAllLayers).
+* All the layers are deleted at the mpWindow destructor. (OK?)
 * The type for the list of "mpLayer*" has been moved from a wxMap to a standard STL std::deque. 
    This is because the hash map was being used just to access by layer index, which can be also performed 
    through the deque index, and to avoid the "type punned" warnings derived from the wxHashMap declaration.

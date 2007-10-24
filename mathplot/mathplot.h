@@ -579,6 +579,13 @@ public:
     */
     bool DelLayer( mpLayer* layer, bool alsoDeleteObject = false, bool refreshDisplay = true);
 
+    /** Remove all layers from the plot.
+        @param alsoDeleteObject If set to true, the mpLayer objects will be also "deleted", not just removed from the internal list.
+        @param refreshDisplay States whether to refresh the display (UpdateAll) after removing the layers.
+    */
+    void DelAllLayers( bool alsoDeleteObject, bool refreshDisplay = true);
+	
+	
     /*! Get the layer in list position indicated.
         N.B. You <i>must</i> know the index of the layer inside the list!
         @param position position of the layer in the layers list

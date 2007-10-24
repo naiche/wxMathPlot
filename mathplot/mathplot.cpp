@@ -545,6 +545,9 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 
 mpWindow::~mpWindow()
 {
+	// Free all the layers:
+	DelAllLayers( true, false );
+	
     if (m_buff_bmp)
     {
         delete m_buff_bmp;
@@ -896,6 +899,18 @@ bool mpWindow::DelLayer(
     return false;
 }
 
+void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
+{
+	while ( m_layers.size()>0 )
+    {
+		// Also delete the object?
+		if (alsoDeleteObject) delete m_layers[0];
+		m_layers.erase( m_layers.begin() ); // this deleted the reference only
+    }
+	if (refreshDisplay)  UpdateAll();
+}
+
+
 void mpWindow::OnPaint( wxPaintEvent &event )
 {
     wxPaintDC dc(this);
@@ -1102,7 +1117,7 @@ bool mpFXYVector::GetNextXY(double & x, double & y)
     {
         x = m_xs[m_index];
         y = m_ys[m_index++];
-        return m_index<m_xs.size();
+        return m_index<=m_xs.size();
     }
 }
 
