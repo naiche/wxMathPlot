@@ -10,7 +10,7 @@ SOURCES     = mathplot.cpp
 HEADERS     = mathplot.h
 VERSION     = `cat VERSION`
 .SUFFIXES: .o .cpp
-.PHONY: install default clean cleanvc doxygen debug
+.PHONY: install default clean cleanvc doxygen debug samples clean-samples
 
 OBJS = $(SOURCES:.cpp=.o)
 
@@ -22,6 +22,25 @@ default: $(TARGET)
 $(TARGET): $(HEADERS) $(OBJS)
 	$(AR) r $(TARGET) $(OBJS)
 	ranlib $(TARGET)
+	
+samples/sample1: $(TARGET)
+	$(MAKE) -C samples/sample1
+	
+samples/sample2: $(TARGET)
+	$(MAKE) -C samples/sample2
+	
+samples/sample3: $(TARGET)
+	$(MAKE) -C samples/sample3
+	
+samples: $(TARGET)
+	$(MAKE) -C samples/sample1
+	$(MAKE) -C samples/sample2
+	$(MAKE) -C samples/sample3
+
+clean-samples:
+	cd samples/sample1/ && $(MAKE) clean
+	cd samples/sample2/ && $(MAKE) clean
+	cd samples/sample3/ && $(MAKE) clean
 
 install: $(TARGET)
 	@install -v -d $(INSTALLDIR)/lib $(INSTALLDIR)/include
