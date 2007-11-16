@@ -1,4 +1,5 @@
 Version 0.04 - 2007-10-??
+* Makefile updated to automatically build samples
 * BUG FIXED: mpFXYVector didn't draw the last point in the vector.
 * Added a new method to delete all the layers of a mpWindow (mpWindow::DelAllLayers).
 * All the layers are deleted at the mpWindow destructor. (OK?)
