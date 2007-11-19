@@ -721,10 +721,15 @@ public:
 
     // Added methods by Davide Rondini
 
-    /** Counts the number of plot layers, axis excluded.
+    /** Counts the number of plot layers, excluding axes or text: this is to count only the layers which has a bounding box.
     	\return The number of profiles plotted.
     */
     unsigned int CountLayers();
+    
+    /** Counts the number of plot layers, regardless they have a bounding box or not.
+    	\return The number of profiles plotted.
+    */
+    unsigned int CountAllLayers() { return m_layers.size(); };
 
     /** Draws the mpWindow on a page for printing
         \param print the mpPrintout where to print the graph */

@@ -21,7 +21,7 @@
 
 // Comment out for release operation:
 // (Added by J.L.Blanco, Aug 2007)
-//#define MATHPLOT_DO_LOGGING
+#define MATHPLOT_DO_LOGGING
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -514,7 +514,7 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 {
     m_scaleX = m_scaleY = 1.0;
     m_posX   = m_posY   = 0;
-    m_scrX   = m_scrX   = 64;
+    m_scrX   = m_scrY   = 64; // Fixed from m_scrX = m_scrX = 64;
     m_minX   = m_minY   = 0;
     m_maxX   = m_maxY   = 0;
     m_last_lx= m_last_ly= 0;
@@ -1228,10 +1228,15 @@ mpPrintout::mpPrintout(mpWindow *drawWindow, wxChar *title) : wxPrintout(title)
 
 bool mpPrintout::OnPrintPage(int page)
 {
+
    wxDC *trgDc = GetDC();
    if ((trgDc) && (page == 1)) {
         int m_prnX, m_prnY;
         trgDc->GetSize(&m_prnX, &m_prnY);
+#ifdef MATHPLOT_DO_LOGGING
+        wxLogMessage(wxT("Print Size: %d x %d\n"), m_prnX, m_prnY);
+        wxLogMessage(wxT("Screen Size: %d x %d\n"), plotWindow->GetScrX(), plotWindow->GetScrY());
+#endif
         // Draw background:
         trgDc->SetDeviceOrigin(0,0);
         trgDc->SetPen( *wxTRANSPARENT_PEN );
@@ -1242,7 +1247,7 @@ bool mpPrintout::OnPrintPage(int page)
         // Draw all the layers:
         trgDc->SetDeviceOrigin( m_prnX>>1, m_prnY>>1);  // Origin at the center
         mpLayer *layer;
-        for (unsigned int li = 0; li <= plotWindow->CountLayers(); li++) {
+        for (unsigned int li = 0; li < plotWindow->CountAllLayers(); li++) {
             layer = plotWindow->GetLayer(li);
             layer->Plot(*trgDc, *plotWindow);
         };
