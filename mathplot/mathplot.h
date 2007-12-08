@@ -670,6 +670,14 @@ public:
         @param posY New position that corresponds to the center point of the view.
     */
     void SetPos( double posX, double posY) { m_posX=posX; m_posY=posY; UpdateAll(); }
+    
+    /** Set current view's dimensions in device context units.
+        Needed by plotting functions. It doesn't refresh display.
+        @param scrX New position that corresponds to the center point of the view.
+        @param scrY New position that corresponds to the center point of the view.
+    */
+    void SetScr( int scrX, int scrY) { m_scrX=scrX; m_scrY=scrY; }
+    
 
     /** Enable/disable the double-buffering of the window, eliminating the flicker (default=disabled).
      */

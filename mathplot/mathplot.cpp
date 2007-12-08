@@ -21,7 +21,7 @@
 
 // Comment out for release operation:
 // (Added by J.L.Blanco, Aug 2007)
-#define MATHPLOT_DO_LOGGING
+// #define MATHPLOT_DO_LOGGING
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -1243,6 +1243,21 @@ bool mpPrintout::OnPrintPage(int page)
         wxBrush brush( plotWindow->GetBackgroundColour() );
         trgDc->SetBrush( brush );
         trgDc->DrawRectangle(0,0,m_prnX,m_prnY);
+        trgDc->DrawRectangle(200,0,m_prnX,m_prnY);
+
+double saveScaleX = plotWindow->GetScaleX();
+double saveScaleY = plotWindow->GetScaleY();
+int saveScrX = plotWindow->GetScrX();
+int saveScrY = plotWindow->GetScrY();
+
+int m_prnMin = (m_prnX < m_prnY) ? m_prnX : m_prnY;
+int m_scrMin = (m_prnX < m_prnY) ? saveScrX : saveScrY;
+
+plotWindow->SetScr(m_prnMin, m_prnMin);
+
+plotWindow->SetScaleX(saveScaleX*m_prnMin/m_scrMin);
+plotWindow->SetScaleY(saveScaleY*m_prnMin/m_scrMin);
+
 
         // Draw all the layers:
         trgDc->SetDeviceOrigin( m_prnX>>1, m_prnY>>1);  // Origin at the center
@@ -1251,7 +1266,15 @@ bool mpPrintout::OnPrintPage(int page)
             layer = plotWindow->GetLayer(li);
             layer->Plot(*trgDc, *plotWindow);
         };
-   }
+  
+////hwa
+//After plotting to printer page, reset to saved values
+plotWindow->SetScaleX(saveScaleX);
+plotWindow->SetScaleY(saveScaleY);
+plotWindow->SetScr(saveScrX, saveScrY);
+plotWindow->UpdateAll();
+////hwa
+     }
    return true;
 }
 
