@@ -1,7 +1,7 @@
 # wxMathPlot Sample1 CMakeLists.txt
 #
 # Author: Davide Rondini
-# Last Update: 2008-02-16
+# Last Update: 2008-02-20
 # License: wxWindows license
 
 add_executable(mpSample1 mp1.cpp)
@@ -9,4 +9,10 @@ add_executable(mpSample1 mp1.cpp)
 if(WIN32)
 	set_target_properties(mpSample1 PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 endif(WIN32)
+# Linux cross compiling to x86 from x86_64 distribution
+if(LINUX_64_32_CROSSCOMPILE)
+    set_source_files_properties(mp1.cpp PROPERTIES COMPILE_FLAGS "-m32")
+    set_target_properties(mpSample1 PROPERTIES LINK_FLAGS "-m32")
+endif(LINUX_64_32_CROSSCOMPILE)
+
 target_link_libraries(mpSample1 ${wxWidgets_LIBRARIES} mathplot)
