@@ -149,23 +149,30 @@ public:
     /** Plot given view of layer to the given device context.
         An implementation of this function has to transform layer coordinates to
         wxDC coordinates based on the view parameters retrievable from the mpWindow
-        passed in \a w. The passed device context \a dc has its coordinate origin set
-        to the center of the visible area. The coordinate orientation is as show in the
+        passed in \a w. 
+	Note that the public methods of mpWindow: x2p,y2p and p2x,p2y are already provided 
+	which transform layer coordinates to DC pixel coordinates, and <b>user code should rely 
+	on them</b> for portability and future changes to be applied transparently, instead of
+	implementing the following formulas manually.
+	
+	The passed device context \a dc has its coordinate origin set to the top-left corner 
+	of the visible area (the default). The coordinate orientation is as show in the
         following picture:
         <pre>
-        +--------------------------------------------------+
-        |                                                  |
-        |                                                  |
-        |                (wxDC origin 0,0)                 |
-        |                       x-------------> acending X |
-        |                       |                          |
-        |                       |                          |
-        |                       V ascending Y              |
-        +--------------------------------------------------+
+        (wxDC origin 0,0)
+               x-------------> acending X -----------------+
+               |                                           |
+               |                                           |
+               V ascending Y                               |
+	       |                                           |
+	       |                                           |
+	       |                                           |
+	       +-------------------------------------------+  <-- right-bottom corner of the mpWindow visible area.
         </pre>
         Note that Y ascends in downward direction, whereas the usual vertical orientation
         for mathematical plots is vice versa. Thus Y-orientation will be swapped usually,
-        when transforming between wxDC and mpLayer coordinates.
+        when transforming between wxDC and mpLayer coordinates. This change of coordinates 
+	is taken into account in the methods p2x,p2y,x2p,y2p.
 
         <b> Rules for transformation between mpLayer and wxDC coordinates </b>
         @code
@@ -178,6 +185,7 @@ public:
 
         @param dc Device context to plot to.
         @param w  View to plot. The visible area can be retrieved from this object.
+	@sa mpWindow::p2x,mpWindow::p2y,mpWindow::x2p,mpWindow::y2p
     */
     virtual void   Plot(wxDC & dc, mpWindow & w) = 0;
 
@@ -197,12 +205,12 @@ public:
     const wxPen&   GetPen()  const { return m_pen;  }
 
     /** Set the 'continuity' property of the layer (true:draws a continuous line, false:draws separate points).
-      * \sa GetContinuity
+      * @sa GetContinuity
       */
     void SetContinuity(bool continuity) {m_continuous = continuity;}
 
     /** Gets the 'continuity' property of the layer.
-      * \sa SetContinuity
+      * @sa SetContinuity
       */
     bool GetContinuity() const {return m_continuous;}
 
@@ -670,7 +678,7 @@ public:
         @param posY New position that corresponds to the center point of the view.
     */
     void SetPos( double posX, double posY) { m_posX=posX; m_posY=posY; UpdateAll(); }
-    
+
     /** Set current view's dimensions in device context units.
         Needed by plotting functions. It doesn't refresh display.
         @param scrX New position that corresponds to the center point of the view.
@@ -678,6 +686,22 @@ public:
     */
     void SetScr( int scrX, int scrY) { m_scrX=scrX; m_scrY=scrY; }
     
+    /** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
+      * @sa p2y,x2p,y2p */
+    inline double p2x(wxCoord pixelCoordX ) { return m_posX + pixelCoordX/m_scaleX; }
+
+    /** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
+      * @sa p2x,x2p,y2p */
+    inline double p2y(wxCoord pixelCoordY ) { return m_posY - pixelCoordY/m_scaleY; }
+
+    /** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
+      * @sa p2x,p2y,y2p */
+    inline wxCoord x2p(double x) { return (wxCoord) ( (x-m_posX) * m_scaleX); }
+
+    /** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
+      * @sa p2x,p2y,x2p */
+    inline wxCoord y2p(double y) { return (wxCoord) ( (m_posY-y) * m_scaleY); }
+
 
     /** Enable/disable the double-buffering of the window, eliminating the flicker (default=disabled).
      */
@@ -706,11 +730,23 @@ public:
     */
     void Fit();
 
-    /** Zoom into current view and refresh display */
-    void ZoomIn();
+    /** Set view to fit a given bounding box and refresh display.
+        The X/Y scale aspect lock is taken into account.
+	If provided, the parameters printSizeX and printSizeY are taken as the DC size, and the 
+        pixel scales are computed accordignly. Also, in this case the passed borders are not saved 
+        as the "desired borders", since this use will be invoked only when printing.
+    */
+    void Fit(double xMin, double xMax, double yMin, double yMax,wxCoord *printSizeX=NULL,wxCoord *printSizeY=NULL);
 
-    /** Zoom out current view and refresh display */
-    void ZoomOut();
+    /** Zoom into current view and refresh display 
+      * @param centerPoint The point (pixel coordinates) that will stay in the same position on the screen after the zoom (by default, the center of the mpWindow).
+      */
+    void ZoomIn( const wxPoint& centerPoint = wxDefaultPosition );
+
+    /** Zoom out current view and refresh display
+      * @param centerPoint The point (pixel coordinates) that will stay in the same position on the screen after the zoom (by default, the center of the mpWindow).
+      */
+    void ZoomOut( const wxPoint& centerPoint = wxDefaultPosition );
 
     /** Zoom in current view along X and refresh display */
     void ZoomInX();
@@ -721,7 +757,7 @@ public:
     /** Zoom out current view along Y and refresh display */
     void ZoomOutY();
 
-    /** Zoom view fitting given coordinates to the window */
+    /** Zoom view fitting given coordinates to the window (p0 and p1 do not need to be in any specific order) */
     void ZoomRect(wxPoint p0, wxPoint p1);
 
     /** Refresh display */
@@ -742,6 +778,41 @@ public:
     /** Draws the mpWindow on a page for printing
         \param print the mpPrintout where to print the graph */
     //void PrintGraph(mpPrintout *print);
+
+
+	/** Returns the left-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+   	  */
+	double GetDesiredXmin() {return m_desiredXmin; }
+
+	/** Returns the right-border  layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+   	  */
+	double GetDesiredXmax() {return m_desiredXmax; }
+
+	/** Returns the bottom-border  layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+   	  */
+	double GetDesiredYmin() {return m_desiredYmin; }
+
+	/** Returns the top layer-border  coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+   	  */
+	double GetDesiredYmax() {return m_desiredYmax; }
+
+    /** Enable/disable scrollbars
+      @param status Set to true to show scrollbars */
+    void SetMPScrollbars(bool status);
+
+    /** Get scrollbars status.
+      @return true if scrollbars are visible */
+    bool GetMPScrollbars() {return m_enableScrollBars; };
+
+	
+	/** This value sets the zoom steps whenever the user clicks "Zoom in/out" or performs zoom with the mouse wheel.
+	  *  It must be a number above the unity. This number is used for zoom in, and its inverse for zoom out. Set to 1.5 by default.
+  	  */
+	static double zoomIncrementalFactor;
 
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
@@ -783,14 +854,19 @@ protected:
     int    m_clickedX;  //!< Last mouse click X position, for centering and zooming the view
     int    m_clickedY;  //!< Last mouse click Y position, for centering and zooming the view
 
-    int          m_last_lx,m_last_ly;   //!< For double buffering
-    wxMemoryDC   m_buff_dc;             //!< For double buffering
-    wxBitmap     *m_buff_bmp;            //!< For double buffering
-    bool          m_enableDoubleBuffer;  //!< For double buffering
-    bool          m_enableMouseNavigation;  //!< For pan/zoom with the mouse.
-    bool          m_mouseMovedAfterRightClick;
-    long          m_mouseRClick_X,m_mouseRClick_Y; //!< For the right button "drag" feature
+    /** These are updated in Fit() only, and may be different from the real borders (layer coordinates) only if lock aspect ratio is true.
+      */
+    double m_desiredXmin,m_desiredXmax,m_desiredYmin,m_desiredYmax;
+
+    int         m_last_lx,m_last_ly;   //!< For double buffering
+    wxMemoryDC  m_buff_dc;             //!< For double buffering
+    wxBitmap    *m_buff_bmp;            //!< For double buffering
+    bool        m_enableDoubleBuffer;  //!< For double buffering
+    bool        m_enableMouseNavigation;  //!< For pan/zoom with the mouse.
+    bool        m_mouseMovedAfterRightClick;
+    long        m_mouseRClick_X,m_mouseRClick_Y; //!< For the right button "drag" feature
     int         m_mouseLClick_X, m_mouseLClick_Y; //!< Starting coords for rectangular zoom selection
+    bool        m_enableScrollBars;
 
     DECLARE_CLASS(mpWindow)
     DECLARE_EVENT_TABLE()
@@ -829,12 +905,12 @@ public:
 
     /** Changes the internal data: the set of points to draw.
         Both vectors MUST be of the same length. This method DOES NOT refresh the mpWindow, do it manually.
-      * \sa Clear
+      * @sa Clear
     */
     void SetData( const std::vector<float> &xs,const std::vector<float> &ys);
 
     /** Clears all the data, leaving the layer empty.
-      * \sa SetData
+      * @sa SetData
       */
     void Clear();
 
@@ -1031,7 +1107,7 @@ protected:
     std::vector<double>  m_trans_shape_xs,m_trans_shape_ys;
 
     /** The precomputed bounding box:
-      * \sa ShapeUpdated
+      * @sa ShapeUpdated
       */
     double  m_bbox_min_x,m_bbox_max_x,m_bbox_min_y,m_bbox_max_y;
 
@@ -1232,6 +1308,7 @@ protected:
       */
     wxImage      m_bitmap;
     wxBitmap     m_scaledBitmap;
+    wxCoord      m_scaledBitmap_offset_x,m_scaledBitmap_offset_y;
 
 
     bool            m_validImg;

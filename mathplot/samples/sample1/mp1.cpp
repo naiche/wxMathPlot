@@ -99,6 +99,7 @@ public:
     void OnAlignXAxis( wxCommandEvent &event );
     void OnAlignYAxis( wxCommandEvent &event );
     void OnToggleGrid( wxCommandEvent &event );
+    void OnToggleScrollbars(wxCommandEvent& event);
 
     mpWindow        *m_plot;
     wxTextCtrl      *m_log;
@@ -131,7 +132,8 @@ enum {
     ID_PRINT_PREVIEW,
     ID_ALIGN_X_AXIS,
     ID_ALIGN_Y_AXIS,
-    ID_TOGGLE_GRID
+    ID_TOGGLE_GRID,
+    ID_TOGGLE_SCROLLBARS
 };
 
 IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
@@ -145,10 +147,11 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_ALIGN_X_AXIS, MyFrame::OnAlignXAxis)
   EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
   EVT_MENU(ID_TOGGLE_GRID, MyFrame::OnToggleGrid)
+  EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
 END_EVENT_TABLE()
 
 MyFrame::MyFrame()
-       : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample"))
+       : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample"), wxDefaultPosition, wxSize(500, 500))
 {
     wxMenu *file_menu = new wxMenu();
     wxMenu *view_menu = new wxMenu();
@@ -166,6 +169,7 @@ MyFrame::MyFrame()
     view_menu->Append( ID_ALIGN_X_AXIS, wxT("Switch &X axis align"));
     view_menu->Append( ID_ALIGN_Y_AXIS, wxT("Switch &Y axis align"));
     view_menu->Append( ID_TOGGLE_GRID, wxT("Toggle grid/ticks"));
+    view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
     
     wxMenuBar *menu_bar = new wxMenuBar();
     menu_bar->Append(file_menu, wxT("&File"));
@@ -179,8 +183,8 @@ MyFrame::MyFrame()
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
     m_plot->AddLayer(     new mpScaleX(wxT("x"), mpALIGN_BOTTOM, true) );
     m_plot->AddLayer(     new mpScaleY(wxT("y"), mpALIGN_LEFT, true) );
-    m_plot->AddLayer(     new MySIN( 50.0, 220.0 ) );
-    m_plot->AddLayer(     new MyCOSinverse( 50.0, 100.0 ) );
+    m_plot->AddLayer(     new MySIN( 10.0, 220.0 ) );
+    m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
   
@@ -203,7 +207,9 @@ MyFrame::MyFrame()
     axesPos[1] = 0;
     ticks = true;
 
-	m_plot->EnableDoubleBuffer(true);
+    m_plot->EnableDoubleBuffer(true);
+    m_plot->SetMPScrollbars(false);
+    m_plot->Fit();
 }
 
 void MyFrame::OnQuit( wxCommandEvent &WXUNUSED(event) )
@@ -265,6 +271,15 @@ void MyFrame::OnToggleGrid( wxCommandEvent &WXUNUSED(event) )
     ((mpScaleX*)(m_plot->GetLayer(0)))->SetTicks(ticks);
     ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(ticks);
     m_plot->UpdateAll();
+}
+
+void MyFrame::OnToggleScrollbars(wxCommandEvent& event)
+{
+   if (event.IsChecked())
+        m_plot->SetMPScrollbars(true);
+    else
+        m_plot->SetMPScrollbars(false);
+    event.Skip();
 }
 
 void MyFrame::OnPrintPreview( wxCommandEvent &event)
