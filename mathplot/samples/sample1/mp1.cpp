@@ -17,6 +17,7 @@
 #include "wx/log.h"
 #include "wx/intl.h"
 #include "wx/print.h"
+#include <wx/filename.h>
 
 #include <math.h>
 // #include <time.h>
@@ -100,6 +101,7 @@ public:
     void OnAlignYAxis( wxCommandEvent &event );
     void OnToggleGrid( wxCommandEvent &event );
     void OnToggleScrollbars(wxCommandEvent& event);
+    void OnSaveScreenshot(wxCommandEvent& event);
 
     mpWindow        *m_plot;
     wxTextCtrl      *m_log;
@@ -133,7 +135,8 @@ enum {
     ID_ALIGN_X_AXIS,
     ID_ALIGN_Y_AXIS,
     ID_TOGGLE_GRID,
-    ID_TOGGLE_SCROLLBARS
+    ID_TOGGLE_SCROLLBARS,
+    ID_SAVE_SCREENSHOT
 };
 
 IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
@@ -148,6 +151,7 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
   EVT_MENU(ID_TOGGLE_GRID, MyFrame::OnToggleGrid)
   EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
+  EVT_MENU(ID_SAVE_SCREENSHOT, MyFrame::OnSaveScreenshot)
 END_EVENT_TABLE()
 
 MyFrame::MyFrame()
@@ -158,6 +162,7 @@ MyFrame::MyFrame()
 
     file_menu->Append( ID_PRINT_PREVIEW, wxT("Print Pre&view..."));
     file_menu->Append( ID_PRINT, wxT("&Print..."));
+    file_menu->Append( ID_SAVE_SCREENSHOT, wxT("Save screenshot"));
     file_menu->AppendSeparator();
     file_menu->Append( ID_ABOUT, wxT("&About..."));
     file_menu->Append( ID_QUIT,  wxT("E&xit\tAlt-X"));
@@ -301,6 +306,19 @@ void MyFrame::OnPrint( wxCommandEvent &event )
       printer.Print(this, &printout, true);
 }
 
+void MyFrame::OnSaveScreenshot(wxCommandEvent& event)
+{
+    wxFileDialog fileDialog(this, _("Save a screenshot"), wxT(""), wxT(""), wxT("BMP image (*.bmp) | *.bmp|JPEG image (*.jpg) | *.jpeg;*.jpg|PNG image (*.png) | *.png|"), wxFD_SAVE);
+    if(fileDialog.ShowModal() == wxID_OK) {
+        wxFileName namePath(fileDialog.GetPath());
+        int fileType = wxBITMAP_TYPE_BMP;
+        if( namePath.GetExt().CmpNoCase(wxT("jpeg")) == 0 ) fileType = wxBITMAP_TYPE_JPEG;
+        if( namePath.GetExt().CmpNoCase(wxT("jpg")) == 0 )  fileType = wxBITMAP_TYPE_JPEG;
+        if( namePath.GetExt().CmpNoCase(wxT("png")) == 0 )  fileType = wxBITMAP_TYPE_PNG;
+        m_plot->SaveScreenshot(fileDialog.GetPath(), fileType);
+    }
+    event.Skip();
+}
 
 //-----------------------------------------------------------------------------
 // MyApp
@@ -308,6 +326,7 @@ void MyFrame::OnPrint( wxCommandEvent &event )
 
 bool MyApp::OnInit()
 {
+    wxInitAllImageHandlers();
     wxFrame *frame = new MyFrame();
     frame->Show( TRUE );
 

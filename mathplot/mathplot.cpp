@@ -43,6 +43,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/module.h>
 #include <wx/msgdlg.h>
+#include <wx/image.h>
 
 #include <cmath>
 #include <cstdio> // used only for debug
@@ -1191,6 +1192,26 @@ mpLayer* mpWindow::GetLayerByName( const wxString &name)
         if (! (*it)->GetName().Cmp( name ) )
             return *it;
     return NULL;    // Not found
+}
+
+bool mpWindow::SaveScreenshot(const wxString& filename, int type)
+{
+    wxBitmap screenBuffer(m_scrX,m_scrY);
+    wxMemoryDC screenDC;
+    screenDC.SelectObject(screenBuffer);
+    screenDC.SetPen( *wxTRANSPARENT_PEN );
+    wxBrush brush( GetBackgroundColour() );
+    screenDC.SetBrush( brush );
+    screenDC.DrawRectangle(0,0,m_scrX,m_scrY);
+
+    // Draw all the layers:
+    wxLayerList::iterator li;
+    for (li = m_layers.begin(); li != m_layers.end(); li++)
+    	(*li)->Plot(screenDC, *this);
+
+    // Once drawing is complete, actually save screen shot
+    wxImage screenImage = screenBuffer.ConvertToImage();
+    return screenImage.SaveFile(filename, type);
 }
 
 //-----------------------------------------------------------------------------
