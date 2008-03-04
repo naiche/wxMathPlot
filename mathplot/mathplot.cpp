@@ -1036,7 +1036,7 @@ void mpWindow::OnPaint( wxPaintEvent &event )
 void mpWindow::OnScroll2(wxScrollWinEvent &event)
 {
 #ifdef MATHPLOT_DO_LOGGING
-    wxLogMessage(_("[mpWindow::OnScroll2] Init: m_posX=%f m_posY=%f"),m_posX,m_posY);
+    wxLogMessage(_("[mpWindow::OnScroll2] Init: m_posX=%f m_posY=%f, sc_pos = %d"),m_posX,m_posY, event.GetPosition());
 #endif
     // If scrollbars are not enabled, Skip operation
     if (!m_enableScrollBars) {
@@ -1050,25 +1050,24 @@ void mpWindow::OnScroll2(wxScrollWinEvent &event)
 
     int pixelStep = 1;
     if (event.GetOrientation() == wxHORIZONTAL) {
-/*        m_posX 		+= pixelStep;
-	m_desiredXmax 	+= pixelStep;
-	m_desiredXmin 	+= pixelStep;*/
+        m_posX 		-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
+	m_desiredXmax 	-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
+	m_desiredXmin 	-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
         //SetPosX( (double)px / GetScaleX() + m_minX + (double)(width>>1)/GetScaleX());
-        m_posX = p2x(px); //m_minX + (double)(px /*+ (m_scrX)*/)/GetScaleX();
+//         m_posX = p2x(px); //m_minX + (double)(px /*+ (m_scrX)*/)/GetScaleX();
     } else {
-/*        m_posY 		-= pixelStep;
-	m_desiredYmax	-= pixelStep;
-	m_desiredYmax	-= pixelStep;*/
+        m_posY 		+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
+	m_desiredYmax	+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
+	m_desiredYmax	+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
         //SetPosY( m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY());
         //m_posY = m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY();
-        m_posY = p2y(py);//m_maxY - (double)(py /*+ (m_scrY)*/)/GetScaleY();
+//         m_posY = p2y(py);//m_maxY - (double)(py /*+ (m_scrY)*/)/GetScaleY();
     }
 #ifdef MATHPLOT_DO_LOGGING
     wxLogMessage(_("[mpWindow::OnScroll2] End:  m_posX=%f m_posY=%f"),m_posX,m_posY);
 #endif
 
     UpdateAll();
-    Refresh( false );
     event.Skip();
 }
 
@@ -1117,14 +1116,18 @@ void mpWindow::UpdateAll()
         // The "virtual size" of the scrolled window:
         const int sx = (int)((m_maxX - m_minX) * GetScaleX());
         const int sy = (int)((m_maxY - m_minY) * GetScaleY());
+	SetVirtualSize(sx, sy);
+	SetScrollRate(1, 1);
 //         const int px = (int)((GetPosX() - m_minX) * GetScaleX());// - m_scrX); //(cx>>1));
 
         // J.L.Blanco, Aug 2007: Formula fixed:
 //         const int py = (int)((m_maxY - GetPosY()) * GetScaleY());// - m_scrY); //(cy>>1));
-        int px, py;
-        GetViewStart(&px, &py);
+//         int px, py;
+//         GetViewStart(&px0, &py0);
+// 	px = (int)((m_posX - m_minX)*m_scaleX);
+// 	py = (int)((m_maxY - m_posY)*m_scaleY);
 
-        SetScrollbars( 1, 1, sx-m_scrX, sy-m_scrY, px, py, TRUE);
+//         SetScrollbars( 1, 1, sx - m_scrX, sy - m_scrY, px, py, TRUE);
     }
     Refresh( FALSE );
 
