@@ -1054,14 +1054,14 @@ void mpWindow::OnScroll2(wxScrollWinEvent &event)
 	m_desiredXmax 	+= pixelStep;
 	m_desiredXmin 	+= pixelStep;*/
         //SetPosX( (double)px / GetScaleX() + m_minX + (double)(width>>1)/GetScaleX());
-        m_posX = m_minX + (double)(px + (m_scrX))/GetScaleX();
+        m_posX = p2x(px); //m_minX + (double)(px /*+ (m_scrX)*/)/GetScaleX();
     } else {
 /*        m_posY 		-= pixelStep;
 	m_desiredYmax	-= pixelStep;
 	m_desiredYmax	-= pixelStep;*/
         //SetPosY( m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY());
         //m_posY = m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY();
-        m_posY = m_maxY - (double)(py + (m_scrY))/GetScaleY();
+        m_posY = p2y(py);//m_maxY - (double)(py /*+ (m_scrY)*/)/GetScaleY();
     }
 #ifdef MATHPLOT_DO_LOGGING
     wxLogMessage(_("[mpWindow::OnScroll2] End:  m_posX=%f m_posY=%f"),m_posX,m_posY);
@@ -1117,12 +1117,14 @@ void mpWindow::UpdateAll()
         // The "virtual size" of the scrolled window:
         const int sx = (int)((m_maxX - m_minX) * GetScaleX());
         const int sy = (int)((m_maxY - m_minY) * GetScaleY());
-        const int px = (int)((GetPosX() - m_minX) * GetScaleX() - m_scrX); //(cx>>1));
+//         const int px = (int)((GetPosX() - m_minX) * GetScaleX());// - m_scrX); //(cx>>1));
 
         // J.L.Blanco, Aug 2007: Formula fixed:
-        const int py = (int)((m_maxY - GetPosY()) * GetScaleY() - m_scrY); //(cy>>1));
+//         const int py = (int)((m_maxY - GetPosY()) * GetScaleY());// - m_scrY); //(cy>>1));
+        int px, py;
+        GetViewStart(&px, &py);
 
-        SetScrollbars( 1, 1, sx, sy, px, py, TRUE);
+        SetScrollbars( 1, 1, sx-m_scrX, sy-m_scrY, px, py, TRUE);
     }
     Refresh( FALSE );
 
