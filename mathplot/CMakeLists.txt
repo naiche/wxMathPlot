@@ -7,7 +7,8 @@
 
 project(wxMathPlot)
 
-#set(LINUX_64_32_CROSSCOMPILE TRUE)
+# Create an option to be chosen by the user:
+SET(LINUX_64_32_CROSSCOMPILE OFF CACHE BOOL "Cross compile from Linux x86_64 to Linux x86?")
 
 if(LINUX_64_32_CROSSCOMPILE)
     message(STATUS "Cross compiling from Linux x86_64 to Linux x86")
@@ -25,7 +26,12 @@ if(wxWidgets_FOUND)
         set_target_properties(mathplot PROPERTIES LINK_FLAGS "-m32")
     endif(LINUX_64_32_CROSSCOMPILE)
     target_link_libraries(mathplot ${wxWidgets_LIBRARIES})
-    add_subdirectory(samples)
+
+    # Compile samples?
+    SET( WXMATHPLOT_BUILD_EXAMPLES ON CACHE BOOL "Build examples?")
+    IF(WXMATHPLOT_BUILD_EXAMPLES)
+        add_subdirectory(samples)
+    ENDIF(WXMATHPLOT_BUILD_EXAMPLES)
 else(wxWidgets_FOUND)
     MESSAGE("wxWidgets not found!")
 endif(wxWidgets_FOUND)
