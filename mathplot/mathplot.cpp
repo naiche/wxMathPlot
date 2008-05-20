@@ -1194,21 +1194,44 @@ mpLayer* mpWindow::GetLayerByName( const wxString &name)
     return NULL;    // Not found
 }
 
-bool mpWindow::SaveScreenshot(const wxString& filename, int type)
+bool mpWindow::SaveScreenshot(const wxString& filename, int type, wxSize imageSize, bool fit)
 {
-    wxBitmap screenBuffer(m_scrX,m_scrY);
+	int sizeX, sizeY;
+	int bk_scrX, bk_scrY;
+	if (imageSize == wxDefaultSize) {
+		sizeX = m_scrX;
+		sizeY = m_scrY;
+	} else {
+		sizeX = imageSize.x;
+		sizeY = imageSize.y;
+		bk_scrX = m_scrX;
+		bk_scrY = m_scrY;
+		SetScr(sizeX, sizeY);
+	}
+
+    wxBitmap screenBuffer(sizeX,sizeY);
     wxMemoryDC screenDC;
     screenDC.SelectObject(screenBuffer);
     screenDC.SetPen( *wxTRANSPARENT_PEN );
     wxBrush brush( GetBackgroundColour() );
     screenDC.SetBrush( brush );
-    screenDC.DrawRectangle(0,0,m_scrX,m_scrY);
+    screenDC.DrawRectangle(0,0,sizeX,sizeY);
 
+	if (fit) {
+		Fit(m_minX, m_maxX, m_minY, m_maxY, &sizeX, &sizeY);
+	} else {
+		Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax, &sizeX, &sizeY);
+	}
     // Draw all the layers:
     wxLayerList::iterator li;
     for (li = m_layers.begin(); li != m_layers.end(); li++)
     	(*li)->Plot(screenDC, *this);
 
+	if (imageSize != wxDefaultSize) {
+		// Restore dimensions
+		SetScr(bk_scrX, bk_scrY);
+		//UpdateAll();
+	}
     // Once drawing is complete, actually save screen shot
     wxImage screenImage = screenBuffer.ConvertToImage();
     return screenImage.SaveFile(filename, type);

@@ -810,8 +810,10 @@ public:
 
     /** Draw the window on a wxBitmap, then save it to a file.
       @param filename File name where to save the screenshot
-      @param type image type to be saved: see wxImage output file types for flags*/
-    bool SaveScreenshot(const wxString& filename, int type = wxBITMAP_TYPE_BMP);
+      @param type image type to be saved: see wxImage output file types for flags
+	  @param imageSize Set a size for the output image. Default is the same of screen size
+	  @param fit Decide whether to fit the plot into the size*/
+    bool SaveScreenshot(const wxString& filename, int type = wxBITMAP_TYPE_BMP, wxSize imageSize = wxDefaultSize, bool fit = false);
 
     /** This value sets the zoom steps whenever the user clicks "Zoom in/out" or performs zoom with the mouse wheel.
       *  It must be a number above the unity. This number is used for zoom in, and its inverse for zoom out. Set to 1.5 by default. */
