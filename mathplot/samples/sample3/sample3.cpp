@@ -106,9 +106,13 @@ MyFrame::MyFrame()
     //mpLayer* l;
 
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-
-    m_plot->AddLayer(     new mpScaleX(wxT("x"), mpALIGN_CENTER, true) );
-    m_plot->AddLayer(     new mpScaleY(wxT("y"), mpALIGN_CENTER, true) );
+    m_plot->SetMargins(0,0,50,70);
+    mpScaleX* xaxis = new mpScaleX(wxT("x"), mpALIGN_BOTTOM, true);
+    mpScaleY* yaxis = new mpScaleY(wxT("y"), mpALIGN_LEFT, true);
+    xaxis->SetDrawOutsideMargins(false);
+    yaxis->SetDrawOutsideMargins(false);
+    m_plot->AddLayer(xaxis);
+    m_plot->AddLayer(yaxis);
 
     mpBitmapLayer   *bmpLayer;
     m_plot->AddLayer(bmpLayer=new  mpBitmapLayer() );

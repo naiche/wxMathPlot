@@ -69,6 +69,9 @@
 
 #include <deque>
 
+// Separation for axes when set close to border
+#define X_BORDER_SEPARATION 40
+#define Y_BORDER_SEPARATION 60
 
 //-----------------------------------------------------------------------------
 // classes
@@ -233,12 +236,21 @@ public:
     */
     void SetPen(wxPen pen)     { m_pen  = pen;  }
 
+    /** Set Draw mode: inside or outside margins. Default is outside, which allows the layer to draw up to the mpWindow border.
+        @param drawModeOutside The draw mode to be set */
+    void SetDrawOutsideMargins(bool drawModeOutside) { m_drawOutsideMargins = drawModeOutside; };
+
+    /** Get Draw mode: inside or outside margins.
+        @return The draw mode */
+    bool GetDrawOutsideMargins() { return m_drawOutsideMargins; };
+
 protected:
     wxFont   m_font;    //!< Layer's font
     wxPen    m_pen;     //!< Layer's pen
     wxString m_name;    //!< Layer's name
     bool     m_continuous; //!< Specify if the layer will be plotted as a continuous line or a set of points.
     bool     m_showName;  //!< States whether the name of the layer must be shown (default is true).
+    bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins o over all DC
 
     DECLARE_CLASS(mpLayer)
 };
@@ -266,6 +278,10 @@ protected:
 #define mpALIGN_BORDER_BOTTOM  0x04
 /** Aligns X axis to top border. For mpScaleX */
 #define mpALIGN_BORDER_TOP  0x05
+/** Set label for X axis in normal mode */
+#define mpX_NORMAL  0x00
+/** Set label for X axis in time mode: the value is represented as hours:minutes:seconds.milliseconds */
+#define mpX_TIME  0x01
 /** Aligns Y axis to left border. For mpScaleY */
 #define mpALIGN_BORDER_LEFT mpALIGN_BORDER_BOTTOM
 /** Aligns Y axis to right border. For mpScaleY */
@@ -439,7 +455,7 @@ public:
     /** @param name Label to plot by the ruler
         @param flags Set position of the scale respect to the window.
         @param ticks Select ticks or grid. Give TRUE for drawing axis ticks, FALSe for drawing the grid */
-    mpScaleX(wxString name = wxT("X"), int flags = mpALIGN_CENTER, bool ticks = true);
+    mpScaleX(wxString name = wxT("X"), int flags = mpALIGN_CENTER, bool ticks = true, unsigned int type = mpX_NORMAL);
 
     /** Layer plot handler.
         This implementation will plot the ruler adjusted to the visible area.
@@ -464,9 +480,18 @@ public:
         @return TRUE if plot is drawing axis ticks, FALSE if the grid is active. */
     bool GetTicks() { return m_ticks; };
 
+    /** Get X axis label view mode.
+        @return mpX_NORMAL for normal labels, mpX_TIME for time axis in hours, minutes, seconds. */
+    unsigned int GetLabelMode() { return m_labelType; };
+
+    /** Set X axis label view mode.
+        @param mode mpX_NORMAL for normal labels, mpX_TIME for time axis in hours, minutes, seconds. */
+    void SetLabelMode(unsigned int mode) { m_labelType = mode; };
+
 protected:
     int m_flags; //!< Flag for axis alignment
     bool m_ticks; //!< Flag to toggle between ticks or grid
+    unsigned int m_labelType; //!< Select labels mode: mpX_NORMAL for normal labels, mpX_TIME for time axis in hours, minutes, seconds
 
     DECLARE_CLASS(mpScaleX)
 };
@@ -688,18 +713,22 @@ public:
     
     /** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
       * @sa p2y,x2p,y2p */
+//     double p2x(wxCoord pixelCoordX, bool drawOutside = true ); // { return m_posX + pixelCoordX/m_scaleX; }
     inline double p2x(wxCoord pixelCoordX ) { return m_posX + pixelCoordX/m_scaleX; }
 
     /** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
       * @sa p2x,x2p,y2p */
+//     double p2y(wxCoord pixelCoordY, bool drawOutside = true ); //{ return m_posY - pixelCoordY/m_scaleY; }
     inline double p2y(wxCoord pixelCoordY ) { return m_posY - pixelCoordY/m_scaleY; }
 
     /** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
       * @sa p2x,p2y,y2p */
+//     wxCoord x2p(double x, bool drawOutside = true); // { return (wxCoord) ( (x-m_posX) * m_scaleX); }
     inline wxCoord x2p(double x) { return (wxCoord) ( (x-m_posX) * m_scaleX); }
 
     /** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
       * @sa p2x,p2y,x2p */
+//     wxCoord y2p(double y, bool drawOutside = true); // { return (wxCoord) ( (m_posY-y) * m_scaleY); }
     inline wxCoord y2p(double y) { return (wxCoord) ( (m_posY-y) * m_scaleY); }
 
 
@@ -819,6 +848,30 @@ public:
       *  It must be a number above the unity. This number is used for zoom in, and its inverse for zoom out. Set to 1.5 by default. */
     static double zoomIncrementalFactor;
 
+    /** Set window margins, creating a blank area where some kind of layers cannot draw. This is useful for example to draw axes outside the area where the plots are drawn.
+        @param top Top border
+        @param right Right border
+        @param bottom Bottom border
+        @param left Left border */
+    void SetMargins(int top, int right, int bottom, int left);
+
+    /** Set top margin. @param top Top Margin */
+    void SetMarginTop(int top) { m_marginTop = top; };
+    /** Set right margin. @param right Right Margin */
+    void SetMarginRight(int right) { m_marginRight = right; };
+    /** Set bottom margin. @param bottom Bottom Margin */
+    void SetMarginBottom(int bottom) { m_marginBottom = bottom; };
+    /** Set left margin. @param left Left Margin */
+    void SetMarginLeft(int left) { m_marginLeft = left; };
+
+    /** Set top margin. @param top Top Margin */
+    int GetMarginTop() { return m_marginTop; };
+    /** Set right margin. @param right Right Margin */
+    int GetMarginRight() { return m_marginRight; };
+    /** Set bottom margin. @param bottom Bottom Margin */
+    int GetMarginBottom() { return m_marginBottom; };
+    /** Set left margin. @param left Left Margin */
+    int GetMarginLeft() { return m_marginLeft; };
 
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
@@ -863,6 +916,8 @@ protected:
     /** These are updated in Fit() only, and may be different from the real borders (layer coordinates) only if lock aspect ratio is true.
       */
     double m_desiredXmin,m_desiredXmax,m_desiredYmin,m_desiredYmax;
+
+    int m_marginTop, m_marginRight, m_marginBottom, m_marginLeft;
 
     int         m_last_lx,m_last_ly;   //!< For double buffering
     wxMemoryDC  m_buff_dc;             //!< For double buffering

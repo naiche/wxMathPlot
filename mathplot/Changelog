@@ -1,3 +1,12 @@
+Edit 2/06/2008 - Davide Rondini
+* Fixed assert on wxPaintDC during debug under Windows
+* Introduced margins on mpWindow: you can now scale everything down into a subarea of the window, by defining 4 window margins (top, right, bottom, left). This is done to let the layer plot outside of axis labels, that is more readable. mpLayer has now a boolean attribute to decide whether to draw or not outside the margins. All default layers were adapted to this
+behaviuor, but mpMovableObject and mpBitmapLayer always draw outside margins.
+* Fixed rectangular zoom: in some cases the selection rectangle were drawn in the opposite direction of the mouse cursor movement.
+* Commented out useless GetClientSize in mpWindow::OnMouseWheel and mpWindow::UpdateAll
+* Complete revision of axis drawing. Many behaviour vere fixed. Now grid can be limited only in the are inside the margin, making the axes more readable and more "professional-looking". If margins are sufficient, the axis title is drawn outside the ases labels, and for Y axis, its is drawn vertically
+* X axis can now be set to be a time axis, displaying values in the hours:minutes:seconds.milliseconds format.
+
 Version 0.04 - 2007-10-??
 * Makefile updated to automatically build samples
 * BUG FIXED: mpFXYVector didn't draw the last point in the vector.

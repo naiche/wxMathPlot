@@ -61,7 +61,7 @@ class MyLissajoux : public mpFXY
     double m_rad;
     int    m_idx;
 public:
-    MyLissajoux(double rad) : mpFXY( wxT("Lissajoux")) { m_rad=rad; m_idx=0; }
+    MyLissajoux(double rad) : mpFXY( wxT("Lissajoux")) { m_rad=rad; m_idx=0; m_drawOutsideMargins = false; }
     virtual bool GetNextXY( double & x, double & y )
     {
         if (m_idx < 360)
@@ -185,9 +185,18 @@ MyFrame::MyFrame()
 
     mpLayer* l;
 
+	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    m_plot->AddLayer(     new mpScaleX(wxT("x"), mpALIGN_BOTTOM, true) );
-    m_plot->AddLayer(     new mpScaleY(wxT("y"), mpALIGN_LEFT, true) );
+    mpScaleX* xaxis = new mpScaleX(wxT("Time"), mpALIGN_BOTTOM, true, mpX_TIME);
+    mpScaleY* yaxis = new mpScaleY(wxT("Temperature (°C)"), mpALIGN_LEFT, true);
+    xaxis->SetFont(graphFont);
+    yaxis->SetFont(graphFont);
+    xaxis->SetDrawOutsideMargins(false);
+    yaxis->SetDrawOutsideMargins(false);
+    m_plot->SetMargins(0, 0, 50, 70);
+//     m_plot->SetMargins(50, 50, 200, 150);
+    m_plot->AddLayer(     xaxis );
+    m_plot->AddLayer(     yaxis );
     m_plot->AddLayer(     new MySIN( 10.0, 220.0 ) );
     m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
@@ -238,16 +247,37 @@ void MyFrame::OnAlignXAxis( wxCommandEvent &WXUNUSED(event) )
     wxString temp;
     temp.sprintf(wxT("axesPos = %d\n"), axesPos);
     m_log->AppendText(temp);
-    if (axesPos[0] == 0)
-        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BORDER_BOTTOM);
-    if (axesPos[0] == 1)
-        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BOTTOM);
-    if (axesPos[0] == 2)
-        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_CENTER);
-    if (axesPos[0] == 3)
-        ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_TOP);
-    if (axesPos[0] == 4)
+	mpScaleX* xaxis = ((mpScaleX*)(m_plot->GetLayer(0)));
+	mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
+	if (axesPos[0] == 0) {
+            xaxis->SetAlign(mpALIGN_BORDER_BOTTOM);
+            m_plot->SetMarginTop(0);
+            m_plot->SetMarginBottom(0);
+	}
+	if (axesPos[0] == 1) {
+        //((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BOTTOM);
+            xaxis->SetAlign(mpALIGN_BOTTOM);
+            m_plot->SetMarginTop(0);
+            m_plot->SetMarginBottom(50);
+	}
+	if (axesPos[0] == 2) {
+        //((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_CENTER);
+            xaxis->SetAlign(mpALIGN_CENTER);
+            m_plot->SetMarginTop(0);
+            m_plot->SetMarginBottom(0);
+	}
+	if (axesPos[0] == 3) {
+        //((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_TOP);
+            xaxis->SetAlign(mpALIGN_TOP);
+            m_plot->SetMarginTop(50);
+            m_plot->SetMarginBottom(0);
+	}
+	if (axesPos[0] == 4) {
         ((mpScaleX*)(m_plot->GetLayer(0)))->SetAlign(mpALIGN_BORDER_TOP);
+            xaxis->SetAlign(mpALIGN_BORDER_TOP);
+            m_plot->SetMarginTop(0);
+            m_plot->SetMarginBottom(0);
+	}
     m_plot->UpdateAll();
 }
 
@@ -257,16 +287,38 @@ void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
     wxString temp;
     temp.sprintf(wxT("axesPos = %d\n"), axesPos);
     m_log->AppendText(temp);
-    if (axesPos[1] == 0)
-        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_BORDER_LEFT);
-    if (axesPos[1] == 1)
-        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_LEFT);
-    if (axesPos[1] == 2)
-        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_CENTER);
-    if (axesPos[1] == 3)
-        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_RIGHT);
-    if (axesPos[1] == 4)
-        ((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_BORDER_RIGHT);
+	mpScaleX* xaxis = ((mpScaleX*)(m_plot->GetLayer(0)));
+	mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
+	if (axesPos[1] == 0) {
+        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_BORDER_LEFT);
+            yaxis->SetAlign(mpALIGN_BORDER_LEFT);
+            m_plot->SetMarginLeft(0);
+            m_plot->SetMarginRight(0);
+	}
+	if (axesPos[1] == 1) {
+        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_LEFT);
+            yaxis->SetAlign(mpALIGN_LEFT);
+            m_plot->SetMarginLeft(70);
+            m_plot->SetMarginRight(0);
+	}
+	if (axesPos[1] == 2) {
+        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_CENTER);
+            yaxis->SetAlign(mpALIGN_CENTER);
+            m_plot->SetMarginLeft(0);
+            m_plot->SetMarginRight(0);
+	}
+	if (axesPos[1] == 3) {
+        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_RIGHT);
+            yaxis->SetAlign(mpALIGN_RIGHT);
+            m_plot->SetMarginLeft(0);
+            m_plot->SetMarginRight(70);
+	}
+	if (axesPos[1] == 4) {
+        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_BORDER_RIGHT);
+	   yaxis->SetAlign(mpALIGN_BORDER_RIGHT);
+            m_plot->SetMarginLeft(0);
+            m_plot->SetMarginRight(0);
+	}
     m_plot->UpdateAll();
 }
 
