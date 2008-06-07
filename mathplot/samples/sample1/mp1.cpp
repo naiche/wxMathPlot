@@ -187,8 +187,8 @@ MyFrame::MyFrame()
 
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    mpScaleX* xaxis = new mpScaleX(wxT("Time"), mpALIGN_BOTTOM, true, mpX_TIME);
-    mpScaleY* yaxis = new mpScaleY(wxT("Temperature (°C)"), mpALIGN_LEFT, true);
+    mpScaleX* xaxis = new mpScaleX(wxT("X"), mpALIGN_BOTTOM, true, mpX_NORMAL);
+    mpScaleY* yaxis = new mpScaleY(wxT("Y"), mpALIGN_LEFT, true);
     xaxis->SetFont(graphFont);
     yaxis->SetFont(graphFont);
     xaxis->SetDrawOutsideMargins(false);
@@ -224,6 +224,11 @@ MyFrame::MyFrame()
     m_plot->EnableDoubleBuffer(true);
     m_plot->SetMPScrollbars(false);
     m_plot->Fit();
+
+	//double* bbx = new double[4];
+	//m_plot->GetBoundingBox(bbx);
+	//wxLogMessage(wxT("bounding box: X = %f, %f; Y = %f, %f"), bbx[0], bbx[1], bbx[2], bbx[3]);
+	//delete [] bbx;
 }
 
 void MyFrame::OnQuit( wxCommandEvent &WXUNUSED(event) )

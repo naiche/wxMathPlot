@@ -403,11 +403,12 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
             fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
         }
     }
-    if (m_labelType == mpX_TIME) {
-        if (end/60 > 2) {
-            fmt = (wxT("%2d:%2d:%2d"));
+	// Time axis representation
+    if (m_labelType != mpX_NORMAL) {
+		if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
+            fmt = (wxT("%02.0f:%02.3f"));
         } else {
-            fmt = (wxT("%2d:%2.3f"));
+            fmt = (wxT("%02.0f:%02.0f:%02.0f"));
         }
     }
 
@@ -446,18 +447,20 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 		}
                 // Draw ticks labels
                 if (m_labelType == mpX_NORMAL)
-	           s.Printf(fmt, n);
-                if (m_labelType == mpX_TIME) {
-                    double hh = floor(n/3600);
-                    double mm = floor((n - hh*3600)/60);
-                    double ss = n - hh*3600 - mm*60;
+					s.Printf(fmt, n);
+                if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+					double modulus = fabs(n);
+					double sign = n/modulus;
+                    double hh = floor(modulus/3600);
+                    double mm = floor((modulus - hh*3600)/60);
+                    double ss = modulus - hh*3600 - mm*60;
 #ifdef MATHPLOT_DO_LOGGING
-                    wxLogMessage(wxT("%f Hours, %f minutes, %f seconds"), hh, mm, ss);
+                    wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
 #endif // MATHPLOT_DO_LOGGING
-                    if (fmt.Len() == 11) // Format with hours has 11 chars
-                        s.Printf(fmt, (int) hh, (int) mm, (int) floor(ss));
+                    if (fmt.Len() == 20) // Format with hours has 11 chars
+                        s.Printf(fmt, sign*hh, mm, floor(ss));
                     else
-                        s.Printf(fmt, (int) mm, ss);
+                        s.Printf(fmt, sign*mm, ss);
                 }
 		dc.GetTextExtent(s, &tx, &ty);
                 labelH = (labelH <= ty) ? ty : labelH;
@@ -917,7 +920,7 @@ void mpWindow::Fit(double xMin, double xMax, double yMin, double yMax, wxCoord *
 	m_posY = (yMin+yMax)/2 + ((m_scrY - m_marginTop - m_marginBottom)/2 - m_marginTop)/m_scaleY;  // m_posY = (yMin+yMax)/2 + (m_scrY/2)/m_scaleY;
 
 #ifdef MATHPLOT_DO_LOGGING
-	wxLogMessage(_("mpWindow::Fit() m_minX=%f m_maxX=%f  m_minY=%f m_maxY=%f"), xMin,xMax,yMin,yMax);
+	wxLogMessage(_("mpWindow::Fit() m_desiredXmin=%f m_desiredXmax=%f  m_desiredYmin=%f m_desiredYmax=%f"), xMin,xMax,yMin,yMax);
 	wxLogMessage(_("mpWindow::Fit() m_scaleX = %f , m_scrX = %d,m_scrY=%d, Ax=%f, Ay=%f, m_posX=%f, m_posY=%f"), m_scaleX, m_scrX,m_scrY, Ax,Ay,m_posX,m_posY);
 #endif
 
@@ -1163,7 +1166,7 @@ void mpWindow::OnPaint( wxPaintEvent &event )
     {
         int px, py;
         GetViewStart( &px, &py );
-        wxLogMessage(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
+        wxLogDebug(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
     }
 #endif
 
@@ -1291,7 +1294,9 @@ bool mpWindow::UpdateBBox()
         }
         //node = node->GetNext();
     }
-
+#ifdef MATHPLOT_DO_LOGGING
+	wxLogDebug(wxT("[mpWindow::UpdateBBox] Bounding box: Xmin = %f, Xmax = %f, Ymin = %f, YMax = %f"), m_minX, m_maxX, m_minY, m_maxY);
+#endif // MATHPLOT_DO_LOGGING
     return first == FALSE;
 }
 
@@ -1315,6 +1320,7 @@ void mpWindow::UpdateAll()
 
 //         SetScrollbars( 1, 1, sx - m_scrX, sy - m_scrY, px, py, TRUE);
 //     }
+	UpdateBBox();
     Refresh( FALSE );
 
 // Old version
@@ -1377,6 +1383,14 @@ mpLayer* mpWindow::GetLayerByName( const wxString &name)
         if (! (*it)->GetName().Cmp( name ) )
             return *it;
     return NULL;    // Not found
+}
+
+void mpWindow::GetBoundingBox(double* bbox)
+{
+	bbox[0] = m_minX;
+	bbox[1] = m_maxX;
+	bbox[2] = m_minY;
+	bbox[3] = m_maxY;
 }
 
 bool mpWindow::SaveScreenshot(const wxString& filename, int type, wxSize imageSize, bool fit)

@@ -280,8 +280,10 @@ protected:
 #define mpALIGN_BORDER_TOP  0x05
 /** Set label for X axis in normal mode */
 #define mpX_NORMAL  0x00
-/** Set label for X axis in time mode: the value is represented as hours:minutes:seconds.milliseconds */
+/** Set label for X axis in time mode: the value is represented as minutes:seconds.milliseconds if time is less than 2 minutes, hours:minutes:seconds otherwise*/
 #define mpX_TIME  0x01
+/** Set label for X axis in hours mode: the value is always represented as hours:minutes:seconds*/
+#define mpX_HOURS 0x02
 /** Aligns Y axis to left border. For mpScaleY */
 #define mpALIGN_BORDER_LEFT mpALIGN_BORDER_BOTTOM
 /** Aligns Y axis to right border. For mpScaleY */
@@ -829,6 +831,9 @@ public:
    	  */
 	double GetDesiredYmax() {return m_desiredYmax; }
 
+	/** Returns the bounding box coords */
+	void GetBoundingBox(double* bbox);
+	
     /** Enable/disable scrollbars
       @param status Set to true to show scrollbars */
     void SetMPScrollbars(bool status);
