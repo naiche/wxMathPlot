@@ -1156,11 +1156,16 @@ void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 	if (refreshDisplay)  UpdateAll();
 }
 
+// void mpWindow::DoPrepareDC(wxDC& dc)
+// {
+//     dc.SetDeviceOrigin(x2p(m_minX), y2p(m_maxY));
+// }
 
 void mpWindow::OnPaint( wxPaintEvent &event )
 {
     wxPaintDC dc(this);
     dc.GetSize(&m_scrX, &m_scrY);   // This is the size of the visible area only!
+    DoPrepareDC(dc);
 
 #ifdef MATHPLOT_DO_LOGGING
     {
@@ -1215,11 +1220,12 @@ void mpWindow::OnPaint( wxPaintEvent &event )
     }
     
     // If scrollbars are enabled, refresh them
-/*    if (m_enableScrollBars) {
-        int centerX = (m_scrX - m_marginLeft - m_marginRight)/2; // + m_marginLeft; // c.x = m_scrX/2;
-	int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
-        SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY), x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
-    }*/
+    if (m_enableScrollBars) {
+//             SetVirtualSize((int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));
+//         int centerX = (m_scrX - m_marginLeft - m_marginRight)/2; // + m_marginLeft; // c.x = m_scrX/2;
+// 	int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
+        /*SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));*/ //, x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
+    }
 }
 
 void mpWindow::OnScroll2(wxScrollWinEvent &event)
@@ -1265,7 +1271,8 @@ void mpWindow::SetMPScrollbars(bool status)
     m_enableScrollBars = status;
     EnableScrolling(status, status);
     if(status) {
-        SetVirtualSize((int) (m_maxX - m_minX), (int) (m_maxY - m_minY));
+        SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));
+//         SetVirtualSize((int) (m_maxX - m_minX), (int) (m_maxY - m_minY));
     }
     Refresh(false);
 };

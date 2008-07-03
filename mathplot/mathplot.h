@@ -895,6 +895,8 @@ protected:
     void OnMouseLeftDown (wxMouseEvent     &event); //!< Mouse left click (for rect zoom)
     void OnMouseLeftRelease (wxMouseEvent  &event); //!< Mouse left click (for rect zoom)
 
+//     virtual void DoPrepareDC(wxDC& dc);
+
     /** Recalculate global layer bounding box, and save it in m_minX,...
       * \return true if there is any valid BBox information.
       */
