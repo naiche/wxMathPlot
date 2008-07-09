@@ -48,7 +48,7 @@ class MyCOSinverse : public mpFY
 {
     double m_freq, m_amp;
 public:
-    MyCOSinverse(double freq, double amp) : mpFY( wxT("g(y) = COS(y)")) { m_freq=freq; m_amp=amp; }
+    MyCOSinverse(double freq, double amp) : mpFY( wxT("g(y) = COS(y)")) { m_freq=freq; m_amp=amp;}
     virtual double GetX( double y ) { return m_amp * cos(y/6.283185/m_freq); }
     virtual double GetMinX() { return -m_amp; }
     virtual double GetMaxX() { return  m_amp; }
@@ -61,7 +61,7 @@ class MyLissajoux : public mpFXY
     double m_rad;
     int    m_idx;
 public:
-    MyLissajoux(double rad) : mpFXY( wxT("Lissajoux")) { m_rad=rad; m_idx=0; m_drawOutsideMargins = false; }
+    MyLissajoux(double rad) : mpFXY( wxT("Lissajoux")) { m_rad=rad; m_idx=0; m_drawOutsideMargins = false;}
     virtual bool GetNextXY( double & x, double & y )
     {
         if (m_idx < 360)

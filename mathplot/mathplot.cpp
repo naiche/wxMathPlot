@@ -1643,54 +1643,51 @@ mpPrintout::mpPrintout(mpWindow *drawWindow, wxChar *title) : wxPrintout(title)
 
 bool mpPrintout::OnPrintPage(int page)
 {
-
-   wxDC *trgDc = GetDC();
-   if ((trgDc) && (page == 1)) {
-        int m_prnX, m_prnY;
+    
+    wxDC *trgDc = GetDC();
+    if ((trgDc) && (page == 1)) {
+        wxCoord m_prnX, m_prnY;
+        int marginX = 50;
+        int marginY = 50;
         trgDc->GetSize(&m_prnX, &m_prnY);
+        
+        m_prnX -= (2*marginX);
+        m_prnY -= (2*marginY);
+        trgDc->SetDeviceOrigin(marginX, marginY);
+        
 #ifdef MATHPLOT_DO_LOGGING
         wxLogMessage(wxT("Print Size: %d x %d\n"), m_prnX, m_prnY);
         wxLogMessage(wxT("Screen Size: %d x %d\n"), plotWindow->GetScrX(), plotWindow->GetScrY());
 #endif
+
+	// Set the scale according to the page:
+        plotWindow->Fit(
+                        plotWindow->GetDesiredXmin(),
+                        plotWindow->GetDesiredXmax(),
+                        plotWindow->GetDesiredYmin(),
+                        plotWindow->GetDesiredYmax(),
+                        &m_prnX, 
+                        &m_prnY );
+
+
         // Draw background:
-        trgDc->SetDeviceOrigin(0,0);
+        //trgDc->SetDeviceOrigin(0,0);
         trgDc->SetPen( *wxTRANSPARENT_PEN );
         wxBrush brush( plotWindow->GetBackgroundColour() );
         trgDc->SetBrush( brush );
         trgDc->DrawRectangle(0,0,m_prnX,m_prnY);
-        trgDc->DrawRectangle(200,0,m_prnX,m_prnY);
-
-double saveScaleX = plotWindow->GetScaleX();
-double saveScaleY = plotWindow->GetScaleY();
-int saveScrX = plotWindow->GetScrX();
-int saveScrY = plotWindow->GetScrY();
-
-int m_prnMin = (m_prnX < m_prnY) ? m_prnX : m_prnY;
-int m_scrMin = (m_prnX < m_prnY) ? saveScrX : saveScrY;
-
-plotWindow->SetScr(m_prnMin, m_prnMin);
-
-plotWindow->SetScaleX(saveScaleX*m_prnMin/m_scrMin);
-plotWindow->SetScaleY(saveScaleY*m_prnMin/m_scrMin);
-
 
         // Draw all the layers:
-        trgDc->SetDeviceOrigin( m_prnX>>1, m_prnY>>1);  // Origin at the center
+        //trgDc->SetDeviceOrigin( m_prnX>>1, m_prnY>>1);  // Origin at the center
         mpLayer *layer;
         for (unsigned int li = 0; li < plotWindow->CountAllLayers(); li++) {
             layer = plotWindow->GetLayer(li);
             layer->Plot(*trgDc, *plotWindow);
         };
-  
-////hwa
-//After plotting to printer page, reset to saved values
-plotWindow->SetScaleX(saveScaleX);
-plotWindow->SetScaleY(saveScaleY);
-plotWindow->SetScr(saveScrX, saveScrY);
-plotWindow->UpdateAll();
-////hwa
-     }
-   return true;
+        // Restore device origin
+        trgDc->SetDeviceOrigin(0, 0);
+    }
+    return true;
 }
 
 bool mpPrintout::HasPage(int page)
