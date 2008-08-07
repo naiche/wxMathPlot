@@ -244,6 +244,11 @@ public:
         @return The draw mode */
     bool GetDrawOutsideMargins() { return m_drawOutsideMargins; };
 
+    /** Get a small square bitmap filled with the colour of the pen used in the layer. Useful to create legends or similar reference to the layers.
+        @param side side length in pixels
+        @return a wxBitmap filled with layer's colour */
+    wxBitmap GetColourSquare(int side = 16);
+
 protected:
     wxFont   m_font;    //!< Layer's font
     wxPen    m_pen;     //!< Layer's pen
@@ -587,7 +592,7 @@ public:
     mpWindow( wxWindow *parent, wxWindowID id,
                      const wxPoint &pos = wxDefaultPosition,
                      const wxSize &size = wxDefaultSize,
-                     int flags = 0);
+                     long flags = 0);
     ~mpWindow();
 
     /** Get reference to context menu of the plot canvas.

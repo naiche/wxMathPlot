@@ -66,6 +66,19 @@ mpLayer::mpLayer()
     m_drawOutsideMargins = TRUE;
 }
 
+wxBitmap mpLayer::GetColourSquare(int side)
+{
+    wxBitmap square(side, side, -1);
+    wxColour filler = m_pen.GetColour();
+    wxBrush brush(filler, wxSOLID);
+    wxMemoryDC dc;
+    dc.SelectObject(square);
+    dc.SetBackground(brush);
+    dc.Clear();
+    dc.SelectObject(wxNullBitmap);
+    return square;
+}
+
 //-----------------------------------------------------------------------------
 // mpLayer implementations - functions
 //-----------------------------------------------------------------------------
@@ -688,7 +701,7 @@ BEGIN_EVENT_TABLE(mpWindow, wxScrolledWindow)
     EVT_MENU( mpID_HELP_MOUSE,mpWindow::OnMouseHelp)
 END_EVENT_TABLE()
 
-mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int flag )
+mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long flag )
     : wxScrolledWindow( parent, id, pos, size, flag, wxT("mathplot") )
 {
     m_scaleX = m_scaleY = 1.0;
