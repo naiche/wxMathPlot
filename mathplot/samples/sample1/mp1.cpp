@@ -201,7 +201,8 @@ MyFrame::MyFrame()
     m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
-  
+    
+    m_plot->EnableCoordTooltip(true);
     // set a nice pen for the lissajoux
     wxPen mypen(*wxRED, 5, wxSOLID);
     l->SetPen( mypen);

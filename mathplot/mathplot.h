@@ -56,6 +56,7 @@
 
 #include <vector>
 
+// #include <wx/wx.h>
 #include "wx/defs.h"
 #include "wx/menu.h"
 #include "wx/scrolwin.h"
@@ -66,6 +67,7 @@
 #include "wx/string.h"
 #include "wx/print.h"
 #include "wx/image.h"
+
 
 #include <deque>
 
@@ -883,6 +885,11 @@ public:
     /** Set left margin. @param left Left Margin */
     int GetMarginLeft() { return m_marginLeft; };
 
+    /** Sets whether to show coordinate tooltip when mouse passes over the plot. \param value true for enable, false for disable */
+    void EnableCoordTooltip(bool value = true);
+    /** Gets coordinate tooltip status. \return true for enable, false for disable */
+    bool GetCoordTooltip() { return m_coordTooltip; };
+
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
     void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes
@@ -911,6 +918,7 @@ protected:
     wxLayerList m_layers; //!< List of attached plot layers
     wxMenu m_popmenu;   //!< Canvas' context menu
     bool   m_lockaspect;//!< Scale aspect is locked or not
+    bool   m_coordTooltip; //!< Selects whether to show coordinate tooltip
 
     double m_minX;      //!< Global layer bounding box, left border incl.
     double m_maxX;      //!< Global layer bounding box, right border incl.

@@ -44,6 +44,7 @@
 #include <wx/module.h>
 #include <wx/msgdlg.h>
 #include <wx/image.h>
+#include <wx/tipwin.h>
 
 #include <cmath>
 #include <cstdio> // used only for debug
@@ -575,12 +576,12 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     int tmp = (int)dig;
     if (tmp>=1)
     {
-        fmt = wxT("%.f");
+        fmt = wxT("%.g");
     }
     else
     {
         tmp=8-tmp;
-        fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
+        fmt.Printf(wxT("%%.%dg"), tmp >= -1 ? 2 : -tmp);
     }
 
     double n = floor( (w.GetPosY() - (double)(extend - w.GetMarginTop() - w.GetMarginBottom())/ w.GetScaleY()) / step ) * step ;
@@ -855,6 +856,15 @@ void mpWindow::OnMouseMove(wxMouseEvent     &event)
             dc.SetBrush(*wxTRANSPARENT_BRUSH);
             dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, event.GetX() - m_mouseLClick_X, event.GetY() - m_mouseLClick_Y);
             UpdateAll();
+        } else {
+            if (m_coordTooltip) {
+                wxString toolTipContent;
+                toolTipContent.Printf(_("X = %f\nY = %f"), p2x(event.GetX()), p2y(event.GetY()));
+                wxTipWindow** ptr = NULL;
+                wxRect rectBounds(event.GetX(), event.GetY(), 5, 5);
+                wxTipWindow* tip = new wxTipWindow(this, toolTipContent, 100, ptr, &rectBounds);
+                
+            }
         }
     }
     event.Skip();
@@ -876,7 +886,13 @@ void mpWindow::OnMouseLeftRelease (wxMouseEvent &event)
     wxPoint press(m_mouseLClick_X, m_mouseLClick_Y);
     if (release != press) {
         ZoomRect(press, release);
-    }
+    } /*else {
+        if (m_coordTooltip) {
+            wxString toolTipContent;
+            toolTipContent.Printf(_("X = %f\nY = %f"), p2x(event.GetX()), p2y(event.GetY()));
+            SetToolTip(toolTipContent);
+        }
+    } */
     event.Skip();
 }
 
@@ -1232,6 +1248,12 @@ void mpWindow::OnPaint( wxPaintEvent &event )
         dc.Blit(0,0,m_scrX,m_scrY,trgDc,0,0);
     }
     
+/*    if (m_coordTooltip) {
+        wxString toolTipContent;
+        wxPoint mousePoint =  wxGetMousePosition();
+        toolTipContent.Printf(_("X = %f\nY = %f"), p2x(mousePoint.x), p2y(mousePoint.y));
+        SetToolTip(toolTipContent);
+    }*/
     // If scrollbars are enabled, refresh them
     if (m_enableScrollBars) {
 //             SetVirtualSize((int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));
@@ -1239,6 +1261,7 @@ void mpWindow::OnPaint( wxPaintEvent &event )
 // 	int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
         /*SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));*/ //, x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
     }
+    
 }
 
 void mpWindow::OnScroll2(wxScrollWinEvent &event)
@@ -1462,6 +1485,12 @@ void mpWindow::SetMargins(int top, int right, int bottom, int left)
     m_marginRight = right;
     m_marginBottom = bottom;
     m_marginLeft = left;
+}
+
+void mpWindow::EnableCoordTooltip(bool value)
+{
+     m_coordTooltip = value;
+//      if (value) GetToolTip()->SetDelay(100);
 }
 
 /*
