@@ -101,6 +101,7 @@ public:
     void OnAlignYAxis( wxCommandEvent &event );
     void OnToggleGrid( wxCommandEvent &event );
     void OnToggleScrollbars(wxCommandEvent& event);
+    void OnToggleInfoLayer(wxCommandEvent& event);
     void OnSaveScreenshot(wxCommandEvent& event);
 
     mpWindow        *m_plot;
@@ -109,6 +110,7 @@ public:
 private:
     int axesPos[2];
     bool ticks;
+    mpInfoLayer* nfo;
     DECLARE_DYNAMIC_CLASS(MyFrame)
     DECLARE_EVENT_TABLE()
 };
@@ -136,6 +138,7 @@ enum {
     ID_ALIGN_Y_AXIS,
     ID_TOGGLE_GRID,
     ID_TOGGLE_SCROLLBARS,
+    ID_TOGGLE_INFO,
     ID_SAVE_SCREENSHOT
 };
 
@@ -151,6 +154,7 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
   EVT_MENU(ID_TOGGLE_GRID, MyFrame::OnToggleGrid)
   EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
+  EVT_MENU(ID_TOGGLE_INFO, MyFrame::OnToggleInfoLayer)
   EVT_MENU(ID_SAVE_SCREENSHOT, MyFrame::OnSaveScreenshot)
 END_EVENT_TABLE()
 
@@ -175,6 +179,7 @@ MyFrame::MyFrame()
     view_menu->Append( ID_ALIGN_Y_AXIS, wxT("Switch &Y axis align"));
     view_menu->Append( ID_TOGGLE_GRID, wxT("Toggle grid/ticks"));
     view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
+    view_menu->AppendCheckItem( ID_TOGGLE_INFO, wxT("Show overlay info box"));
     
     wxMenuBar *menu_bar = new wxMenuBar();
     menu_bar->Append(file_menu, wxT("&File"));
@@ -201,8 +206,10 @@ MyFrame::MyFrame()
     m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
+    wxBrush hatch(wxColour(255,0,0), wxCROSSDIAG_HATCH);
+    m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
     
-    m_plot->EnableCoordTooltip(true);
+    // m_plot->EnableCoordTooltip(true);
     // set a nice pen for the lissajoux
     wxPen mypen(*wxRED, 5, wxSOLID);
     l->SetPen( mypen);
@@ -342,6 +349,16 @@ void MyFrame::OnToggleScrollbars(wxCommandEvent& event)
         m_plot->SetMPScrollbars(true);
     else
         m_plot->SetMPScrollbars(false);
+    event.Skip();
+}
+
+void MyFrame::OnToggleInfoLayer(wxCommandEvent& event)
+{
+  if (event.IsChecked())
+        nfo->SetVisible(true);
+    else
+        nfo->SetVisible(false);
+    m_plot->UpdateAll();
     event.Skip();
 }
 

@@ -123,13 +123,20 @@ public:
     virtual ~mpLayer() {};
 
     /** Check whether this layer has a bounding box.
-        The default implementation returns \a TRUE. Overide and return
+        The default implementation returns \a TRUE. Override and return
         FALSE if your mpLayer implementation should be ignored by the calculation
         of the global bounding box for all layers in a mpWindow.
         @retval TRUE Has bounding box
         @retval FALSE Has not bounding box
     */
     virtual bool   HasBBox() { return TRUE; }
+
+    /** Check whether the layer is an info box.
+        The default implementation returns \a FALSE. It is overrided to \a TRUE for mpInfoLayer
+        class and its derivative. It is necessary to define mouse actions behaviour over
+        info boxes.
+        @returns whether the layer is an info boxes */
+    virtual bool IsInfo() { return false; };
 
     /** Get inclusive left border of bounding box.
         @return Value
@@ -260,6 +267,40 @@ protected:
     bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins o over all DC
 
     DECLARE_CLASS(mpLayer)
+};
+
+
+//-----------------------------------------------------------------------------
+// mpInfoLayer
+//-----------------------------------------------------------------------------
+/** @class mpInfoLayer
+    @brief Base class to create small rectangular info boxes
+    mpInfoLayer is the base class to create a small rectangular info box in transparent overlay over plot layers.
+*/
+class WXDLLEXPORT mpInfoLayer : public mpLayer
+{
+public:
+    mpInfoLayer();
+    mpInfoLayer(wxRect rect, const wxBrush* brush = wxTRANSPARENT_BRUSH);
+    virtual ~mpInfoLayer();
+
+    virtual void UpdateInfo(mpWindow& w);
+    virtual bool HasBBox() { return false; };
+    virtual void   Plot(wxDC & dc, mpWindow & w);
+    virtual bool IsInfo() { return true; };
+    bool Inside(wxPoint& point);
+    void Move(wxPoint delta);
+    void UpdateReference();
+    wxPoint GetPosition();
+    wxSize GetSize();
+    bool IsVisible() {return visible; };
+    void SetVisible(bool show) { visible = show; };
+protected:
+    wxRect m_dim;
+    wxPoint m_reference;
+    wxString m_content;
+    wxBrush m_brush;
+    bool visible;
 };
 
 //-----------------------------------------------------------------------------
@@ -886,9 +927,14 @@ public:
     int GetMarginLeft() { return m_marginLeft; };
 
     /** Sets whether to show coordinate tooltip when mouse passes over the plot. \param value true for enable, false for disable */
-    void EnableCoordTooltip(bool value = true);
+    // void EnableCoordTooltip(bool value = true);
     /** Gets coordinate tooltip status. \return true for enable, false for disable */
-    bool GetCoordTooltip() { return m_coordTooltip; };
+    // bool GetCoordTooltip() { return m_coordTooltip; };
+
+    /** Check if a given point is inside the area of a mpInfoLayer and eventually returns its pointer.
+        @param point The position to be checked 
+        @return if an info layer is found, returns its pointer, NULL otherwise */
+    mpInfoLayer* IsInsideInfoLayer(wxPoint& point);
 
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
@@ -912,13 +958,13 @@ protected:
     /** Recalculate global layer bounding box, and save it in m_minX,...
       * \return true if there is any valid BBox information.
       */
-    bool UpdateBBox(); //!<
+    bool UpdateBBox();
 
     //wxList m_layers;    //!< List of attached plot layers
     wxLayerList m_layers; //!< List of attached plot layers
     wxMenu m_popmenu;   //!< Canvas' context menu
     bool   m_lockaspect;//!< Scale aspect is locked or not
-    bool   m_coordTooltip; //!< Selects whether to show coordinate tooltip
+    // bool   m_coordTooltip; //!< Selects whether to show coordinate tooltip
 
     double m_minX;      //!< Global layer bounding box, left border incl.
     double m_maxX;      //!< Global layer bounding box, right border incl.
@@ -948,6 +994,7 @@ protected:
     long        m_mouseRClick_X,m_mouseRClick_Y; //!< For the right button "drag" feature
     int         m_mouseLClick_X, m_mouseLClick_Y; //!< Starting coords for rectangular zoom selection
     bool        m_enableScrollBars;
+    mpInfoLayer* m_movingInfoLayer;      //!< For moving info layers over the window area
 
     DECLARE_CLASS(mpWindow)
     DECLARE_EVENT_TABLE()

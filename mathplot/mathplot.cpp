@@ -21,7 +21,7 @@
 
 // Comment out for release operation:
 // (Added by J.L.Blanco, Aug 2007)
-// #define MATHPLOT_DO_LOGGING
+#define MATHPLOT_DO_LOGGING
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -48,6 +48,8 @@
 
 #include <cmath>
 #include <cstdio> // used only for debug
+
+#include "pixel.xpm"
 
 // See doxygen comments.
 double mpWindow::zoomIncrementalFactor = 1.5;
@@ -78,6 +80,72 @@ wxBitmap mpLayer::GetColourSquare(int side)
     dc.Clear();
     dc.SelectObject(wxNullBitmap);
     return square;
+}
+
+//-----------------------------------------------------------------------------
+// mpInfoLayer
+//-----------------------------------------------------------------------------
+mpInfoLayer::mpInfoLayer()
+{
+    m_dim = wxRect(0,0,10,10);
+    m_brush = *wxTRANSPARENT_BRUSH;
+    m_reference.x = 0; m_reference.y = 0;
+}
+
+mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
+{
+    m_brush = *brush;
+    m_reference.x = rect.x;
+    m_reference.y = rect.y;
+}
+
+mpInfoLayer::~mpInfoLayer()
+{
+    
+}
+
+void mpInfoLayer::UpdateInfo(mpWindow& w)
+{
+    
+}
+
+bool mpInfoLayer::Inside(wxPoint& point)
+{
+    return m_dim.Contains(point);
+}
+
+void mpInfoLayer::Move(wxPoint delta)
+{
+    m_dim.SetX(m_reference.x + delta.x);
+    m_dim.SetY(m_reference.y + delta.y);
+}
+
+void mpInfoLayer::UpdateReference()
+{
+    m_reference.x = m_dim.x;
+    m_reference.y = m_dim.y;
+}
+
+void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
+{
+    if (visible) {
+        dc.SetPen(m_pen);
+//     wxImage image0(wxT("pixel.png"), wxBITMAP_TYPE_PNG);
+//     wxBitmap image1(image0);
+//     wxBrush semiWhite(image1);
+        dc.SetBrush(m_brush);
+        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+    }
+}
+
+wxPoint mpInfoLayer::GetPosition()
+{
+    return m_dim.GetPosition();
+}
+
+wxSize mpInfoLayer::GetSize()
+{
+    return m_dim.GetSize();
 }
 
 //-----------------------------------------------------------------------------
@@ -574,15 +642,15 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     wxString s;
     wxString fmt;
     int tmp = (int)dig;
-    if (tmp>=1)
-    {
-        fmt = wxT("%.g");
-    }
-    else
-    {
-        tmp=8-tmp;
-        fmt.Printf(wxT("%%.%dg"), tmp >= -1 ? 2 : -tmp);
-    }
+/*    if (tmp>=1)
+    {*/
+        fmt = wxT("%7.5g");
+//     }
+//     else
+//     {
+//         tmp=8-tmp;
+//         fmt.Printf(wxT("%%.%dg"), (tmp >= -1) ? 2 : -tmp);
+//     }
 
     double n = floor( (w.GetPosY() - (double)(extend - w.GetMarginTop() - w.GetMarginBottom())/ w.GetScaleY()) / step ) * step ;
 
@@ -717,6 +785,7 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_enableDoubleBuffer        = FALSE;
     m_enableMouseNavigation     = TRUE;
     m_mouseMovedAfterRightClick = FALSE;
+    m_movingInfoLayer = NULL;
     // Set margins to 0
     m_marginTop = 0; m_marginRight = 0; m_marginBottom = 0; m_marginLeft = 0;
 
@@ -850,21 +919,26 @@ void mpWindow::OnMouseMove(wxMouseEvent     &event)
 #endif
     } else {
         if (event.m_leftDown) {
-            wxClientDC dc(this);
-            wxPen pen(*wxBLACK, 1, wxDOT);
-            dc.SetPen(pen);
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, event.GetX() - m_mouseLClick_X, event.GetY() - m_mouseLClick_Y);
+            if (m_movingInfoLayer == NULL) {
+                wxClientDC dc(this);
+                wxPen pen(*wxBLACK, 1, wxDOT);
+                dc.SetPen(pen);
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, event.GetX() - m_mouseLClick_X, event.GetY() - m_mouseLClick_Y);
+            } else {
+                wxPoint moveVector(event.GetX() - m_mouseLClick_X, event.GetY() - m_mouseLClick_Y);
+                m_movingInfoLayer->Move(moveVector);
+            }
             UpdateAll();
         } else {
-            if (m_coordTooltip) {
+            /* if (m_coordTooltip) {
                 wxString toolTipContent;
                 toolTipContent.Printf(_("X = %f\nY = %f"), p2x(event.GetX()), p2y(event.GetY()));
                 wxTipWindow** ptr = NULL;
                 wxRect rectBounds(event.GetX(), event.GetY(), 5, 5);
                 wxTipWindow* tip = new wxTipWindow(this, toolTipContent, 100, ptr, &rectBounds);
                 
-            }
+            } */
         }
     }
     event.Skip();
@@ -877,6 +951,13 @@ void mpWindow::OnMouseLeftDown (wxMouseEvent &event)
 #ifdef MATHPLOT_DO_LOGGING
     wxLogMessage(_("mpWindow::OnMouseLeftDown() X = %d , Y = %d"), event.GetX(), event.GetY());/*m_mouseLClick_X, m_mouseLClick_Y);*/
 #endif
+    wxPoint pointClicked = event.GetPosition(); 
+    m_movingInfoLayer = IsInsideInfoLayer(pointClicked);
+    if (m_movingInfoLayer != NULL) {
+#ifdef MATHPLOT_DO_LOGGING
+        wxLogMessage(_("mpWindow::OnMouseLeftDown() started moving layer %lx"), (long int) m_movingInfoLayer);/*m_mouseLClick_X, m_mouseLClick_Y);*/
+#endif
+    }
     event.Skip();
 }
 
@@ -884,15 +965,20 @@ void mpWindow::OnMouseLeftRelease (wxMouseEvent &event)
 {
     wxPoint release(event.GetX(), event.GetY());
     wxPoint press(m_mouseLClick_X, m_mouseLClick_Y);
-    if (release != press) {
-        ZoomRect(press, release);
-    } /*else {
-        if (m_coordTooltip) {
-            wxString toolTipContent;
-            toolTipContent.Printf(_("X = %f\nY = %f"), p2x(event.GetX()), p2y(event.GetY()));
-            SetToolTip(toolTipContent);
-        }
-    } */
+    if (m_movingInfoLayer != NULL) {
+        m_movingInfoLayer->UpdateReference();
+        m_movingInfoLayer = NULL;
+    } else {
+        if (release != press) {
+            ZoomRect(press, release);
+        } /*else {
+            if (m_coordTooltip) {
+                wxString toolTipContent;
+                toolTipContent.Printf(_("X = %f\nY = %f"), p2x(event.GetX()), p2y(event.GetY()));
+                SetToolTip(toolTipContent);
+            }
+        } */
+    }
     event.Skip();
 }
 
@@ -1487,11 +1573,31 @@ void mpWindow::SetMargins(int top, int right, int bottom, int left)
     m_marginLeft = left;
 }
 
-void mpWindow::EnableCoordTooltip(bool value)
+mpInfoLayer* mpWindow::IsInsideInfoLayer(wxPoint& point)
 {
-     m_coordTooltip = value;
-//      if (value) GetToolTip()->SetDelay(100);
+    wxLayerList::iterator li;
+    for (li = m_layers.begin(); li != m_layers.end(); li++) {
+#ifdef _MATHPLOT_DO_LOGGING
+        printf("mpWindow::IsInsideInfoLayer() examinining layer = %p", (*li));
+#endif // _MATHPLOT_DO_LOGGING
+        if ((*li)->IsInfo()) {
+            mpInfoLayer* tmpLyr = (mpInfoLayer*) (*li);
+#ifdef _MATHPLOT_DO_LOGGING
+            wxLogMessage(_("mpWindow::IsInsideInfoLayer() layer = %"), (*li));
+#endif // _MATHPLOT_DO_LOGGING
+            if (tmpLyr->Inside(point)) {
+                return tmpLyr;
+            }
+        }
+    }
+    return NULL;
 }
+
+// void mpWindow::EnableCoordTooltip(bool value)
+// {
+//      m_coordTooltip = value;
+// //      if (value) GetToolTip()->SetDelay(100);
+// }
 
 /*
 double mpWindow::p2x(wxCoord pixelCoordX, bool drawOutside )
