@@ -207,7 +207,7 @@ MyFrame::MyFrame()
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
     wxBrush hatch(wxColour(255,0,0), wxCROSSDIAG_HATCH);
-    m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
+    m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(0,0,40,40), &hatch));
     
     // m_plot->EnableCoordTooltip(true);
     // set a nice pen for the lissajoux

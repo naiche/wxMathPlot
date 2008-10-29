@@ -301,6 +301,9 @@ protected:
     wxString m_content;
     wxBrush m_brush;
     bool visible;
+    int m_winX, m_winY;
+    
+    DECLARE_CLASS(mpInfoLayer)
 };
 
 //-----------------------------------------------------------------------------

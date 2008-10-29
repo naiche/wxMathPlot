@@ -49,7 +49,7 @@
 #include <cmath>
 #include <cstdio> // used only for debug
 
-#include "pixel.xpm"
+// #include "pixel.xpm"
 
 // See doxygen comments.
 double mpWindow::zoomIncrementalFactor = 1.5;
@@ -85,11 +85,14 @@ wxBitmap mpLayer::GetColourSquare(int side)
 //-----------------------------------------------------------------------------
 // mpInfoLayer
 //-----------------------------------------------------------------------------
+IMPLEMENT_CLASS(mpInfoLayer, mpLayer)
+
 mpInfoLayer::mpInfoLayer()
 {
     m_dim = wxRect(0,0,10,10);
     m_brush = *wxTRANSPARENT_BRUSH;
     m_reference.x = 0; m_reference.y = 0;
+    m_winX = 1; m_winY = 1;
 }
 
 mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
@@ -97,6 +100,7 @@ mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
     m_brush = *brush;
     m_reference.x = rect.x;
     m_reference.y = rect.y;
+    m_winX = 1; m_winY = 1;
 }
 
 mpInfoLayer::~mpInfoLayer()
@@ -129,6 +133,15 @@ void mpInfoLayer::UpdateReference()
 void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 {
     if (visible) {
+        // Adjust realtive position inside the window
+        if ((m_winX != w.GetScrX()) || (m_winY != w.GetScrY())) {
+            m_dim.x = (int) floor(m_dim.x*w.GetScrX()/m_winX);
+            m_dim.y = (int) floor(m_dim.y*w.GetScrY()/m_winY);
+            UpdateReference();
+            // Finally update window size
+            m_winX = w.GetScrX();
+            m_winY = w.GetScrY();
+        }
         dc.SetPen(m_pen);
 //     wxImage image0(wxT("pixel.png"), wxBITMAP_TYPE_PNG);
 //     wxBitmap image1(image0);
@@ -1224,8 +1237,11 @@ void mpWindow::OnZoomOut(wxCommandEvent &event)
 
 void mpWindow::OnSize( wxSizeEvent &event )
 {
-	// Try to fit again with the new window size:
-	Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
+    // Try to fit again with the new window size:
+    Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
+#ifdef _MATHPLOT_DO_LOGGING
+    wxLogMessage(_("mpWindow::OnSize() m_scrX = %d, m_scrY = %d"), m_scrX, m_scrY);
+#endif // _MATHPLOT_DO_LOGGING
 }
 
 bool mpWindow::AddLayer( mpLayer* layer, bool refreshDisplay )
