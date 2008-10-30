@@ -1045,7 +1045,7 @@ public:
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
     void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes
-    void OnScroll2       (wxScrollWinEvent &event); //!< Scroll handler, will move canvas
+    // void OnScroll2       (wxScrollWinEvent &event); //!< Scroll handler, will move canvas
     void OnShowPopupMenu (wxMouseEvent     &event); //!< Mouse handler, will show context menu
     void OnMouseRightDown(wxMouseEvent     &event); //!< Mouse handler, for detecting when the user drag with the right button or just "clicks" for the menu
     void OnCenter        (wxCommandEvent   &event); //!< Context menu handler
@@ -1100,6 +1100,7 @@ protected:
     long        m_mouseRClick_X,m_mouseRClick_Y; //!< For the right button "drag" feature
     int         m_mouseLClick_X, m_mouseLClick_Y; //!< Starting coords for rectangular zoom selection
     bool        m_enableScrollBars;
+    int         m_scrollX, m_scrollY;
     mpInfoLayer* m_movingInfoLayer;      //!< For moving info layers over the window area
 
     DECLARE_CLASS(mpWindow)

@@ -146,7 +146,7 @@ void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
         int scry = w.GetScrY();
         if ((m_winX != scrx) || (m_winY != scry)) {
 #ifdef MATHPLOT_DO_LOGGING
-            wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+            // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
             if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
             if (m_winY != 1) {
@@ -208,7 +208,7 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
         int scry = w.GetScrY();
         if ((m_winX != scrx) || (m_winY != scry)) {
 #ifdef MATHPLOT_DO_LOGGING
-            wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+            // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
             if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
             if (m_winY != 1) {
@@ -262,7 +262,7 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         int scry = w.GetScrY();
         if ((m_winX != scrx) || (m_winY != scry)) {
 #ifdef MATHPLOT_DO_LOGGING
-            wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+            // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
             if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
             if (m_winY != 1) {
@@ -294,7 +294,7 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
                 textX = (textX > (tmpX + baseWidth)) ? textX : (tmpX + baseWidth + mpLEGEND_MARGIN);
                 textY += (tmpY);
 #ifdef MATHPLOT_DO_LOGGING
-                wxLogMessage(_("mpInfoLegend::Plot() Adding layer %d: %s"), p, label.c_str());
+                // wxLogMessage(_("mpInfoLegend::Plot() Adding layer %d: %s"), p, label.c_str());
 #endif
             }
         }
@@ -829,9 +829,16 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
     wxString s;
     wxString fmt;
     int tmp = (int)dig;
+    double maxScaleAbs = fabs(w.GetDesiredYmax());
+    double minScaleAbs = fabs(w.GetDesiredYmin()); 
+    double endscale = (maxScaleAbs > minScaleAbs) ? maxScaleAbs : minScaleAbs;
+    if ((endscale < 1e4) && (endscale > 1e-3))
+        fmt = wxT("%.2f");
+    else
+        fmt = wxT("%.1e");
 /*    if (tmp>=1)
     {*/
-        fmt = wxT("%7.5g");
+    //    fmt = wxT("%7.5g");
 //     }
 //     else
 //     {
@@ -939,7 +946,7 @@ IMPLEMENT_DYNAMIC_CLASS(mpWindow, wxScrolledWindow)
 BEGIN_EVENT_TABLE(mpWindow, wxScrolledWindow)
     EVT_PAINT    ( mpWindow::OnPaint)
     EVT_SIZE     ( mpWindow::OnSize)
-    EVT_SCROLLWIN( mpWindow::OnScroll2)
+    // EVT_SCROLLWIN( mpWindow::OnScroll2)
 
     EVT_MIDDLE_UP( mpWindow::OnShowPopupMenu)
     EVT_RIGHT_DOWN( mpWindow::OnMouseRightDown) // JLB
@@ -1484,7 +1491,7 @@ void mpWindow::OnPaint( wxPaintEvent &event )
     {
         int px, py;
         GetViewStart( &px, &py );
-        wxLogDebug(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
+        wxLogMessage(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
     }
 #endif
 
@@ -1540,6 +1547,10 @@ void mpWindow::OnPaint( wxPaintEvent &event )
     }*/
     // If scrollbars are enabled, refresh them
     if (m_enableScrollBars) {
+/*       m_scrollX = (int) floor((m_posX - m_minX)*m_scaleX);
+       m_scrollY = (int) floor((m_maxY - m_posY )*m_scaleY);
+       Scroll(m_scrollX, m_scrollY);*/
+       // Scroll(x2p(m_posX), y2p(m_posY));
 //             SetVirtualSize((int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));
 //         int centerX = (m_scrX - m_marginLeft - m_marginRight)/2; // + m_marginLeft; // c.x = m_scrX/2;
 // 	int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
@@ -1548,53 +1559,84 @@ void mpWindow::OnPaint( wxPaintEvent &event )
     
 }
 
-void mpWindow::OnScroll2(wxScrollWinEvent &event)
-{
-#ifdef MATHPLOT_DO_LOGGING
-    wxLogMessage(_("[mpWindow::OnScroll2] Init: m_posX=%f m_posY=%f, sc_pos = %d"),m_posX,m_posY, event.GetPosition());
-#endif
-    // If scrollbars are not enabled, Skip operation
-    if (!m_enableScrollBars) {
-        event.Skip();
-        return;
-    }
-
-//     GetClientSize( &m_scrX, &m_scrY);
-    int px, py;
-    GetViewStart( &px, &py);
-
-// /*    int pixelStep = 1;
+// void mpWindow::OnScroll2(wxScrollWinEvent &event)
+// {
+// #ifdef MATHPLOT_DO_LOGGING
+//     wxLogMessage(_("[mpWindow::OnScroll2] Init: m_posX=%f m_posY=%f, sc_pos = %d"),m_posX,m_posY, event.GetPosition());
+// #endif
+//     // If scrollbars are not enabled, Skip operation
+//     if (!m_enableScrollBars) {
+//         event.Skip();
+//         return;
+//     }
+// //     m_scrollX = (int) floor((m_posX - m_minX)*m_scaleX);
+// //     m_scrollY = (int) floor((m_maxY - m_posY /*- m_minY*/)*m_scaleY);
+// //     Scroll(m_scrollX, m_scrollY);
+// 
+// //     GetClientSize( &m_scrX, &m_scrY);
+//     //Scroll(x2p(m_desiredXmin), y2p(m_desiredYmin));
+//     int pixelStep = 1;
 //     if (event.GetOrientation() == wxHORIZONTAL) {
-//         m_posX 		-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
-// 	m_desiredXmax 	-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
-// 	m_desiredXmin 	-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
-//         //SetPosX( (double)px / GetScaleX() + m_minX + (double)(width>>1)/GetScaleX());
-// //         m_posX = p2x(px); //m_minX + (double)(px /*+ (m_scrX)*/)/GetScaleX();
-//     } else {
-//         m_posY 		+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
-// 	m_desiredYmax	+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
-// 	m_desiredYmax	+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
-//         //SetPosY( m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY());
-//         //m_posY = m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY();
-// //         m_posY = p2y(py);//m_maxY - (double)(py /*+ (m_scrY)*/)/GetScaleY();
-//     }*/
-#ifdef MATHPLOT_DO_LOGGING
-    wxLogMessage(_("[mpWindow::OnScroll2] End:  m_posX=%f m_posY=%f"),m_posX,m_posY);
-#endif
-
-    UpdateAll();
-    event.Skip();
-}
+//         //m_desiredXmin -= (m_scrollX - event.GetPosition())/m_scaleX;
+//         //m_desiredXmax -= (m_scrollX - event.GetPosition())/m_scaleX;
+//         m_posX -= (m_scrollX - event.GetPosition())/m_scaleX;
+//         m_scrollX = event.GetPosition();
+//     }
+//     Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax);
+// // /*    int pixelStep = 1;
+// //     if (event.GetOrientation() == wxHORIZONTAL) {
+// //         m_posX 		-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
+// // 	m_desiredXmax 	-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
+// // 	m_desiredXmin 	-= (px - event.GetPosition())/m_scaleX;//(pixelStep/m_scaleX);
+// //         //SetPosX( (double)px / GetScaleX() + m_minX + (double)(width>>1)/GetScaleX());
+// // //         m_posX = p2x(px); //m_minX + (double)(px /*+ (m_scrX)*/)/GetScaleX();
+// //     } else {
+// //         m_posY 		+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
+// // 	m_desiredYmax	+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
+// // 	m_desiredYmax	+= (py - event.GetPosition())/m_scaleY;//(pixelStep/m_scaleY);
+// //         //SetPosY( m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY());
+// //         //m_posY = m_maxY - (double)py / GetScaleY() - (double)(height>>1)/GetScaleY();
+// // //         m_posY = p2y(py);//m_maxY - (double)(py /*+ (m_scrY)*/)/GetScaleY();
+// //     }*/
+// #ifdef MATHPLOT_DO_LOGGING
+//     int px, py;
+//     GetViewStart( &px, &py);
+//     wxLogMessage(_("[mpWindow::OnScroll2] End:  m_posX = %f, m_posY = %f, px = %f, py = %f"),m_posX, m_posY, px, py);
+// #endif
+// 
+//     UpdateAll();
+// //     event.Skip();
+// }
 
 void mpWindow::SetMPScrollbars(bool status)
 {
-    m_enableScrollBars = status;
-    EnableScrolling(status, status);
-    if(status) {
-        SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));
-//         SetVirtualSize((int) (m_maxX - m_minX), (int) (m_maxY - m_minY));
-    }
-    Refresh(false);
+    // Temporary behaviour: always disable scrollbars
+    m_enableScrollBars = false;
+    EnableScrolling(false, false);
+//     m_enableScrollBars = status;
+//     EnableScrolling(status, status);
+/*    m_scrollX = (int) floor((m_posX - m_minX)*m_scaleX);
+    m_scrollY = (int) floor((m_posY - m_minY)*m_scaleY);*/
+//     int scrollWidth = (int) floor((m_maxX - m_minX)*m_scaleX) - m_scrX;
+//     int scrollHeight = (int) floor((m_minY - m_maxY)*m_scaleY) - m_scrY;
+    
+// /*    m_scrollX = (int) floor((m_posX - m_minX)*m_scaleX);
+//     m_scrollY = (int) floor((m_maxY - m_posY /*- m_minY*/)*m_scaleY);
+//     int scrollWidth = (int) floor(((m_maxX - m_minX) - (m_desiredXmax - m_desiredXmin))*m_scaleX);
+//     int scrollHeight = (int) floor(((m_maxY - m_minY) - (m_desiredYmax - m_desiredYmin))*m_scaleY);
+// #ifdef MATHPLOT_DO_LOGGING
+//     wxLogMessage(_("mpWindow::SetMPScrollbars() scrollWidth = %d, scrollHeight = %d"), scrollWidth, scrollHeight);
+// #endif
+//     if(status) {
+//         SetScrollbars(1,
+//                       1,
+//                       scrollWidth,
+//                       scrollHeight,
+//                       m_scrollX,
+//                       m_scrollY); 
+// //         SetVirtualSize((int) (m_maxX - m_minX), (int) (m_maxY - m_minY));
+//     }
+//     Refresh(false);*/
 };
 
 bool mpWindow::UpdateBBox()

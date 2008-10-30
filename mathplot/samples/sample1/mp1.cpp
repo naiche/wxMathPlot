@@ -198,7 +198,7 @@ MyFrame::MyFrame()
     yaxis->SetFont(graphFont);
     xaxis->SetDrawOutsideMargins(false);
     yaxis->SetDrawOutsideMargins(false);
-    m_plot->SetMargins(0, 0, 50, 70);
+    m_plot->SetMargins(0, 0, 50, 100);
 //     m_plot->SetMargins(50, 50, 200, 150);
     m_plot->AddLayer(     xaxis );
     m_plot->AddLayer(     yaxis );
