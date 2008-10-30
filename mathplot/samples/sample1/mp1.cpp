@@ -110,7 +110,7 @@ public:
 private:
     int axesPos[2];
     bool ticks;
-    mpInfoLayer* nfo;
+    mpInfoCoords *nfo; // mpInfoLayer* nfo;
     DECLARE_DYNAMIC_CLASS(MyFrame)
     DECLARE_EVENT_TABLE()
 };
@@ -206,8 +206,14 @@ MyFrame::MyFrame()
     m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
-    wxBrush hatch(wxColour(255,0,0), wxCROSSDIAG_HATCH);
-    m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(0,0,40,40), &hatch));
+    wxBrush hatch(wxColour(200,200,200), wxSOLID);
+    //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
+    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,40,40), &hatch));
+    nfo->SetVisible(false);
+    wxBrush hatch2(wxColour(163,208,212), wxSOLID);
+    mpInfoLegend* leg;
+    m_plot->AddLayer( leg = new mpInfoLegend(wxRect(200,20,40,40), &hatch2));
+    leg->SetVisible(true);
     
     // m_plot->EnableCoordTooltip(true);
     // set a nice pen for the lissajoux
@@ -390,8 +396,8 @@ void MyFrame::OnSaveScreenshot(wxCommandEvent& event)
         if( namePath.GetExt().CmpNoCase(wxT("jpeg")) == 0 ) fileType = wxBITMAP_TYPE_JPEG;
         if( namePath.GetExt().CmpNoCase(wxT("jpg")) == 0 )  fileType = wxBITMAP_TYPE_JPEG;
         if( namePath.GetExt().CmpNoCase(wxT("png")) == 0 )  fileType = wxBITMAP_TYPE_PNG;
-		wxSize imgSize(500,500);
-        m_plot->SaveScreenshot(fileDialog.GetPath(), fileType, imgSize, true);
+        wxSize imgSize(500,500);
+        m_plot->SaveScreenshot(fileDialog.GetPath(), fileType, imgSize, false);
     }
     event.Skip();
 }

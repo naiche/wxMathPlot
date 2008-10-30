@@ -105,6 +105,14 @@ enum
 // mpLayer
 //-----------------------------------------------------------------------------
 
+typedef enum __mp_Layer_Type {
+    mpLAYER_UNDEF,  //!< Layer type undefined
+    mpLAYER_AXIS,  //!< Axis type layer
+    mpLAYER_PLOT,  //!< Plot type layer
+    mpLAYER_INFO,   //!< Info box type layer
+    mpLAYER_BITMAP //!< Bitmap type layer
+} mpLayerType;
+
 /** Plot layer, abstract base class.
     Any number of mpLayer implementations can be attached to mpWindow.
     Examples for mpLayer implementations are function graphs, or scale rulers.
@@ -135,7 +143,8 @@ public:
         The default implementation returns \a FALSE. It is overrided to \a TRUE for mpInfoLayer
         class and its derivative. It is necessary to define mouse actions behaviour over
         info boxes.
-        @returns whether the layer is an info boxes */
+        @returns whether the layer is an info boxes
+        @sa mpInfoLayer::IsInfo */
     virtual bool IsInfo() { return false; };
 
     /** Get inclusive left border of bounding box.
@@ -258,6 +267,10 @@ public:
         @return a wxBitmap filled with layer's colour */
     wxBitmap GetColourSquare(int side = 16);
 
+    /** Get leyer type: a Layer can be of different types: plot lines, axis, info boxes, etc, this method returns the right value.
+        @return An integer indicating layer type */
+    mpLayerType GetLayerType() { return m_type; };
+
 protected:
     wxFont   m_font;    //!< Layer's font
     wxPen    m_pen;     //!< Layer's pen
@@ -265,7 +278,7 @@ protected:
     bool     m_continuous; //!< Specify if the layer will be plotted as a continuous line or a set of points.
     bool     m_showName;  //!< States whether the name of the layer must be shown (default is true).
     bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins o over all DC
-
+    mpLayerType m_type; //!< Define layer type, which is assigned by constructor
     DECLARE_CLASS(mpLayer)
 };
 
@@ -280,31 +293,121 @@ protected:
 class WXDLLEXPORT mpInfoLayer : public mpLayer
 {
 public:
+    /** Default constructor. */
     mpInfoLayer();
+
+    /** Complete constructor.
+        @param rect Sets the initial size rectangle of the layer.
+        @param brush pointer to a fill brush. Default is transparent */
     mpInfoLayer(wxRect rect, const wxBrush* brush = wxTRANSPARENT_BRUSH);
+
+    /** Destructor */
     virtual ~mpInfoLayer();
 
-    virtual void UpdateInfo(mpWindow& w);
+    /** Updates the content of the info box. Shold be overidden by derived classes.
+        Update may behave in different ways according to the type of event which called it.
+        @param w parent mpWindow from which to obtain informations
+        @param event The event which called the update. */
+    virtual void UpdateInfo(mpWindow& w, wxEvent& event);
+
+    /** mpInfoLayer has not bounding box. @sa mpLayer::HasBBox
+        @return always \a FALSE */
     virtual bool HasBBox() { return false; };
+
+    /** Plot method. Can be overidden by derived classes.
+        @param dc the device content where to plot
+        @param w the window to plot
+        @sa mpLayer::Plot */
     virtual void   Plot(wxDC & dc, mpWindow & w);
+
+    /** Specifies that this is an Info box layer.
+        @return always \a TRUE
+        @sa mpLayer::IsInfo */
     virtual bool IsInfo() { return true; };
+
+    /** Checks whether a point is inside the info box rectangle.
+        @param point The point to be checked
+        @return \a true if the point is inside the bounding box */
     bool Inside(wxPoint& point);
+
+    /** Moves the layer rectangle of given pixel deltas.
+        @param delta The wxPoint container for delta coordinates along x and y. Units are in pixels */
     void Move(wxPoint delta);
+
+    /** Updates the rectangle reference point. Used by internal methods of mpWindow to correctly move mpInfoLayers */
     void UpdateReference();
+
+    /** Returns the position of the upper left corner of the box (in pixels)
+        @return The rectangle position */
     wxPoint GetPosition();
+
+    /** Returns the size of the box (in pixels)
+        @return The rectangle size */
     wxSize GetSize();
+
+    /** Checks whether the layer is visible or not.
+        @return \a true if visible */
     bool IsVisible() {return visible; };
+
+    /** Sets layer visibility.
+        @param show visibility bool. */
     void SetVisible(bool show) { visible = show; };
+
 protected:
     wxRect m_dim;
     wxPoint m_reference;
-    wxString m_content;
     wxBrush m_brush;
     bool visible;
     int m_winX, m_winY;
     
     DECLARE_CLASS(mpInfoLayer)
 };
+
+class WXDLLEXPORT mpInfoCoords : public mpInfoLayer
+{
+public:
+    mpInfoCoords();
+    mpInfoCoords(wxRect rect, const wxBrush* brush = wxTRANSPARENT_BRUSH);
+    ~mpInfoCoords();
+    /** Updates the content of the info box. Shold be overidden by derived classes.
+        Update may behave in different ways according to the type of event which called it.
+        @param w parent mpWindow from which to obtain informations
+        @param event The event which called the update. */
+    virtual void UpdateInfo(mpWindow& w, wxEvent& event);
+
+    /** Plot method. Can be overidden by derived classes.
+        @param dc the device content where to plot
+        @param w the window to plot
+        @sa mpLayer::Plot */
+    virtual void   Plot(wxDC & dc, mpWindow & w);
+
+protected:
+    wxString m_content;
+};
+
+class WXDLLEXPORT mpInfoLegend : public mpInfoLayer
+{
+public:
+    mpInfoLegend();
+    mpInfoLegend(wxRect rect, const wxBrush* brush = wxTRANSPARENT_BRUSH);
+    ~mpInfoLegend();
+
+    /** Updates the content of the info box. Shold be overidden by derived classes.
+        Update may behave in different ways according to the type of event which called it.
+        @param w parent mpWindow from which to obtain informations
+        @param event The event which called the update. */
+    virtual void UpdateInfo(mpWindow& w, wxEvent& event);
+
+    /** Plot method. Can be overidden by derived classes.
+        @param dc the device content where to plot
+        @param w the window to plot
+        @sa mpLayer::Plot */
+    virtual void   Plot(wxDC & dc, mpWindow & w);
+
+protected:
+    
+};
+
 
 //-----------------------------------------------------------------------------
 // mpLayer implementations - functions
@@ -1168,7 +1271,9 @@ public:
         m_reference_phi(0),
         m_shape_xs(0),
         m_shape_ys(0)
-    { }
+    {
+        m_type = mpLAYER_PLOT;
+    }
 
     virtual ~mpMovableObject() {};
 
@@ -1285,6 +1390,7 @@ public:
         m_continuous = true;
         m_name = layerName;
         RecalculateShape();
+        m_type = mpLAYER_PLOT;
     }
 
     virtual ~mpCovarianceEllipse() {}
@@ -1348,8 +1454,7 @@ class WXDLLEXPORT mpPolygon : public mpMovableObject
 public:
     /** Default constructor.
       */
-    mpPolygon(
-        const wxString & layerName = wxT("") )
+    mpPolygon( const wxString & layerName = wxT("") )
     {
         m_continuous = true;
         m_name = layerName;
@@ -1390,6 +1495,7 @@ public:
         m_min_x = m_max_x =
         m_min_y = m_max_y = 0;
         m_validImg = false;
+        m_type = mpLAYER_BITMAP;
     }
 
     virtual ~mpBitmapLayer() {};

@@ -51,6 +51,10 @@
 
 // #include "pixel.xpm"
 
+// Legend margins
+#define mpLEGEND_MARGIN 5
+#define mpLEGEND_LINEWIDTH 10
+
 // See doxygen comments.
 double mpWindow::zoomIncrementalFactor = 1.5;
 
@@ -60,7 +64,7 @@ double mpWindow::zoomIncrementalFactor = 1.5;
 
 IMPLEMENT_ABSTRACT_CLASS(mpLayer, wxObject)
 
-mpLayer::mpLayer()
+mpLayer::mpLayer() : m_type(mpLAYER_UNDEF)
 {
     SetPen((wxPen&) *wxBLACK_PEN);
     SetFont((wxFont&) *wxNORMAL_FONT);
@@ -92,7 +96,9 @@ mpInfoLayer::mpInfoLayer()
     m_dim = wxRect(0,0,10,10);
     m_brush = *wxTRANSPARENT_BRUSH;
     m_reference.x = 0; m_reference.y = 0;
-    m_winX = 1; m_winY = 1;
+    m_winX = 1; //parent->GetScrX();
+    m_winY = 1; //parent->GetScrY();
+    m_type = mpLAYER_INFO;
 }
 
 mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
@@ -100,7 +106,9 @@ mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
     m_brush = *brush;
     m_reference.x = rect.x;
     m_reference.y = rect.y;
-    m_winX = 1; m_winY = 1;
+    m_winX = 1; //parent->GetScrX();
+    m_winY = 1; //parent->GetScrY();
+    m_type = mpLAYER_INFO;
 }
 
 mpInfoLayer::~mpInfoLayer()
@@ -108,7 +116,7 @@ mpInfoLayer::~mpInfoLayer()
     
 }
 
-void mpInfoLayer::UpdateInfo(mpWindow& w)
+void mpInfoLayer::UpdateInfo(mpWindow& w, wxEvent& event)
 {
     
 }
@@ -133,14 +141,21 @@ void mpInfoLayer::UpdateReference()
 void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 {
     if (visible) {
-        // Adjust realtive position inside the window
-        if ((m_winX != w.GetScrX()) || (m_winY != w.GetScrY())) {
-            m_dim.x = (int) floor(m_dim.x*w.GetScrX()/m_winX);
-            m_dim.y = (int) floor(m_dim.y*w.GetScrY()/m_winY);
-            UpdateReference();
+        // Adjust relative position inside the window
+        int scrx = w.GetScrX();
+        int scry = w.GetScrY();
+        if ((m_winX != scrx) || (m_winY != scry)) {
+#ifdef MATHPLOT_DO_LOGGING
+            wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+#endif
+            if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
+            if (m_winY != 1) {
+                m_dim.y = (int) floor(m_dim.y*scry/m_winY);
+                UpdateReference();
+            }
             // Finally update window size
-            m_winX = w.GetScrX();
-            m_winY = w.GetScrY();
+            m_winX = scrx;
+            m_winY = scry;
         }
         dc.SetPen(m_pen);
 //     wxImage image0(wxT("pixel.png"), wxBITMAP_TYPE_PNG);
@@ -161,6 +176,159 @@ wxSize mpInfoLayer::GetSize()
     return m_dim.GetSize();
 }
 
+mpInfoCoords::mpInfoCoords() : mpInfoLayer()
+{
+    
+}
+
+mpInfoCoords::mpInfoCoords(wxRect rect, const wxBrush* brush) : mpInfoLayer(rect, brush)
+{
+    
+}
+    
+mpInfoCoords::~mpInfoCoords()
+{
+    
+}
+
+void mpInfoCoords::UpdateInfo(mpWindow& w, wxEvent& event)
+{
+    if (event.GetEventType() == wxEVT_MOTION) {
+        int mouseX = ((wxMouseEvent&)event).GetX();
+        int mouseY = ((wxMouseEvent&)event).GetY();
+        m_content.Printf(_("x = %f\ny = %f"), w.p2x(mouseX), w.p2y(mouseY));
+    }
+}
+
+void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
+{
+    if (visible) {
+        // Adjust relative position inside the window
+        int scrx = w.GetScrX();
+        int scry = w.GetScrY();
+        if ((m_winX != scrx) || (m_winY != scry)) {
+#ifdef MATHPLOT_DO_LOGGING
+            wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+#endif
+            if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
+            if (m_winY != 1) {
+                m_dim.y = (int) floor(m_dim.y*scry/m_winY);
+                UpdateReference();
+            }
+            // Finally update window size
+            m_winX = scrx;
+            m_winY = scry;
+        }
+        dc.SetPen(m_pen);
+//     wxImage image0(wxT("pixel.png"), wxBITMAP_TYPE_PNG);
+//     wxBitmap image1(image0);
+//     wxBrush semiWhite(image1);
+        dc.SetBrush(m_brush);
+        dc.SetFont(m_font);
+        int textX, textY;
+        dc.GetTextExtent(m_content, &textX, &textY);
+        if (m_dim.width < textX + 10) m_dim.width = textX + 10;
+        if (m_dim.height < textY + 10) m_dim.height = textY + 10;
+        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+        dc.DrawText(m_content, m_dim.x + 5, m_dim.y + 5);
+    }
+}
+
+mpInfoLegend::mpInfoLegend() : mpInfoLayer()
+{
+    
+}
+
+mpInfoLegend::mpInfoLegend(wxRect rect, const wxBrush* brush) : mpInfoLayer(rect, brush)
+{
+    
+}
+
+mpInfoLegend::~mpInfoLegend()
+{
+    
+}
+
+void mpInfoLegend::UpdateInfo(mpWindow& w, wxEvent& event)
+{
+    
+}
+
+void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
+{
+    if (visible) {
+        // Adjust relative position inside the window
+        int scrx = w.GetScrX();
+        int scry = w.GetScrY();
+        if ((m_winX != scrx) || (m_winY != scry)) {
+#ifdef MATHPLOT_DO_LOGGING
+            wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+#endif
+            if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
+            if (m_winY != 1) {
+                m_dim.y = (int) floor(m_dim.y*scry/m_winY);
+                UpdateReference();
+            }
+            // Finally update window size
+            m_winX = scrx;
+            m_winY = scry;
+        }
+//     wxImage image0(wxT("pixel.png"), wxBITMAP_TYPE_PNG);
+//     wxBitmap image1(image0);
+//     wxBrush semiWhite(image1);
+        dc.SetBrush(m_brush);
+        dc.SetFont(m_font);
+        const int baseWidth = (mpLEGEND_MARGIN*2 + mpLEGEND_LINEWIDTH);
+        int textX = baseWidth, textY = mpLEGEND_MARGIN;
+        int plotCount = 0;
+        int posY = 0;
+        int tmpX = 0, tmpY = 0;
+        mpLayer* ly = NULL;
+        wxPen lpen;
+        wxString label;
+        for (int p = 0; p < w.CountAllLayers(); p++) {
+            ly = w.GetLayer(p);
+            if (ly->GetLayerType() == mpLAYER_PLOT) {
+                label = ly->GetName();
+                dc.GetTextExtent(label, &tmpX, &tmpY);
+                textX = (textX > (tmpX + baseWidth)) ? textX : (tmpX + baseWidth + mpLEGEND_MARGIN);
+                textY += (tmpY);
+#ifdef MATHPLOT_DO_LOGGING
+                wxLogMessage(_("mpInfoLegend::Plot() Adding layer %d: %s"), p, label.c_str());
+#endif
+            }
+        }
+        dc.SetPen(m_pen);
+        dc.SetBrush(m_brush);
+        m_dim.width = textX;
+        textY += mpLEGEND_MARGIN;
+        m_dim.height = textY;
+        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+        for (int p2 = 0; p2 < w.CountAllLayers(); p2++) {
+            ly = w.GetLayer(p2);
+            if (ly->GetLayerType() == mpLAYER_PLOT) {
+                label = ly->GetName();
+                lpen = ly->GetPen();
+                dc.GetTextExtent(label, &tmpX, &tmpY);
+                dc.SetPen(lpen);
+                //textX = (textX > (tmpX + baseWidth)) ? textX : (tmpX + baseWidth);
+                //textY += (tmpY + mpLEGEND_MARGIN);
+                posY = m_dim.y + mpLEGEND_MARGIN + plotCount*tmpY + (tmpY>>1);
+                dc.DrawLine(m_dim.x + mpLEGEND_MARGIN,   // X start coord
+                            posY,                        // Y start coord
+                            m_dim.x + mpLEGEND_LINEWIDTH + mpLEGEND_MARGIN, // X end coord
+                            posY);
+                //dc.DrawRectangle(m_dim.x + 5, m_dim.y + 5 + plotCount*tmpY, 5, 5);
+                dc.DrawText(label, m_dim.x + baseWidth, m_dim.y + mpLEGEND_MARGIN + plotCount*tmpY);
+                plotCount++;
+            }
+        }
+
+    }
+}
+
+
+
 //-----------------------------------------------------------------------------
 // mpLayer implementations - functions
 //-----------------------------------------------------------------------------
@@ -171,6 +339,7 @@ mpFX::mpFX(wxString name, int flags)
 {
     SetName(name);
     m_flags = flags;
+    m_type = mpLAYER_PLOT;
 }
 
 void mpFX::Plot(wxDC & dc, mpWindow & w)
@@ -230,6 +399,7 @@ mpFY::mpFY(wxString name, int flags)
 {
     SetName(name);
     m_flags = flags;
+    m_type = mpLAYER_PLOT;
 }
 
 void mpFY::Plot(wxDC & dc, mpWindow & w)
@@ -288,6 +458,7 @@ mpFXY::mpFXY(wxString name, int flags)
 {
     SetName(name);
     m_flags = flags;
+    m_type = mpLAYER_PLOT;
 }
 
 void mpFXY::Plot(wxDC & dc, mpWindow & w)
@@ -396,6 +567,7 @@ mpProfile::mpProfile(wxString name, int flags)
 {
     SetName(name);
     m_flags = flags;
+    m_type = mpLAYER_PLOT;
 }
 
 void mpProfile::Plot(wxDC & dc, mpWindow & w)
@@ -452,6 +624,7 @@ mpScaleX::mpScaleX(wxString name, int flags, bool ticks, unsigned int type)
     m_flags = flags;
     m_ticks = ticks;
     m_labelType = type;
+    m_type = mpLAYER_AXIS;
 }
 
 void mpScaleX::Plot(wxDC & dc, mpWindow & w)
@@ -616,6 +789,7 @@ mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
     SetPen( (wxPen&) *wxGREY_PEN);
     m_flags = flags;
     m_ticks = ticks;
+    m_type = mpLAYER_AXIS;
 }
 
 void mpScaleY::Plot(wxDC & dc, mpWindow & w)
@@ -944,6 +1118,14 @@ void mpWindow::OnMouseMove(wxMouseEvent     &event)
             }
             UpdateAll();
         } else {
+            wxLayerList::iterator li;
+            for (li = m_layers.begin(); li != m_layers.end(); li++) {
+                if ((*li)->IsInfo()) {
+                    mpInfoLayer* tmpLyr = (mpInfoLayer*) (*li);
+                    tmpLyr->UpdateInfo(*this, event);
+                    UpdateAll();
+                }
+            }
             /* if (m_coordTooltip) {
                 wxString toolTipContent;
                 toolTipContent.Printf(_("X = %f\nY = %f"), p2x(event.GetX()), p2y(event.GetY()));
@@ -1239,9 +1421,9 @@ void mpWindow::OnSize( wxSizeEvent &event )
 {
     // Try to fit again with the new window size:
     Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
-#ifdef _MATHPLOT_DO_LOGGING
+#ifdef MATHPLOT_DO_LOGGING
     wxLogMessage(_("mpWindow::OnSize() m_scrX = %d, m_scrY = %d"), m_scrX, m_scrY);
-#endif // _MATHPLOT_DO_LOGGING
+#endif // MATHPLOT_DO_LOGGING
 }
 
 bool mpWindow::AddLayer( mpLayer* layer, bool refreshDisplay )
@@ -1574,7 +1756,8 @@ bool mpWindow::SaveScreenshot(const wxString& filename, int type, wxSize imageSi
 	if (imageSize != wxDefaultSize) {
 		// Restore dimensions
 		SetScr(bk_scrX, bk_scrY);
-		//UpdateAll();
+                Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax, &bk_scrX, &bk_scrY);
+		UpdateAll();
 	}
     // Once drawing is complete, actually save screen shot
     wxImage screenImage = screenBuffer.ConvertToImage();
@@ -1593,14 +1776,14 @@ mpInfoLayer* mpWindow::IsInsideInfoLayer(wxPoint& point)
 {
     wxLayerList::iterator li;
     for (li = m_layers.begin(); li != m_layers.end(); li++) {
-#ifdef _MATHPLOT_DO_LOGGING
-        printf("mpWindow::IsInsideInfoLayer() examinining layer = %p", (*li));
-#endif // _MATHPLOT_DO_LOGGING
+#ifdef MATHPLOT_DO_LOGGING
+        wxLogMessage(_("mpWindow::IsInsideInfoLayer() examinining layer = %p"), (*li));
+#endif // MATHPLOT_DO_LOGGING
         if ((*li)->IsInfo()) {
             mpInfoLayer* tmpLyr = (mpInfoLayer*) (*li);
-#ifdef _MATHPLOT_DO_LOGGING
+#ifdef MATHPLOT_DO_LOGGING
             wxLogMessage(_("mpWindow::IsInsideInfoLayer() layer = %"), (*li));
-#endif // _MATHPLOT_DO_LOGGING
+#endif // MATHPLOT_DO_LOGGING
             if (tmpLyr->Inside(point)) {
                 return tmpLyr;
             }
@@ -1645,7 +1828,7 @@ wxCoord mpWindow::x2p(double x, bool drawOutside)
     double marginScaleX = ((double)(m_scrX - m_marginLeft - m_marginRight))/m_scrX;
 #ifdef MATHPLOT_DO_LOGGING
     wxLogMessage(wxT("x2p ScrX = %d, marginRight = %d, marginLeft = %d, marginScaleX = %f"), m_scrX, m_marginRight, m_marginLeft,  marginScaleX);
-#endif // _MATHPLOT_DO_LOGGING
+#endif // MATHPLOT_DO_LOGGING
     return (wxCoord) (int)(((x-m_posX) * m_scaleX)*marginScaleX) - m_marginLeft;
 }
 
@@ -1658,7 +1841,7 @@ wxCoord mpWindow::y2p(double y, bool drawOutside)
     double marginScaleY = ((double)(m_scrY - m_marginTop - m_marginBottom))/m_scrY;
 #ifdef MATHPLOT_DO_LOGGING
     wxLogMessage(wxT("y2p ScrY = %d, marginTop = %d, marginBottom = %d, marginScaleY = %f"), m_scrY, m_marginTop, m_marginBottom, marginScaleY);
-#endif // _MATHPLOT_DO_LOGGING
+#endif // MATHPLOT_DO_LOGGING
     return (wxCoord) ((int)((m_posY-y) * m_scaleY)*marginScaleY) - m_marginTop;
 }
 */
@@ -1678,6 +1861,7 @@ mpFXYVector::mpFXYVector(wxString name, int flags ) : mpFXY(name,flags)
     m_maxX  = 1;
     m_minY  = -1;
     m_maxY  = 1;
+    m_type = mpLAYER_PLOT;
 }
 
 void mpFXYVector::Rewind()
@@ -1768,6 +1952,7 @@ mpText::mpText( wxString name, int offsetx, int offsety )
         m_offsety = offsety;
     else
         m_offsetx = 50;
+    m_type = mpLAYER_INFO;
 }
 
 /** mpText Layer plot handler.
@@ -1850,6 +2035,9 @@ bool mpPrintout::OnPrintPage(int page)
         };
         // Restore device origin
         trgDc->SetDeviceOrigin(0, 0);
+        // Restore drawing
+        plotWindow->Fit(plotWindow->GetDesiredXmin(), plotWindow->GetDesiredXmax(), plotWindow->GetDesiredYmin(), plotWindow->GetDesiredYmax(), NULL, NULL);
+        plotWindow->UpdateAll();
     }
     return true;
 }
