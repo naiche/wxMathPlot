@@ -1,23 +1,23 @@
-Edit 2/06/2008 - Davide Rondini
+Version 0.1.0 - 2008-11-06
+* Layer are divided by type using mpLayerType
+* Legend implemented
+* Mouse coordinate box layer
+* New class mpInfoLayer to add overlay boxes functionalities
+* mpWindow::SaveScreenshot allows saving plot screenshot in BMP, PNG and JPEG formats
 * Fixed assert on wxPaintDC during debug under Windows
-* Introduced margins on mpWindow: you can now scale everything down into a subarea of the window, by defining 4 window margins (top, right, bottom, left). This is done to let the layer plot outside of axis labels, that is more readable. mpLayer has now a boolean attribute to decide whether to draw or not outside the margins. All default layers were adapted to this
-behaviuor, but mpMovableObject and mpBitmapLayer always draw outside margins.
+* Introduced margins on mpWindow: you can now scale everything down into a subarea of the window, by defining 4 window margins (top, right, bottom, left). This is done to let the layer plot outside of axis labels, that is more readable. mpLayer has now a boolean attribute to decide whether to draw or not outside the margins. All default layers were adapted to this behaviuor, but mpMovableObject and mpBitmapLayer always draw outside margins.
 * Fixed rectangular zoom: in some cases the selection rectangle were drawn in the opposite direction of the mouse cursor movement.
 * Commented out useless GetClientSize in mpWindow::OnMouseWheel and mpWindow::UpdateAll
 * Complete revision of axis drawing. Many behaviour vere fixed. Now grid can be limited only in the are inside the margin, making the axes more readable and more "professional-looking". If margins are sufficient, the axis title is drawn outside the ases labels, and for Y axis, its is drawn vertically
 * X axis can now be set to be a time axis, displaying values in the hours:minutes:seconds.milliseconds format.
-
-Version 0.04 - 2007-10-??
-* Makefile updated to automatically build samples
+* Build system completely revised: now CMake is used to generate project files for every platform
 * BUG FIXED: mpFXYVector didn't draw the last point in the vector.
 * Added a new method to delete all the layers of a mpWindow (mpWindow::DelAllLayers).
-* All the layers are deleted at the mpWindow destructor. (OK?)
+* All the layers are deleted at the mpWindow destructor.
 * The type for the list of "mpLayer*" has been moved from a wxMap to a standard STL std::deque. 
    This is because the hash map was being used just to access by layer index, which can be also performed 
    through the deque index, and to avoid the "type punned" warnings derived from the wxHashMap declaration.
 * Added a new option to "AddLayer" to avoid refreshing the display. Default behavior is to refresh, i.e. backwards compatible.
-* Added "-Wall" to the Makefile.
-* A MS Visual Studio 2005 solution has been created for the library and the three examples ("mathplot.sln").
 * A new example "sample3" has been added to demonstrate a moving "car" over a background occupancy gridmap.
 * New class "mpBitmapLayer" displays an image in a given rectagular area in graph coordinates.
 * New class implementing "mpMovableObject": "mpPolygon" an arbitrary shape (or a cloud of points if m_continuity=false). 
@@ -31,7 +31,8 @@ Version 0.04 - 2007-10-??
 * Added a method for retrieving a given mpLayer from a mpWindow by its name (mpWindow::GetLayerByName).
 * Added printing support through class mpPrintout
 * Added methods for rectangular zoom and separated X and Y zoom
-* Fixed text in message box explaining mouse commands 
+* Fixed text in message box explaining mouse commands
+* Many other bugfixes...
 
 Version 0.03 - 2007-09-11
 * Added mpWindow::GetLayer to extract the pointer to a layer and call directly its methods. Please note that you shoud know the position of the layer inside the list whis is internal to mpWindow, but it matches to the order you add layers to the window.

@@ -4,6 +4,19 @@ For more information go to
 https://sourceforge.net/projects/wxmathplot/
 http://wxmathplot.sourceforge.net/
 
+0.1.0 Release notes
+-------------------
+
+Library has been deeply revised: the coordinate system has been changed for code simplification. Added a lot of new functionalities:
+1. Printing
+2. Saving screenshots as images
+3. Legend
+4. Mouse coordinates display
+5. A number of new layer types
+6. Optional axis draw margins (to avoid that plots can hide axis labels)
+...and a lot of bugfixing! See Changelog for more details.
+
+
 0.03 Release notes
 ------------------
 

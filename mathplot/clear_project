@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Clear project files, ready to update repository, make backup or rebuild on a different machine
+
+
+for SUBDIR in {.,samples,samples/sample1,samples/sample2,samples/sample3} ;
+do
+	# Clean backup files
+	rm -f $SUBDIR/*~
+	# Clean object files
+	rm -f $SUBDIR/*.o
+	# Clean CMake build files
+	rm -f $SUBDIR/CMakeCache.txt $SUBDIR/cmake_install.cmake $SUBDIR/Makefile
+	rm -rf $SUBDIR/CMakeFiles/ ;
+done
+
+# Clear libs and executables
+rm -f libmathplot.a samples/sample1/mpSample1 samples/sample2/mpSample2  samples/sample3/mpSample3
+
+echo "Pulizia completata!"

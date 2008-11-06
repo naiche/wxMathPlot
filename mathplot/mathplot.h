@@ -286,9 +286,10 @@ protected:
 //-----------------------------------------------------------------------------
 // mpInfoLayer
 //-----------------------------------------------------------------------------
+
 /** @class mpInfoLayer
     @brief Base class to create small rectangular info boxes
-    mpInfoLayer is the base class to create a small rectangular info box in transparent overlay over plot layers.
+    mpInfoLayer is the base class to create a small rectangular info box in transparent overlay over plot layers. It is used to implement objects like legends.
 */
 class WXDLLEXPORT mpInfoLayer : public mpLayer
 {
@@ -354,51 +355,70 @@ public:
     void SetVisible(bool show) { visible = show; };
 
 protected:
-    wxRect m_dim;
-    wxPoint m_reference;
-    wxBrush m_brush;
-    bool visible;
-    int m_winX, m_winY;
+    wxRect m_dim;           //!< The bounding rectangle of the box. It may be resized dynamiccaly by the Plot method.
+    wxPoint m_reference;    //!< Holds the reference point for movements
+    wxBrush m_brush;        //!< The brush to be used for the background
+    bool visible;           //!< Toggles layer visibility
+    int m_winX, m_winY;     //!< Holds the mpWindow size. Used to rescale position when window is resized.
     
     DECLARE_CLASS(mpInfoLayer)
 };
 
+/** @class mpInfoCoords
+    @brief Implements an overlay box which shows the mouse coordinates in plot units.
+    When an mpInfoCoords layer is activated, when mouse is moved over the mpWindow, its coordinates (in mpWindow units, not pixels) are continuously reported inside the layer box. */
 class WXDLLEXPORT mpInfoCoords : public mpInfoLayer
 {
 public:
+    /** Default constructor */
     mpInfoCoords();
+    /** Complete constructor, setting initial rectangle and background brush.
+        @param rect The initial bounding rectangle.
+        @param brush The wxBrush to be used for box background: default is transparent */
     mpInfoCoords(wxRect rect, const wxBrush* brush = wxTRANSPARENT_BRUSH);
+
+    /** Default destructor */
     ~mpInfoCoords();
-    /** Updates the content of the info box. Shold be overidden by derived classes.
-        Update may behave in different ways according to the type of event which called it.
+
+    /** Updates the content of the info box. It is used to update coordinates.
         @param w parent mpWindow from which to obtain informations
         @param event The event which called the update. */
     virtual void UpdateInfo(mpWindow& w, wxEvent& event);
 
-    /** Plot method. Can be overidden by derived classes.
+    /** Plot method.
         @param dc the device content where to plot
         @param w the window to plot
         @sa mpLayer::Plot */
     virtual void   Plot(wxDC & dc, mpWindow & w);
 
 protected:
-    wxString m_content;
+    wxString m_content; //!< string holding the coordinates to be drawn.
 };
 
+/** @class mpInfoLegend
+    @brief Implements the legend to be added to the plot
+    This layer allows to add a legend to describe the plots in the window. The legend uses the layer name as a label, and displays only layers of type mpLAYER_PLOT. */
 class WXDLLEXPORT mpInfoLegend : public mpInfoLayer
 {
 public:
+    /** Default constructor */
     mpInfoLegend();
+
+    /** Complete constructor, setting initial rectangle and background brush.
+        @param rect The initial bounding rectangle.
+        @param brush The wxBrush to be used for box background: default is transparent
+        @sa mpInfoLayer::mpInfoLayer */
     mpInfoLegend(wxRect rect, const wxBrush* brush = wxTRANSPARENT_BRUSH);
+
+    /**  Default destructor */
     ~mpInfoLegend();
 
-    /** Updates the content of the info box. Shold be overidden by derived classes.
-        Update may behave in different ways according to the type of event which called it.
+    /** Updates the content of the info box. Unused in this class.
         @param w parent mpWindow from which to obtain informations
         @param event The event which called the update. */
     virtual void UpdateInfo(mpWindow& w, wxEvent& event);
 
-    /** Plot method. Can be overidden by derived classes.
+    /** Plot method.
         @param dc the device content where to plot
         @param w the window to plot
         @sa mpLayer::Plot */
