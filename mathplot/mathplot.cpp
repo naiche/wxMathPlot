@@ -93,7 +93,7 @@ IMPLEMENT_CLASS(mpInfoLayer, mpLayer)
 
 mpInfoLayer::mpInfoLayer()
 {
-    m_dim = wxRect(0,0,10,10);
+    m_dim = wxRect(0,0,1,1);
     m_brush = *wxTRANSPARENT_BRUSH;
     m_reference.x = 0; m_reference.y = 0;
     m_winX = 1; //parent->GetScrX();
@@ -148,9 +148,9 @@ void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
+            if (m_winX != 1) m_dim.x = (int) floor((float)(m_dim.x*scrx/m_winX));
             if (m_winY != 1) {
-                m_dim.y = (int) floor(m_dim.y*scry/m_winY);
+                m_dim.y = (int) floor((float)(m_dim.y*scry/m_winY));
                 UpdateReference();
             }
             // Finally update window size
@@ -196,7 +196,14 @@ void mpInfoCoords::UpdateInfo(mpWindow& w, wxEvent& event)
     if (event.GetEventType() == wxEVT_MOTION) {
         int mouseX = ((wxMouseEvent&)event).GetX();
         int mouseY = ((wxMouseEvent&)event).GetY();
-        m_content.Printf(_("x = %f\ny = %f"), w.p2x(mouseX), w.p2y(mouseY));
+/* It seems that Windows port of wxWidgets don't support multi-line test to be drawn in a wxDC.
+   wxGTK instead works perfectly with it.
+   Info on wxForum: http://wxforum.shadonet.com/viewtopic.php?t=3451&highlight=drawtext+eol */
+#ifdef _WINDOWS
+        m_content.Printf(wxT("x = %f y = %f"), w.p2x(mouseX), w.p2y(mouseY));
+#else
+		m_content.Printf(wxT("x = %f\ny = %f"), w.p2x(mouseX), w.p2y(mouseY));
+#endif
     }
 }
 
@@ -210,9 +217,9 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
+            if (m_winX != 1) m_dim.x = (int) floor((float)(m_dim.x*scrx/m_winX));
             if (m_winY != 1) {
-                m_dim.y = (int) floor(m_dim.y*scry/m_winY);
+                m_dim.y = (int) floor((float)(m_dim.y*scry/m_winY));
                 UpdateReference();
             }
             // Finally update window size
@@ -264,9 +271,9 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor(m_dim.x*scrx/m_winX);
+            if (m_winX != 1) m_dim.x = (int) floor((float)(m_dim.x*scrx/m_winX));
             if (m_winY != 1) {
-                m_dim.y = (int) floor(m_dim.y*scry/m_winY);
+                m_dim.y = (int) floor((float)(m_dim.y*scry/m_winY));
                 UpdateReference();
             }
             // Finally update window size
@@ -286,7 +293,7 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         mpLayer* ly = NULL;
         wxPen lpen;
         wxString label;
-        for (int p = 0; p < w.CountAllLayers(); p++) {
+        for (unsigned int p = 0; p < w.CountAllLayers(); p++) {
             ly = w.GetLayer(p);
             if (ly->GetLayerType() == mpLAYER_PLOT) {
                 label = ly->GetName();
@@ -304,7 +311,7 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         textY += mpLEGEND_MARGIN;
         m_dim.height = textY;
         dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-        for (int p2 = 0; p2 < w.CountAllLayers(); p2++) {
+        for (unsigned int p2 = 0; p2 < w.CountAllLayers(); p2++) {
             ly = w.GetLayer(p2);
             if (ly->GetLayerType() == mpLAYER_PLOT) {
                 label = ly->GetName();
@@ -1824,7 +1831,7 @@ mpInfoLayer* mpWindow::IsInsideInfoLayer(wxPoint& point)
         if ((*li)->IsInfo()) {
             mpInfoLayer* tmpLyr = (mpInfoLayer*) (*li);
 #ifdef MATHPLOT_DO_LOGGING
-            wxLogMessage(_("mpWindow::IsInsideInfoLayer() layer = %"), (*li));
+            wxLogMessage(_("mpWindow::IsInsideInfoLayer() layer = %p"), (*li));
 #endif // MATHPLOT_DO_LOGGING
             if (tmpLyr->Inside(point)) {
                 return tmpLyr;

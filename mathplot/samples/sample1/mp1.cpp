@@ -208,7 +208,7 @@ MyFrame::MyFrame()
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
     wxBrush hatch(wxColour(200,200,200), wxSOLID);
     //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
-    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,40,40), &hatch));
+    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,10,10), &hatch));
     nfo->SetVisible(false);
     wxBrush hatch2(wxColour(163,208,212), wxSOLID);
     mpInfoLegend* leg;
