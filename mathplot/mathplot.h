@@ -45,7 +45,7 @@
     The original author is David Schalig <mrhill@users.sourceforge.net>.<br>
     From June 2007 the project is maintained by Davide Rondini <cdron77@users.sourceforge.net>.<br>
     Authors can be contacted via the wxMathPlot's homepage at
-    http://sourceforge.net/projects/wxmathplot.<br>
+    https://sourceforge.net/projects/wxmathplot<br>
     Contributors:<br>
     Jose Luis Blanco, Val Greene.<br>
 */
