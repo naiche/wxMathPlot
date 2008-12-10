@@ -2033,7 +2033,7 @@ void mpText::Plot(wxDC & dc, mpWindow & w)
 // mpPrintout - provided by Davide Rondini
 //-----------------------------------------------------------------------------
 
-mpPrintout::mpPrintout(mpWindow *drawWindow, wxChar *title) : wxPrintout(title)
+mpPrintout::mpPrintout(mpWindow *drawWindow, const wxChar *title) : wxPrintout(title)
 {
     drawn = false;
     plotWindow = drawWindow;

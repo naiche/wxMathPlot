@@ -1259,7 +1259,7 @@ protected:
 class WXDLLEXPORT mpPrintout : public wxPrintout
 {
 public:
-    mpPrintout(mpWindow* drawWindow, wxChar *title = _T("wxMathPlot print output"));
+    mpPrintout(mpWindow* drawWindow, const wxChar *title = _T("wxMathPlot print output"));
     virtual ~mpPrintout() {};
 
     void SetDrawState(bool drawState) {drawn = drawState;};
