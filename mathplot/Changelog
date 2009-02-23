@@ -1,3 +1,10 @@
+Version 0.1.1 - 2009-02-22
+* Fixed mathplot.cpp:654, where were a missing "orgy ="
+* Commented out line mathplot.cpp:848: wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft(); it was a useless variable.
+* Added WXUNUSED macro to those events which remains unused (makes build more clear).
+* Introduced CMakeLists.txt the choice to create a shared or static library
+
+
 Version 0.1.0 - 2008-11-06
 * Layer are divided by type using mpLayerType
 * Legend implemented

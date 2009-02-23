@@ -7,8 +7,10 @@ for SUBDIR in {.,samples,samples/sample1,samples/sample2,samples/sample3} ;
 do
 	# Clean backup files
 	rm -f $SUBDIR/*~
-	# Clean object files
+	# Clean object and library files
 	rm -f $SUBDIR/*.o
+	rm -f $SUBDIR/*.so
+	rm -f $SUBDIR/*.a
 	# Clean CMake build files
 	rm -f $SUBDIR/CMakeCache.txt $SUBDIR/cmake_install.cmake $SUBDIR/Makefile
 	rm -rf $SUBDIR/CMakeFiles/ ;

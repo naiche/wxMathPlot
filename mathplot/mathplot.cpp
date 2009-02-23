@@ -71,6 +71,7 @@ mpLayer::mpLayer() : m_type(mpLAYER_UNDEF)
     m_continuous = FALSE; // Default
     m_showName   = TRUE;  // Default
     m_drawOutsideMargins = TRUE;
+	m_visible = true;
 }
 
 wxBitmap mpLayer::GetColourSquare(int side)
@@ -140,7 +141,7 @@ void mpInfoLayer::UpdateReference()
 
 void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 {
-    if (visible) {
+    if (m_visible) {
         // Adjust relative position inside the window
         int scrx = w.GetScrX();
         int scry = w.GetScrY();
@@ -209,7 +210,7 @@ void mpInfoCoords::UpdateInfo(mpWindow& w, wxEvent& event)
 
 void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 {
-    if (visible) {
+    if (m_visible) {
         // Adjust relative position inside the window
         int scrx = w.GetScrX();
         int scry = w.GetScrY();
@@ -263,7 +264,7 @@ void mpInfoLegend::UpdateInfo(mpWindow& w, wxEvent& event)
 
 void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
 {
-    if (visible) {
+    if (m_visible) {
         // Adjust relative position inside the window
         int scrx = w.GetScrX();
         int scry = w.GetScrY();
@@ -295,7 +296,7 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         wxString label;
         for (unsigned int p = 0; p < w.CountAllLayers(); p++) {
             ly = w.GetLayer(p);
-            if (ly->GetLayerType() == mpLAYER_PLOT) {
+            if ((ly->GetLayerType() == mpLAYER_PLOT) && (ly->IsVisible())) {
                 label = ly->GetName();
                 dc.GetTextExtent(label, &tmpX, &tmpY);
                 textX = (textX > (tmpX + baseWidth)) ? textX : (tmpX + baseWidth + mpLEGEND_MARGIN);
@@ -308,29 +309,30 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         dc.SetPen(m_pen);
         dc.SetBrush(m_brush);
         m_dim.width = textX;
-        textY += mpLEGEND_MARGIN;
-        m_dim.height = textY;
-        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-        for (unsigned int p2 = 0; p2 < w.CountAllLayers(); p2++) {
-            ly = w.GetLayer(p2);
-            if (ly->GetLayerType() == mpLAYER_PLOT) {
-                label = ly->GetName();
-                lpen = ly->GetPen();
-                dc.GetTextExtent(label, &tmpX, &tmpY);
-                dc.SetPen(lpen);
-                //textX = (textX > (tmpX + baseWidth)) ? textX : (tmpX + baseWidth);
-                //textY += (tmpY + mpLEGEND_MARGIN);
-                posY = m_dim.y + mpLEGEND_MARGIN + plotCount*tmpY + (tmpY>>1);
-                dc.DrawLine(m_dim.x + mpLEGEND_MARGIN,   // X start coord
-                            posY,                        // Y start coord
-                            m_dim.x + mpLEGEND_LINEWIDTH + mpLEGEND_MARGIN, // X end coord
-                            posY);
-                //dc.DrawRectangle(m_dim.x + 5, m_dim.y + 5 + plotCount*tmpY, 5, 5);
-                dc.DrawText(label, m_dim.x + baseWidth, m_dim.y + mpLEGEND_MARGIN + plotCount*tmpY);
-                plotCount++;
-            }
-        }
-
+		if (textY != mpLEGEND_MARGIN) { // Don't draw any thing if there are no visible layers
+			textY += mpLEGEND_MARGIN;
+			m_dim.height = textY;
+			dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+			for (unsigned int p2 = 0; p2 < w.CountAllLayers(); p2++) {
+				ly = w.GetLayer(p2);
+				if ((ly->GetLayerType() == mpLAYER_PLOT) && (ly->IsVisible())) {
+					label = ly->GetName();
+					lpen = ly->GetPen();
+					dc.GetTextExtent(label, &tmpX, &tmpY);
+					dc.SetPen(lpen);
+					//textX = (textX > (tmpX + baseWidth)) ? textX : (tmpX + baseWidth);
+					//textY += (tmpY + mpLEGEND_MARGIN);
+					posY = m_dim.y + mpLEGEND_MARGIN + plotCount*tmpY + (tmpY>>1);
+					dc.DrawLine(m_dim.x + mpLEGEND_MARGIN,   // X start coord
+								posY,                        // Y start coord
+								m_dim.x + mpLEGEND_LINEWIDTH + mpLEGEND_MARGIN, // X end coord
+								posY);
+					//dc.DrawRectangle(m_dim.x + 5, m_dim.y + 5 + plotCount*tmpY, 5, 5);
+					dc.DrawText(label, m_dim.x + baseWidth, m_dim.y + mpLEGEND_MARGIN + plotCount*tmpY);
+					plotCount++;
+				}
+			}
+		}
     }
 }
 
@@ -351,53 +353,55 @@ mpFX::mpFX(wxString name, int flags)
 
 void mpFX::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen( m_pen);
+    if (m_visible) {
+		dc.SetPen( m_pen);
 
-    wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-    wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-    wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-    wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-    wxCoord iy = 0;
-    if (m_pen.GetWidth() <= 1)
-    {
-        for (wxCoord i = startPx; i < endPx; ++i)
-        {
-            iy = w.y2p( GetY(w.p2x(i)));
-            // Draw the point only if you can draw outside margins or if the point is inside margins
-            if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx)))
-                dc.DrawPoint(i, iy );// (wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY()));
-        }
-    }
-    else
-    {
-        for (wxCoord i = startPx; i < endPx; ++i)
-        {
-            iy = w.y2p( GetY(w.p2x(i)));
-            // Draw the point only if you can draw outside margins or if the point is inside margins
-            if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx)))
-                dc.DrawLine( i, iy, i, iy);
-//             wxCoord c = w.y2p( GetY(w.p2x(i)) ); //(wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY());
-            
-        }
-    }
+		wxCoord iy = 0;
+		if (m_pen.GetWidth() <= 1)
+		{
+			for (wxCoord i = startPx; i < endPx; ++i)
+			{
+				iy = w.y2p( GetY(w.p2x(i)));
+				// Draw the point only if you can draw outside margins or if the point is inside margins
+				if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx)))
+					dc.DrawPoint(i, iy );// (wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY()));
+			}
+		}
+		else
+		{
+			for (wxCoord i = startPx; i < endPx; ++i)
+			{
+				iy = w.y2p( GetY(w.p2x(i)));
+				// Draw the point only if you can draw outside margins or if the point is inside margins
+				if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx)))
+					dc.DrawLine( i, iy, i, iy);
+	//             wxCoord c = w.y2p( GetY(w.p2x(i)) ); //(wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY());
+				
+			}
+		}
 
-    if (!m_name.IsEmpty() && m_showName)
-    {
-        dc.SetFont(m_font);
+		if (!m_name.IsEmpty() && m_showName)
+		{
+			dc.SetFont(m_font);
 
-        wxCoord tx, ty;
-        dc.GetTextExtent(m_name, &tx, &ty);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-        if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
-            tx = (w.GetScrX()>>1) - tx - 8;
-        else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-            tx = -tx/2;
-        else
-            tx = -(w.GetScrX()>>1) + 8;
+			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
+				tx = (w.GetScrX()>>1) - tx - 8;
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
+				tx = -tx/2;
+			else
+				tx = -(w.GetScrX()>>1) + 8;
 
-        dc.DrawText( m_name, tx, w.y2p(GetY(w.p2x(tx))) ); // (wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
-    }
+			dc.DrawText( m_name, tx, w.y2p(GetY(w.p2x(tx))) ); // (wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
+		}
+	}
 }
 
 IMPLEMENT_ABSTRACT_CLASS(mpFY, mpLayer)
@@ -411,52 +415,54 @@ mpFY::mpFY(wxString name, int flags)
 
 void mpFY::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen( m_pen);
+	if (m_visible) {
+		dc.SetPen( m_pen);
 
-    wxCoord i, ix;
+		wxCoord i, ix;
 
-    wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-    wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-    wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-    wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-    if (m_pen.GetWidth() <= 1)
-    {
-        for (i = minYpx; i < maxYpx; ++i)
-        {
-            ix = w.x2p(GetX(w.p2y(i)));
-            if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx)))
-                dc.DrawPoint(ix, i);
-        }
-    }
-    else
-    {
-        for (i=0;i< w.GetScrY(); ++i)
-        {
-            ix = w.x2p(GetX(w.p2y(i)));
-            if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx)))
-                dc.DrawLine(ix, i, ix, i);
-//             wxCoord c =  w.x2p(GetX(w.p2y(i))); //(wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX());
-//             dc.DrawLine(c, i, c, i);
-        }
-    }
+		if (m_pen.GetWidth() <= 1)
+		{
+			for (i = minYpx; i < maxYpx; ++i)
+			{
+				ix = w.x2p(GetX(w.p2y(i)));
+				if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx)))
+					dc.DrawPoint(ix, i);
+			}
+		}
+		else
+		{
+			for (i=0;i< w.GetScrY(); ++i)
+			{
+				ix = w.x2p(GetX(w.p2y(i)));
+				if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx)))
+					dc.DrawLine(ix, i, ix, i);
+	//             wxCoord c =  w.x2p(GetX(w.p2y(i))); //(wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX());
+	//             dc.DrawLine(c, i, c, i);
+			}
+		}
 
-    if (!m_name.IsEmpty() && m_showName)
-    {
-        dc.SetFont(m_font);
+		if (!m_name.IsEmpty() && m_showName)
+		{
+			dc.SetFont(m_font);
 
-        wxCoord tx, ty;
-        dc.GetTextExtent(m_name, &tx, &ty);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-        if ((m_flags & mpALIGNMASK) == mpALIGN_TOP)
-            ty = (w.GetScrY()>>1) - 8;
-        else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-            ty = 16 - ty/2;
-        else
-            ty = -(w.GetScrY()>>1) + 8;
+			if ((m_flags & mpALIGNMASK) == mpALIGN_TOP)
+				ty = (w.GetScrY()>>1) - 8;
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
+				ty = 16 - ty/2;
+			else
+				ty = -(w.GetScrY()>>1) + 8;
 
-        dc.DrawText( m_name, w.x2p(GetX(w.p2y(ty))), ty ); // (wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -ty);
-    }
+			dc.DrawText( m_name, w.x2p(GetX(w.p2y(ty))), ty ); // (wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -ty);
+		}
+	}
 }
 
 IMPLEMENT_ABSTRACT_CLASS(mpFXY, mpLayer)
@@ -470,98 +476,100 @@ mpFXY::mpFXY(wxString name, int flags)
 
 void mpFXY::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen( m_pen);
+	if (m_visible) {
+		dc.SetPen( m_pen);
 
-    double x, y;
-    Rewind();
+		double x, y;
+		Rewind();
 
-    wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-    wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-    wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-    wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-    wxCoord ix = 0, iy = 0;
+		wxCoord ix = 0, iy = 0;
 
-    if (!m_continuous)
-    {
-        // for some reason DrawPoint does not use the current pen,
-        // so we use DrawLine for fat pens
-        if (m_pen.GetWidth() <= 1)
-        {
-            while (GetNextXY(x, y))
-            {
-                ix = w.x2p(x);
-                iy = w.y2p(y);
-                if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx)))
-                    dc.DrawPoint(ix, iy);
-            }
-        }
-        else
-        {
-            while (GetNextXY(x, y))
-            {
-                ix = w.x2p(x);
-                iy = w.y2p(y);
-                if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx)))
-                    dc.DrawLine(ix, iy, ix, iy);
-//                dc.DrawLine(cx, cy, cx, cy);
-            }
-        }
-    }
-    else
-    {
-        wxCoord cx0=0,cy0=0;
-        bool    first = TRUE;
-        while (GetNextXY(x, y))
-        {
-            wxCoord cx = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
-            wxCoord cy = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
-            if (first)
-            {
-                first=FALSE;
-                cx0=cx;cy0=cy;
-            }
-            dc.DrawLine(cx0, cy0, cx, cy);
-            cx0=cx; cy0=cy;
-        }
-    }
+		if (!m_continuous)
+		{
+			// for some reason DrawPoint does not use the current pen,
+			// so we use DrawLine for fat pens
+			if (m_pen.GetWidth() <= 1)
+			{
+				while (GetNextXY(x, y))
+				{
+					ix = w.x2p(x);
+					iy = w.y2p(y);
+					if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx)))
+						dc.DrawPoint(ix, iy);
+				}
+			}
+			else
+			{
+				while (GetNextXY(x, y))
+				{
+					ix = w.x2p(x);
+					iy = w.y2p(y);
+					if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx)))
+						dc.DrawLine(ix, iy, ix, iy);
+	//                dc.DrawLine(cx, cy, cx, cy);
+				}
+			}
+		}
+		else
+		{
+			wxCoord cx0=0,cy0=0;
+			bool    first = TRUE;
+			while (GetNextXY(x, y))
+			{
+				wxCoord cx = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
+				wxCoord cy = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
+				if (first)
+				{
+					first=FALSE;
+					cx0=cx;cy0=cy;
+				}
+				dc.DrawLine(cx0, cy0, cx, cy);
+				cx0=cx; cy0=cy;
+			}
+		}
 
-    if (!m_name.IsEmpty() && m_showName)
-    {
-        dc.SetFont(m_font);
+		if (!m_name.IsEmpty() && m_showName)
+		{
+			dc.SetFont(m_font);
 
-        wxCoord tx, ty;
-        dc.GetTextExtent(m_name, &tx, &ty);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-        // xxx implement else ... if (!HasBBox())
-        {
-            const int sx = w.GetScrX()>>1;
-            const int sy = w.GetScrY()>>1;
+			// xxx implement else ... if (!HasBBox())
+			{
+				const int sx = w.GetScrX()>>1;
+				const int sy = w.GetScrY()>>1;
 
-            if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
-            {
-                tx = sx - tx - 8;
-                ty = -sy + 8;
-            }
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
-            {
-                tx = -sx + 8;
-                ty = -sy + 8;
-            }
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
-            {
-                tx = -sx + 8;
-                ty = sy - 8 - ty;
-            }
-            else
-            {
-                tx = sx - tx - 8;
-                ty = sy - 8 - ty;
-            }
-        }
+				if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+				{
+					tx = sx - tx - 8;
+					ty = -sy + 8;
+				}
+				else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+				{
+					tx = -sx + 8;
+					ty = -sy + 8;
+				}
+				else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+				{
+					tx = -sx + 8;
+					ty = sy - 8 - ty;
+				}
+				else
+				{
+					tx = sx - tx - 8;
+					ty = sy - 8 - ty;
+				}
+			}
 
-        dc.DrawText( m_name, tx, ty);
-    }
+			dc.DrawText( m_name, tx, ty);
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -579,40 +587,42 @@ mpProfile::mpProfile(wxString name, int flags)
 
 void mpProfile::Plot(wxDC & dc, mpWindow & w)
 {
-   dc.SetPen( m_pen);
+	if (m_visible) {
+	dc.SetPen( m_pen);
 
-    wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-    wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-    wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-    wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-   // Plot profile linking subsequent point of the profile, instead of mpFY, which plots simple points.
-   for (wxCoord i = startPx; i < endPx; ++i) {
-        wxCoord c0 = w.y2p( GetY(w.p2x(i)) ); // (wxCoord) ((w.GetYpos() - GetY( (double)i / w.GetXscl() + w.GetXpos()) ) * w.GetYscl());
-	wxCoord c1 = w.y2p( GetY(w.p2x(i+1)) );//(wxCoord) ((w.GetYpos() - GetY( (double)(i+1) / w.GetXscl() + (w.GetXpos() ) ) ) * w.GetYscl());
-        // c0 = (c0 <= maxYpx) ? ((c0 >= minYpx) ? c0 : minYpx) : maxYpx;
-        // c1 = (c1 <= maxYpx) ? ((c1 >= minYpx) ? c1 : minYpx) : maxYpx;
-        if (!m_drawOutsideMargins) {
-            c0 = (c0 <= maxYpx) ? ((c0 >= minYpx) ? c0 : minYpx) : maxYpx;
-            c1 = (c1 <= maxYpx) ? ((c1 >= minYpx) ? c1 : minYpx) : maxYpx;
-        }
-	dc.DrawLine(i, c0, i+1, c1);
-    };
-    if (!m_name.IsEmpty()) {
-        dc.SetFont(m_font);
+	// Plot profile linking subsequent point of the profile, instead of mpFY, which plots simple points.
+	for (wxCoord i = startPx; i < endPx; ++i) {
+			wxCoord c0 = w.y2p( GetY(w.p2x(i)) ); // (wxCoord) ((w.GetYpos() - GetY( (double)i / w.GetXscl() + w.GetXpos()) ) * w.GetYscl());
+		wxCoord c1 = w.y2p( GetY(w.p2x(i+1)) );//(wxCoord) ((w.GetYpos() - GetY( (double)(i+1) / w.GetXscl() + (w.GetXpos() ) ) ) * w.GetYscl());
+			// c0 = (c0 <= maxYpx) ? ((c0 >= minYpx) ? c0 : minYpx) : maxYpx;
+			// c1 = (c1 <= maxYpx) ? ((c1 >= minYpx) ? c1 : minYpx) : maxYpx;
+			if (!m_drawOutsideMargins) {
+				c0 = (c0 <= maxYpx) ? ((c0 >= minYpx) ? c0 : minYpx) : maxYpx;
+				c1 = (c1 <= maxYpx) ? ((c1 >= minYpx) ? c1 : minYpx) : maxYpx;
+			}
+		dc.DrawLine(i, c0, i+1, c1);
+		};
+		if (!m_name.IsEmpty()) {
+			dc.SetFont(m_font);
 
-        wxCoord tx, ty;
-        dc.GetTextExtent(m_name, &tx, &ty);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-        if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
-            tx = (w.GetScrX()>>1) - tx - 8;
-        else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-            tx = -tx/2;
-        else
-            tx = -(w.GetScrX()>>1) + 8;
+			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
+				tx = (w.GetScrX()>>1) - tx - 8;
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
+				tx = -tx/2;
+			else
+				tx = -(w.GetScrX()>>1) + 8;
 
-        dc.DrawText( m_name, tx, w.y2p( GetY( w.p2x(tx) ) ) );//(wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
-    }
+			dc.DrawText( m_name, tx, w.y2p( GetY( w.p2x(tx) ) ) );//(wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -636,147 +646,149 @@ mpScaleX::mpScaleX(wxString name, int flags, bool ticks, unsigned int type)
 
 void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen( m_pen);
-    dc.SetFont( m_font);
-    int orgy=0;
+	if (m_visible) {
+		dc.SetPen( m_pen);
+		dc.SetFont( m_font);
+		int orgy=0;
 
-    const int extend = w.GetScrX(); //  /2;
-    if (m_flags == mpALIGN_CENTER)
-       orgy   = w.y2p(0); //(int)(w.GetPosY() * w.GetScaleY());
-    if (m_flags == mpALIGN_TOP) {
-        if (m_drawOutsideMargins) 
-            orgy = X_BORDER_SEPARATION;
-        else 
-            orgy = w.GetMarginTop();
-    }
-    if (m_flags == mpALIGN_BOTTOM) {
-        if (m_drawOutsideMargins)
-            X_BORDER_SEPARATION;
-        else
-            orgy = w.GetScrY() - w.GetMarginBottom();
-    }
-    if (m_flags == mpALIGN_BORDER_BOTTOM )
-       orgy = w.GetScrY() - 1;//dc.LogicalToDeviceY(0) - 1;
-    if (m_flags == mpALIGN_BORDER_TOP )
-       orgy = 1;//-dc.LogicalToDeviceY(0);
-
-    dc.DrawLine( 0, orgy, extend, orgy);
-
-    const double dig  = floor( log( 128.0 / w.GetScaleX() ) / mpLN10 );
-    const double step = exp( mpLN10 * dig);
-    const double end  = w.GetPosX() + (double)extend / w.GetScaleX();
-
-    wxCoord tx, ty;
-    wxString s;
-    wxString fmt;
-    int tmp = (int)dig;
-    if (m_labelType == mpX_NORMAL) {
-        if (tmp>=1) {
-            fmt = wxT("%.f");
-        } else {
-            tmp=8-tmp;
-            fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
-        }
-    }
-	// Time axis representation
-    if (m_labelType != mpX_NORMAL) {
-		if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
-            fmt = (wxT("%02.0f:%02.3f"));
-        } else {
-            fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-        }
-    }
-
-    //double n = floor( (w.GetPosX() - (double)extend / w.GetScaleX()) / step ) * step ;
-    double n = floor( (w.GetPosX() - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX()) / step ) * step ;
-
-    wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-    wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-    wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-    wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
-    
-    tmp=-65535;
-    int labelH = 0;
-    for (;n < end; n += step) {
-        const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
-	if ((p >= startPx) && (p <= endPx)) {
-		if (m_ticks) { // draw axis ticks
-			if (m_flags == mpALIGN_BORDER_BOTTOM)
-				dc.DrawLine( p, orgy, p, orgy-4);
-			else
-				dc.DrawLine( p, orgy, p, orgy+4);
-		} else { // draw grid dotted lines
-			m_pen.SetStyle(wxDOT);
-			dc.SetPen(m_pen);
-			if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
-				dc.DrawLine( p, orgy+4, p, minYpx );
-			} else {
-			     if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
-			         dc.DrawLine( p, orgy-4, p, maxYpx );
-                             } else {
-        		         dc.DrawLine( p, 0/*-w.GetScrY()*/, p, w.GetScrY() );
-                             }
-			}
-			m_pen.SetStyle(wxSOLID);
-			dc.SetPen(m_pen);
+		const int extend = w.GetScrX(); //  /2;
+		if (m_flags == mpALIGN_CENTER)
+		orgy   = w.y2p(0); //(int)(w.GetPosY() * w.GetScaleY());
+		if (m_flags == mpALIGN_TOP) {
+			if (m_drawOutsideMargins) 
+				orgy = X_BORDER_SEPARATION;
+			else 
+				orgy = w.GetMarginTop();
 		}
-                // Draw ticks labels
-                if (m_labelType == mpX_NORMAL)
-					s.Printf(fmt, n);
-                if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
-					double modulus = fabs(n);
-					double sign = n/modulus;
-                    double hh = floor(modulus/3600);
-                    double mm = floor((modulus - hh*3600)/60);
-                    double ss = modulus - hh*3600 - mm*60;
-#ifdef MATHPLOT_DO_LOGGING
-                    wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
-#endif // MATHPLOT_DO_LOGGING
-                    if (fmt.Len() == 20) // Format with hours has 11 chars
-                        s.Printf(fmt, sign*hh, mm, floor(ss));
-                    else
-                        s.Printf(fmt, sign*mm, ss);
-                }
-		dc.GetTextExtent(s, &tx, &ty);
-                labelH = (labelH <= ty) ? ty : labelH;
-		if ((p-tx/2-tmp) > 64) {
-			if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP))
-				dc.DrawText( s, p-tx/2, orgy-4-ty);
+		if (m_flags == mpALIGN_BOTTOM) {
+			if (m_drawOutsideMargins)
+				orgy = X_BORDER_SEPARATION;
 			else
-				dc.DrawText( s, p-tx/2, orgy+4);
-			tmp=p+tx/2;
+				orgy = w.GetScrY() - w.GetMarginBottom();
+		}
+		if (m_flags == mpALIGN_BORDER_BOTTOM )
+		orgy = w.GetScrY() - 1;//dc.LogicalToDeviceY(0) - 1;
+		if (m_flags == mpALIGN_BORDER_TOP )
+		orgy = 1;//-dc.LogicalToDeviceY(0);
+
+		dc.DrawLine( 0, orgy, extend, orgy);
+
+		const double dig  = floor( log( 128.0 / w.GetScaleX() ) / mpLN10 );
+		const double step = exp( mpLN10 * dig);
+		const double end  = w.GetPosX() + (double)extend / w.GetScaleX();
+
+		wxCoord tx, ty;
+		wxString s;
+		wxString fmt;
+		int tmp = (int)dig;
+		if (m_labelType == mpX_NORMAL) {
+			if (tmp>=1) {
+				fmt = wxT("%.f");
+			} else {
+				tmp=8-tmp;
+				fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
+			}
+		}
+		// Time axis representation
+		if (m_labelType != mpX_NORMAL) {
+			if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
+				fmt = (wxT("%02.0f:%02.3f"));
+			} else {
+				fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+			}
+		}
+
+		//double n = floor( (w.GetPosX() - (double)extend / w.GetScaleX()) / step ) * step ;
+		double n = floor( (w.GetPosX() - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX()) / step ) * step ;
+
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		
+		tmp=-65535;
+		int labelH = 0;
+		for (;n < end; n += step) {
+			const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
+		if ((p >= startPx) && (p <= endPx)) {
+			if (m_ticks) { // draw axis ticks
+				if (m_flags == mpALIGN_BORDER_BOTTOM)
+					dc.DrawLine( p, orgy, p, orgy-4);
+				else
+					dc.DrawLine( p, orgy, p, orgy+4);
+			} else { // draw grid dotted lines
+				m_pen.SetStyle(wxDOT);
+				dc.SetPen(m_pen);
+				if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
+					dc.DrawLine( p, orgy+4, p, minYpx );
+				} else {
+					if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
+						dc.DrawLine( p, orgy-4, p, maxYpx );
+								} else {
+							dc.DrawLine( p, 0/*-w.GetScrY()*/, p, w.GetScrY() );
+								}
+				}
+				m_pen.SetStyle(wxSOLID);
+				dc.SetPen(m_pen);
+			}
+					// Draw ticks labels
+					if (m_labelType == mpX_NORMAL)
+						s.Printf(fmt, n);
+					if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+						double modulus = fabs(n);
+						double sign = n/modulus;
+						double hh = floor(modulus/3600);
+						double mm = floor((modulus - hh*3600)/60);
+						double ss = modulus - hh*3600 - mm*60;
+	#ifdef MATHPLOT_DO_LOGGING
+						wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
+	#endif // MATHPLOT_DO_LOGGING
+						if (fmt.Len() == 20) // Format with hours has 11 chars
+							s.Printf(fmt, sign*hh, mm, floor(ss));
+						else
+							s.Printf(fmt, sign*mm, ss);
+					}
+			dc.GetTextExtent(s, &tx, &ty);
+					labelH = (labelH <= ty) ? ty : labelH;
+			if ((p-tx/2-tmp) > 64) {
+				if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP))
+					dc.DrawText( s, p-tx/2, orgy-4-ty);
+				else
+					dc.DrawText( s, p-tx/2, orgy+4);
+				tmp=p+tx/2;
+			}
+		}
+		}
+		// Draw axis name
+		dc.GetTextExtent(m_name, &tx, &ty);
+		switch (m_flags) {
+			case mpALIGN_BORDER_BOTTOM:
+				dc.DrawText( m_name, extend - tx - 4, orgy - 8 - ty - labelH);
+			break;
+			case mpALIGN_BOTTOM: {
+				if ((!m_drawOutsideMargins) && (w.GetMarginBottom() > (ty + labelH + 8))) {
+					dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy + 6 + labelH);
+				} else {
+					dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
+				}
+			} break;
+			case mpALIGN_CENTER:
+				dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
+			break;
+			case mpALIGN_TOP: {
+				if ((!m_drawOutsideMargins) && (w.GetMarginTop() > (ty + labelH + 8))) {
+					dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy - 6 - ty - labelH);
+				} else {
+					dc.DrawText( m_name, extend - tx - 4, orgy + 4);
+				}
+			} break;
+			case mpALIGN_BORDER_TOP:
+				dc.DrawText( m_name, extend - tx - 4, orgy + 6 + labelH);
+			break;
+			default:
+			break;
 		}
 	}
-    }
-    // Draw axis name
-    dc.GetTextExtent(m_name, &tx, &ty);
-    switch (m_flags) {
-        case mpALIGN_BORDER_BOTTOM:
-            dc.DrawText( m_name, extend - tx - 4, orgy - 8 - ty - labelH);
-        break;
-        case mpALIGN_BOTTOM: {
-            if ((!m_drawOutsideMargins) && (w.GetMarginBottom() > (ty + labelH + 8))) {
-                dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy + 6 + labelH);
-            } else {
-                dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
-            }
-        } break;
-        case mpALIGN_CENTER:
-            dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
-        break;
-        case mpALIGN_TOP: {
-            if ((!m_drawOutsideMargins) && (w.GetMarginTop() > (ty + labelH + 8))) {
-                dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy - 6 - ty - labelH);
-            } else {
-                dc.DrawText( m_name, extend - tx - 4, orgy + 4);
-            }
-        } break;
-        case mpALIGN_BORDER_TOP:
-            dc.DrawText( m_name, extend - tx - 4, orgy + 6 + labelH);
-        break;
-        default:
-        break;
-    }
 /*    if (m_flags != mpALIGN_TOP) {
         
         if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
@@ -801,135 +813,137 @@ mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
 
 void mpScaleY::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen( m_pen);
-    dc.SetFont( m_font);
+	if (m_visible) {
+		dc.SetPen( m_pen);
+		dc.SetFont( m_font);
 
-    int orgx=0;
-    const int extend = w.GetScrY(); // /2;
-    if (m_flags == mpALIGN_CENTER)
-        orgx   = w.x2p(0); //(int)(w.GetPosX() * w.GetScaleX());
-    if (m_flags == mpALIGN_LEFT) {
-        if (m_drawOutsideMargins)
-            orgx = Y_BORDER_SEPARATION;
-        else
-            orgx = w.GetMarginLeft();
-    }
-    if (m_flags == mpALIGN_RIGHT) {
-        if (m_drawOutsideMargins)
-            orgx = w.GetScrX() - Y_BORDER_SEPARATION;
-        else
-            orgx = w.GetScrX() - w.GetMarginRight();
-    }
-    if (m_flags == mpALIGN_BORDER_RIGHT )
-        orgx = w.GetScrX() - 1; //dc.LogicalToDeviceX(0) - 1;
-    if (m_flags == mpALIGN_BORDER_LEFT )
-        orgx = 1; //-dc.LogicalToDeviceX(0);
-
-
-    dc.DrawLine( orgx, 0, orgx, extend);
-
-    const double dig  = floor( log( 128.0 / w.GetScaleY() ) / mpLN10 );
-    const double step = exp( mpLN10 * dig);
-    const double end  = w.GetPosY() + (double)extend / w.GetScaleY();
-
-    wxCoord tx, ty;
-    wxString s;
-    wxString fmt;
-    int tmp = (int)dig;
-    double maxScaleAbs = fabs(w.GetDesiredYmax());
-    double minScaleAbs = fabs(w.GetDesiredYmin()); 
-    double endscale = (maxScaleAbs > minScaleAbs) ? maxScaleAbs : minScaleAbs;
-    if ((endscale < 1e4) && (endscale > 1e-3))
-        fmt = wxT("%.2f");
-    else
-        fmt = wxT("%.1e");
-/*    if (tmp>=1)
-    {*/
-    //    fmt = wxT("%7.5g");
-//     }
-//     else
-//     {
-//         tmp=8-tmp;
-//         fmt.Printf(wxT("%%.%dg"), (tmp >= -1) ? 2 : -tmp);
-//     }
-
-    double n = floor( (w.GetPosY() - (double)(extend - w.GetMarginTop() - w.GetMarginBottom())/ w.GetScaleY()) / step ) * step ;
-
-    wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-    wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-    wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-    wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
-
-    tmp=65536;
-    int labelW = 0;
-    for (;n < end; n += step) {
-        const int p = (int)((w.GetPosY() - n) * w.GetScaleY());
-	if ((p >= minYpx) && (p <= maxYpx)) {
-		if (m_ticks) { // Draw axis ticks
-			if (m_flags == mpALIGN_BORDER_LEFT) {
-				dc.DrawLine( orgx, p, orgx+4, p);
-			} else {
-				dc.DrawLine( orgx-4, p, orgx, p); //( orgx, p, orgx+4, p);
-			}
-		} else {
-			m_pen.SetStyle(wxDOT);
-			dc.SetPen( m_pen);
-			if ((m_flags == mpALIGN_LEFT) && !m_drawOutsideMargins) {
-				dc.DrawLine( orgx-4, p, endPx, p);
-			} else {
-			    if ((m_flags == mpALIGN_RIGHT) && !m_drawOutsideMargins) {
-				dc.DrawLine( minYpx, p, orgx+4, p);
-                            } else {
-				dc.DrawLine( 0/*-w.GetScrX()*/, p, w.GetScrX(), p);
-		            }
-			}
-			m_pen.SetStyle(wxSOLID);
-			dc.SetPen( m_pen);
-		}
-		// Print ticks labels
-		s.Printf(fmt, n);
-		dc.GetTextExtent(s, &tx, &ty);
-                labelW = (labelW <= tx) ? tx : labelW;
-		if ((tmp-p+ty/2) > 32)
-		{
-			if ((m_flags == mpALIGN_BORDER_LEFT) || (m_flags == mpALIGN_RIGHT))
-				dc.DrawText( s, orgx+4, p-ty/2);
+		int orgx=0;
+		const int extend = w.GetScrY(); // /2;
+		if (m_flags == mpALIGN_CENTER)
+			orgx   = w.x2p(0); //(int)(w.GetPosX() * w.GetScaleX());
+		if (m_flags == mpALIGN_LEFT) {
+			if (m_drawOutsideMargins)
+				orgx = Y_BORDER_SEPARATION;
 			else
-				dc.DrawText( s, orgx-4-tx, p-ty/2); //( s, orgx+4, p-ty/2);
-			tmp=p-ty/2;
+				orgx = w.GetMarginLeft();
+		}
+		if (m_flags == mpALIGN_RIGHT) {
+			if (m_drawOutsideMargins)
+				orgx = w.GetScrX() - Y_BORDER_SEPARATION;
+			else
+				orgx = w.GetScrX() - w.GetMarginRight();
+		}
+		if (m_flags == mpALIGN_BORDER_RIGHT )
+			orgx = w.GetScrX() - 1; //dc.LogicalToDeviceX(0) - 1;
+		if (m_flags == mpALIGN_BORDER_LEFT )
+			orgx = 1; //-dc.LogicalToDeviceX(0);
+
+
+		dc.DrawLine( orgx, 0, orgx, extend);
+
+		const double dig  = floor( log( 128.0 / w.GetScaleY() ) / mpLN10 );
+		const double step = exp( mpLN10 * dig);
+		const double end  = w.GetPosY() + (double)extend / w.GetScaleY();
+
+		wxCoord tx, ty;
+		wxString s;
+		wxString fmt;
+		int tmp = (int)dig;
+		double maxScaleAbs = fabs(w.GetDesiredYmax());
+		double minScaleAbs = fabs(w.GetDesiredYmin()); 
+		double endscale = (maxScaleAbs > minScaleAbs) ? maxScaleAbs : minScaleAbs;
+		if ((endscale < 1e4) && (endscale > 1e-3))
+			fmt = wxT("%.2f");
+		else
+			fmt = wxT("%.1e");
+	/*    if (tmp>=1)
+		{*/
+		//    fmt = wxT("%7.5g");
+	//     }
+	//     else
+	//     {
+	//         tmp=8-tmp;
+	//         fmt.Printf(wxT("%%.%dg"), (tmp >= -1) ? 2 : -tmp);
+	//     }
+
+		double n = floor( (w.GetPosY() - (double)(extend - w.GetMarginTop() - w.GetMarginBottom())/ w.GetScaleY()) / step ) * step ;
+
+		/* wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft(); */
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+
+		tmp=65536;
+		int labelW = 0;
+		for (;n < end; n += step) {
+			const int p = (int)((w.GetPosY() - n) * w.GetScaleY());
+		if ((p >= minYpx) && (p <= maxYpx)) {
+			if (m_ticks) { // Draw axis ticks
+				if (m_flags == mpALIGN_BORDER_LEFT) {
+					dc.DrawLine( orgx, p, orgx+4, p);
+				} else {
+					dc.DrawLine( orgx-4, p, orgx, p); //( orgx, p, orgx+4, p);
+				}
+			} else {
+				m_pen.SetStyle(wxDOT);
+				dc.SetPen( m_pen);
+				if ((m_flags == mpALIGN_LEFT) && !m_drawOutsideMargins) {
+					dc.DrawLine( orgx-4, p, endPx, p);
+				} else {
+					if ((m_flags == mpALIGN_RIGHT) && !m_drawOutsideMargins) {
+					dc.DrawLine( minYpx, p, orgx+4, p);
+								} else {
+					dc.DrawLine( 0/*-w.GetScrX()*/, p, w.GetScrX(), p);
+						}
+				}
+				m_pen.SetStyle(wxSOLID);
+				dc.SetPen( m_pen);
+			}
+			// Print ticks labels
+			s.Printf(fmt, n);
+			dc.GetTextExtent(s, &tx, &ty);
+					labelW = (labelW <= tx) ? tx : labelW;
+			if ((tmp-p+ty/2) > 32)
+			{
+				if ((m_flags == mpALIGN_BORDER_LEFT) || (m_flags == mpALIGN_RIGHT))
+					dc.DrawText( s, orgx+4, p-ty/2);
+				else
+					dc.DrawText( s, orgx-4-tx, p-ty/2); //( s, orgx+4, p-ty/2);
+				tmp=p-ty/2;
+			}
+		}
+		}
+		// Draw axis name
+
+		dc.GetTextExtent(m_name, &tx, &ty);
+		switch (m_flags) {
+			case mpALIGN_BORDER_LEFT:
+				dc.DrawText( m_name, labelW + 8, 4);
+			break;
+			case mpALIGN_LEFT: {
+				if ((!m_drawOutsideMargins) && (w.GetMarginLeft() > (ty + labelW + 8))) {
+					dc.DrawRotatedText( m_name, orgx - 6 - labelW - ty, (maxYpx - minYpx + tx)>>1, 90);
+				} else {
+					dc.DrawText( m_name, orgx + 4, 4);
+				}
+			} break;
+			case mpALIGN_CENTER:
+				dc.DrawText( m_name, orgx + 4, 4);
+			break;
+			case mpALIGN_RIGHT: {
+				if ((!m_drawOutsideMargins) && (w.GetMarginRight() > (ty + labelW + 8))) {
+					dc.DrawRotatedText( m_name, orgx + 6 + labelW, (maxYpx - minYpx + tx)>>1, 90);
+				} else {
+					dc.DrawText( m_name, orgx - tx - 4, 4);
+				}
+			} break;
+			case mpALIGN_BORDER_RIGHT:
+				dc.DrawText( m_name, orgx - 6 - tx -labelW, 4);
+			break;
+			default:
+			break;
 		}
 	}
-    }
-    // Draw axis name
-
-    dc.GetTextExtent(m_name, &tx, &ty);
-    switch (m_flags) {
-        case mpALIGN_BORDER_LEFT:
-            dc.DrawText( m_name, labelW + 8, 4);
-        break;
-        case mpALIGN_LEFT: {
-            if ((!m_drawOutsideMargins) && (w.GetMarginLeft() > (ty + labelW + 8))) {
-                dc.DrawRotatedText( m_name, orgx - 6 - labelW - ty, (maxYpx - minYpx + tx)>>1, 90);
-            } else {
-                dc.DrawText( m_name, orgx + 4, 4);
-            }
-        } break;
-        case mpALIGN_CENTER:
-            dc.DrawText( m_name, orgx + 4, 4);
-        break;
-        case mpALIGN_RIGHT: {
-            if ((!m_drawOutsideMargins) && (w.GetMarginRight() > (ty + labelW + 8))) {
-                dc.DrawRotatedText( m_name, orgx + 6 + labelW, (maxYpx - minYpx + tx)>>1, 90);
-            } else {
-                dc.DrawText( m_name, orgx - tx - 4, 4);
-            }
-        } break;
-        case mpALIGN_BORDER_RIGHT:
-            dc.DrawText( m_name, orgx - 6 - tx -labelW, 4);
-        break;
-        default:
-        break;
-    }
 
 /*    if (m_flags != mpALIGN_RIGHT) {
 	dc.GetTextExtent(m_name, &tx, &ty);
@@ -1392,12 +1406,12 @@ void mpWindow::OnShowPopupMenu(wxMouseEvent &event)
     }
 }
 
-void mpWindow::OnLockAspect(wxCommandEvent &event)
+void mpWindow::OnLockAspect(wxCommandEvent& WXUNUSED(event))
 {
     LockAspect( !m_lockaspect );
 }
 
-void mpWindow::OnMouseHelp(wxCommandEvent &event)
+void mpWindow::OnMouseHelp(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox(_("Supported Mouse commands:\n \
         - Left button down + Mark area: Rectangular zoom\n \
@@ -1407,12 +1421,12 @@ void mpWindow::OnMouseHelp(wxCommandEvent &event)
         - Wheel + CTRL: Zoom in/out"),_("wxMathPlot help"),wxOK,this);
 }
 
-void mpWindow::OnFit(wxCommandEvent &event)
+void mpWindow::OnFit(wxCommandEvent& WXUNUSED(event))
 {
     Fit();
 }
 
-void mpWindow::OnCenter(wxCommandEvent &event)
+void mpWindow::OnCenter(wxCommandEvent& WXUNUSED(event))
 {
 	GetClientSize(&m_scrX, &m_scrY);
         int centerX = (m_scrX - m_marginLeft - m_marginRight)/2; // + m_marginLeft; // c.x = m_scrX/2;
@@ -1421,17 +1435,17 @@ void mpWindow::OnCenter(wxCommandEvent &event)
 	//SetPos( p2x(m_clickedX-m_scrX/2), p2y(m_clickedY-m_scrY/2) );  //SetPos( (double)(m_clickedX-m_scrX/2) / m_scaleX + m_posX, (double)(m_scrY/2-m_clickedY) / m_scaleY + m_posY);
 }
 
-void mpWindow::OnZoomIn(wxCommandEvent &event)
+void mpWindow::OnZoomIn(wxCommandEvent& WXUNUSED(event))
 {
 	ZoomIn( wxPoint(m_mouseRClick_X,m_mouseRClick_Y) );
 }
 
-void mpWindow::OnZoomOut(wxCommandEvent &event)
+void mpWindow::OnZoomOut(wxCommandEvent& WXUNUSED(event))
 {
     ZoomOut();
 }
 
-void mpWindow::OnSize( wxSizeEvent &event )
+void mpWindow::OnSize( wxSizeEvent& WXUNUSED(event) )
 {
     // Try to fit again with the new window size:
     Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
@@ -1488,7 +1502,7 @@ void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 //     dc.SetDeviceOrigin(x2p(m_minX), y2p(m_maxY));
 // }
 
-void mpWindow::OnPaint( wxPaintEvent &event )
+void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 {
     wxPaintDC dc(this);
     dc.GetSize(&m_scrX, &m_scrY);   // This is the size of the visible area only!
@@ -1841,6 +1855,36 @@ mpInfoLayer* mpWindow::IsInsideInfoLayer(wxPoint& point)
     return NULL;
 }
 
+void mpWindow::SetLayerVisible(const wxString &name, bool viewable)
+{
+	mpLayer* lx = GetLayerByName(name);
+	if ( lx ) {
+		lx->SetVisible(viewable);
+		UpdateAll();
+	}
+}
+
+bool mpWindow::IsLayerVisible(const wxString &name )
+{
+	mpLayer* lx = GetLayerByName(name);
+	return (lx) ? lx->IsVisible() : false;
+}
+
+void mpWindow::SetLayerVisible(const unsigned int position, bool viewable)
+{
+	mpLayer* lx = GetLayer(position);
+	if ( lx ) {
+		lx->SetVisible(viewable);
+		UpdateAll();
+	}
+}
+
+bool mpWindow::IsLayerVisible(const unsigned int position )
+{
+	mpLayer* lx = GetLayer(position);
+	return (lx) ? lx->IsVisible() : false;
+}
+
 // void mpWindow::EnableCoordTooltip(bool value)
 // {
 //      m_coordTooltip = value;
@@ -2010,23 +2054,25 @@ This implementation will plot the text adjusted to the visible area.
 
 void mpText::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen(m_pen);
-    dc.SetFont(m_font);
+	if (m_visible) {
+		dc.SetPen(m_pen);
+		dc.SetFont(m_font);
 
-    wxCoord tw=0, th=0;
-    dc.GetTextExtent( GetName(), &tw, &th);
+		wxCoord tw=0, th=0;
+		dc.GetTextExtent( GetName(), &tw, &th);
 
-//     int left = -dc.LogicalToDeviceX(0);
-//     int width = dc.LogicalToDeviceX(0) - left;
-//     int bottom = dc.LogicalToDeviceY(0);
-//     int height = bottom - -dc.LogicalToDeviceY(0);
+	//     int left = -dc.LogicalToDeviceX(0);
+	//     int width = dc.LogicalToDeviceX(0) - left;
+	//     int bottom = dc.LogicalToDeviceY(0);
+	//     int height = bottom - -dc.LogicalToDeviceY(0);
 
-/*    dc.DrawText( GetName(),
-    (int)((((float)width/100.0) * m_offsety) + left - (tw/2)),
-    (int)((((float)height/100.0) * m_offsetx) - bottom) );*/
-    int px = m_offsetx*(w.GetScrX() - w.GetMarginLeft() - w.GetMarginRight())/100;
-    int py = m_offsety*(w.GetScrY() - w.GetMarginTop() - w.GetMarginBottom())/100;
-    dc.DrawText( GetName(), px, py);
+	/*    dc.DrawText( GetName(),
+		(int)((((float)width/100.0) * m_offsety) + left - (tw/2)),
+		(int)((((float)height/100.0) * m_offsetx) - bottom) );*/
+		int px = m_offsetx*(w.GetScrX() - w.GetMarginLeft() - w.GetMarginRight())/100;
+		int py = m_offsety*(w.GetScrY() - w.GetMarginTop() - w.GetMarginBottom())/100;
+		dc.DrawText( GetName(), px, py);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2150,95 +2196,97 @@ void mpMovableObject::ShapeUpdated()
 
 void mpMovableObject::Plot(wxDC & dc, mpWindow & w)
 {
-    dc.SetPen( m_pen);
+	if (m_visible) {
+		dc.SetPen( m_pen);
 
 
-    std::vector<double>::iterator  itX=m_trans_shape_xs.begin();
-    std::vector<double>::iterator  itY=m_trans_shape_ys.begin();
+		std::vector<double>::iterator  itX=m_trans_shape_xs.begin();
+		std::vector<double>::iterator  itY=m_trans_shape_ys.begin();
 
-    if (!m_continuous)
-    {
-        // for some reason DrawPoint does not use the current pen,
-        // so we use DrawLine for fat pens
-        if (m_pen.GetWidth() <= 1)
-        {
-            while (itX!=m_trans_shape_xs.end())
-            {
-                dc.DrawPoint( w.x2p(*(itX++)), w.y2p( *(itY++) ) );
-            }
-        }
-        else
-        {
-            while (itX!=m_trans_shape_xs.end())
-            {
-                wxCoord cx = w.x2p(*(itX++));
-                wxCoord cy = w.y2p(*(itY++));
-                dc.DrawLine(cx, cy, cx, cy);
-            }
-        }
-    }
-    else
-    {
-        wxCoord cx0=0,cy0=0;
-        bool    first = TRUE;
-        while (itX!=m_trans_shape_xs.end())
-        {
-            wxCoord cx = w.x2p(*(itX++));
-            wxCoord cy = w.y2p(*(itY++));
-            if (first)
-            {
-                first=FALSE;
-                cx0=cx;cy0=cy;
-            }
-            dc.DrawLine(cx0, cy0, cx, cy);
-            cx0=cx; cy0=cy;
-        }
-    }
+		if (!m_continuous)
+		{
+			// for some reason DrawPoint does not use the current pen,
+			// so we use DrawLine for fat pens
+			if (m_pen.GetWidth() <= 1)
+			{
+				while (itX!=m_trans_shape_xs.end())
+				{
+					dc.DrawPoint( w.x2p(*(itX++)), w.y2p( *(itY++) ) );
+				}
+			}
+			else
+			{
+				while (itX!=m_trans_shape_xs.end())
+				{
+					wxCoord cx = w.x2p(*(itX++));
+					wxCoord cy = w.y2p(*(itY++));
+					dc.DrawLine(cx, cy, cx, cy);
+				}
+			}
+		}
+		else
+		{
+			wxCoord cx0=0,cy0=0;
+			bool    first = TRUE;
+			while (itX!=m_trans_shape_xs.end())
+			{
+				wxCoord cx = w.x2p(*(itX++));
+				wxCoord cy = w.y2p(*(itY++));
+				if (first)
+				{
+					first=FALSE;
+					cx0=cx;cy0=cy;
+				}
+				dc.DrawLine(cx0, cy0, cx, cy);
+				cx0=cx; cy0=cy;
+			}
+		}
 
-    if (!m_name.IsEmpty() && m_showName)
-    {
-        dc.SetFont(m_font);
+		if (!m_name.IsEmpty() && m_showName)
+		{
+			dc.SetFont(m_font);
 
-        wxCoord tx, ty;
-        dc.GetTextExtent(m_name, &tx, &ty);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-        if (HasBBox())
-        {
-            wxCoord sx = (wxCoord) (( m_bbox_max_x - w.GetPosX()) * w.GetScaleX());
-            wxCoord sy = (wxCoord) ((w.GetPosY() - m_bbox_max_y ) * w.GetScaleY());
+			if (HasBBox())
+			{
+				wxCoord sx = (wxCoord) (( m_bbox_max_x - w.GetPosX()) * w.GetScaleX());
+				wxCoord sy = (wxCoord) ((w.GetPosY() - m_bbox_max_y ) * w.GetScaleY());
 
-            tx = sx - tx - 8;
-            ty = sy - 8 - ty;
-        }
-        else
-        {
-            const int sx = w.GetScrX()>>1;
-            const int sy = w.GetScrY()>>1;
+				tx = sx - tx - 8;
+				ty = sy - 8 - ty;
+			}
+			else
+			{
+				const int sx = w.GetScrX()>>1;
+				const int sy = w.GetScrY()>>1;
 
-            if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
-            {
-                tx = sx - tx - 8;
-                ty = -sy + 8;
-            }
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
-            {
-                tx = -sx + 8;
-                ty = -sy + 8;
-            }
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
-            {
-                tx = -sx + 8;
-                ty = sy - 8 - ty;
-            }
-            else
-            {
-                tx = sx - tx - 8;
-                ty = sy - 8 - ty;
-            }
-        }
+				if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+				{
+					tx = sx - tx - 8;
+					ty = -sy + 8;
+				}
+				else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+				{
+					tx = -sx + 8;
+					ty = -sy + 8;
+				}
+				else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+				{
+					tx = -sx + 8;
+					ty = sy - 8 - ty;
+				}
+				else
+				{
+					tx = sx - tx - 8;
+					ty = sy - 8 - ty;
+				}
+			}
 
-        dc.DrawText( m_name, tx, ty);
-    }
+			dc.DrawText( m_name, tx, ty);
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2396,7 +2444,7 @@ void mpBitmapLayer::SetBitmap( const wxImage &inBmp, double x, double y, double 
 
 void mpBitmapLayer::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_validImg)
+    if (m_visible && m_validImg)
     {
 	/*	1st: We compute (x0,y0)-(x1,y1), the pixel coordinates of the real outer limits
 		     of the image rectangle within the (screen) mpWindow. Note that these coordinates 

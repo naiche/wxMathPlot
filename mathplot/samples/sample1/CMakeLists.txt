@@ -11,7 +11,10 @@ if(WIN32)
 endif(WIN32)
 # Linux cross compiling to x86 from x86_64 distribution
 if(LINUX_64_32_CROSSCOMPILE)
-    set_source_files_properties(mp1.cpp PROPERTIES COMPILE_FLAGS "-m32")
+#     set(CMAKE_LIBRARY_PATH "/usr/lib")
+#     set(CMAKE_SYSTEM_LIBRARY_PATH "/usr/lib")
+#     set(CMAKE_SYSTEM_PREFIX_PATH "/usr")
+    set_source_files_properties(mp1.cpp PROPERTIES COMPILE_FLAGS "-m32 -DwxSIZE_T_IS_UINT")
     set_target_properties(mpSample1 PROPERTIES LINK_FLAGS "-m32")
 endif(LINUX_64_32_CROSSCOMPILE)
 

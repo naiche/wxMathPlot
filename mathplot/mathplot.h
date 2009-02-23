@@ -5,7 +5,7 @@
 // Maintainer:      Davide Rondini
 // Contributors:    Jose Luis Blanco, Val Greene
 // Created:         21/07/2003
-// Last edit:       09/09/2007
+// Last edit:       22/02/2009
 // Copyright:       (c) David Schalig, Davide Rondini
 // Licence:         wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,15 +30,12 @@
 
     Plot layers are implementations of the abstract base class mpLayer. Those can
     be function plots, scale rulers, or any other vector data visualisation. wxMathPlot provides two mpLayer implementations for plotting horizontal and vertical rulers: mpScaleX and mpScaleY.
-    For convenient function plotting three more abstract base classes derived from mpLayer are provided: mpFX, mpFY and mpFXY. These base classes already come with plot code, own functions can be implemented by overiding just one member for retrieving a function value.
-    Another class, mpFXYVector, is provided since version 0.03. This non-virtual class
-    renders 2D graphs from a pair of std::vector's. One of the utility of this class is that you can use it directly in GUI designers such as wxSmith within Code::Blocks.
+    For convenient function plotting a series of classes derived from mpLayer are provided, like mpFX, mpProfile, mpLegend and so on. These base classes already come with plot code, own functions can be implemented by overiding just one member for retrieving a function value.
 
-    From version 0.03, the mpWindow has built-in support for mouse-based pan and zoom through intuitive combinations of buttons and the mouse wheel. It also incorporate an optional double buffering mechanism to avoid flicker.
+    mpWindow has built-in support for mouse-based pan and zoom through intuitive combinations of buttons and the mouse wheel. It also incorporate an optional double buffering mechanism to avoid flicker. Plots can be easily sent to printer evices or exported in bitmap formats like PNG, BMP or JPEG.
 
     @section coding Coding conventions
-    wxMathPlot sticks to wxWindow's coding conventions. All entities defined by wxMathPlot
-    have the prefix <i>mp</i>.
+    wxMathPlot sticks to wxWindow's coding conventions. All entities defined by wxMathPlot have the prefix <i>mp</i>.
 
     @section author Author and license
     wxMathPlot is published under the terms of the wxWindow license.<br>
@@ -270,6 +267,14 @@ public:
     /** Get leyer type: a Layer can be of different types: plot lines, axis, info boxes, etc, this method returns the right value.
         @return An integer indicating layer type */
     mpLayerType GetLayerType() { return m_type; };
+	
+    /** Checks whether the layer is visible or not.
+        @return \a true if visible */
+    bool IsVisible() {return m_visible; };
+
+    /** Sets layer visibility.
+        @param show visibility bool. */
+    void SetVisible(bool show) { m_visible = show; };
 
 protected:
     wxFont   m_font;    //!< Layer's font
@@ -279,6 +284,7 @@ protected:
     bool     m_showName;  //!< States whether the name of the layer must be shown (default is true).
     bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins o over all DC
     mpLayerType m_type; //!< Define layer type, which is assigned by constructor
+	bool 	m_visible;	//!< Toggles layer visibility
     DECLARE_CLASS(mpLayer)
 };
 
@@ -346,19 +352,10 @@ public:
         @return The rectangle size */
     wxSize GetSize();
 
-    /** Checks whether the layer is visible or not.
-        @return \a true if visible */
-    bool IsVisible() {return visible; };
-
-    /** Sets layer visibility.
-        @param show visibility bool. */
-    void SetVisible(bool show) { visible = show; };
-
 protected:
     wxRect m_dim;           //!< The bounding rectangle of the box. It may be resized dynamiccaly by the Plot method.
     wxPoint m_reference;    //!< Holds the reference point for movements
     wxBrush m_brush;        //!< The brush to be used for the background
-    bool visible;           //!< Toggles layer visibility
     int m_winX, m_winY;     //!< Holds the mpWindow size. Used to rescale position when window is resized.
     
     DECLARE_CLASS(mpInfoLayer)
@@ -1061,6 +1058,26 @@ public:
         @param point The position to be checked 
         @return if an info layer is found, returns its pointer, NULL otherwise */
     mpInfoLayer* IsInsideInfoLayer(wxPoint& point);
+	
+	/** Sets the visibility of a layer by its name.
+		@param name The layer name to set visibility
+		@param viewable the view status to be set */
+	void SetLayerVisible(const wxString &name, bool viewable);
+	
+	/** Check whether a layer with given name is visible
+		@param name The layer name
+		@return layer visibility status */
+	bool IsLayerVisible(const wxString &name );
+	
+	/** Sets the visibility of a layer by its position in layer list.
+		@param position The layer position in layer list
+		@param viewable the view status to be set */
+	void SetLayerVisible(const unsigned int position, bool viewable);
+	
+	/** Check whether the layer at given position is visible
+		@param position The layer position in layer list
+		@return layer visibility status */
+	bool IsLayerVisible(const unsigned int position );
 
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
