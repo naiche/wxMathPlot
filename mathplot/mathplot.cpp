@@ -21,7 +21,7 @@
 
 // Comment out for release operation:
 // (Added by J.L.Blanco, Aug 2007)
-// #define MATHPLOT_DO_LOGGING
+#define MATHPLOT_DO_LOGGING
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -54,6 +54,10 @@
 // Legend margins
 #define mpLEGEND_MARGIN 5
 #define mpLEGEND_LINEWIDTH 10
+
+// Minimum axis label separation
+#define mpMIN_X_AXIS_LABEL_SEPARATION 64
+#define mpMIN_Y_AXIS_LABEL_SEPARATION 32
 
 // See doxygen comments.
 double mpWindow::zoomIncrementalFactor = 1.5;
@@ -699,17 +703,24 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 		}
 
 		//double n = floor( (w.GetPosX() - (double)extend / w.GetScaleX()) / step ) * step ;
-		double n = floor( (w.GetPosX() - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX()) / step ) * step ;
-
+		double n0 = floor( (w.GetPosX() /* - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX() */) / step ) * step ;
+		double n = 0;
+#ifdef MATHPLOT_DO_LOGGING
+		wxLogMessage(wxT("mpScaleX::Plot: dig: %f , step: %f, end: %f, n: %f"), dig, step, end, n0);
+#endif
 		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
 		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
 		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
 		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 		
 		tmp=-65535;
-		int labelH = 0;
-		for (;n < end; n += step) {
+		int labelH = 0; // Control labels heigth to decide where to put axis name (below labels or on top of axis)
+		int maxExtent = 0;
+		for (n = n0; n < end; n += step) {
 			const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
+#ifdef MATHPLOT_DO_LOGGING
+		wxLogMessage(wxT("mpScaleX::Plot: n: %f -> p = %d"), n, p);
+#endif
 			if ((p >= startPx) && (p <= endPx)) {
 				if (m_ticks) { // draw axis ticks
 					if (m_flags == mpALIGN_BORDER_BOTTOM)
@@ -731,7 +742,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 					m_pen.SetStyle(wxSOLID);
 					dc.SetPen(m_pen);
 				}
-				// Draw ticks labels
+				// Write ticks labels in s string
 				if (m_labelType == mpX_NORMAL)
 					s.Printf(fmt, n);
 				if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
@@ -750,7 +761,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 				}
 				dc.GetTextExtent(s, &tx, &ty);
 				labelH = (labelH <= ty) ? ty : labelH;
-				if ((p-tx/2-tmp) > 64) {
+/*				if ((p-tx/2-tmp) > 64) { // Problem about non-regular axis labels
 					if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
 						dc.DrawText( s, p-tx/2, orgy-4-ty);
 					} else {
@@ -758,8 +769,44 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 					}
 					tmp=p+tx/2;
 				}
+				*/
+				maxExtent = (tx > maxExtent) ? tx : maxExtent; // Keep in mind max label width
 			}
 		}
+		// Actually draw labels, taking care of not overlapping them, and distributing them regularly
+		double labelStep = ceil((maxExtent + mpMIN_X_AXIS_LABEL_SEPARATION)/(w.GetScaleX()*step))*step;
+		for (n = n0; n < end; n += labelStep) {
+			const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
+#ifdef MATHPLOT_DO_LOGGING
+		wxLogMessage(wxT("mpScaleX::Plot: n_label = %f -> p_label = %d"), n, p);
+#endif
+			if ((p >= startPx) && (p <= endPx)) {
+				// Write ticks labels in s string
+				if (m_labelType == mpX_NORMAL)
+					s.Printf(fmt, n);
+				if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+					double modulus = fabs(n);
+					double sign = n/modulus;
+					double hh = floor(modulus/3600);
+					double mm = floor((modulus - hh*3600)/60);
+					double ss = modulus - hh*3600 - mm*60;
+	#ifdef MATHPLOT_DO_LOGGING
+					wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
+	#endif // MATHPLOT_DO_LOGGING
+					if (fmt.Len() == 20) // Format with hours has 11 chars
+						s.Printf(fmt, sign*hh, mm, floor(ss));
+					else
+						s.Printf(fmt, sign*mm, ss);
+				}
+				dc.GetTextExtent(s, &tx, &ty);
+				if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
+					dc.DrawText( s, p-tx/2, orgy-4-ty);
+				} else {
+					dc.DrawText( s, p-tx/2, orgy+4);
+				}
+			}
+		}
+
 		// Draw axis name
 		dc.GetTextExtent(m_name, &tx, &ty);
 		switch (m_flags) {
@@ -876,6 +923,10 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
 
 		tmp=65536;
 		int labelW = 0;
+		// Before staring cycle, calculate label height
+		int labelHeigth = 0;
+		s.Printf(fmt,n);
+		dc.GetTextExtent(s, &tx, &labelHeigth);
 		for (;n < end; n += step) {
 			const int p = (int)((w.GetPosY() - n) * w.GetScaleY());
 		if ((p >= minYpx) && (p <= maxYpx)) {
@@ -903,14 +954,16 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
 			// Print ticks labels
 			s.Printf(fmt, n);
 			dc.GetTextExtent(s, &tx, &ty);
-					labelW = (labelW <= tx) ? tx : labelW;
-			if ((tmp-p+ty/2) > 32)
-			{
+#ifdef MATHPLOT_DO_LOGGING
+			if (ty != labelHeigth) wxLogMessage(wxT("mpScaleY::Plot: ty(%f) and labelHeigth(%f) differ!"), ty, labelHeigth);
+#endif
+			labelW = (labelW <= tx) ? tx : labelW;
+			if ((tmp-p+labelHeigth/2) > mpMIN_Y_AXIS_LABEL_SEPARATION) {
 				if ((m_flags == mpALIGN_BORDER_LEFT) || (m_flags == mpALIGN_RIGHT))
 					dc.DrawText( s, orgx+4, p-ty/2);
 				else
 					dc.DrawText( s, orgx-4-tx, p-ty/2); //( s, orgx+4, p-ty/2);
-				tmp=p-ty/2;
+				tmp=p-labelHeigth/2;
 			}
 		}
 		}

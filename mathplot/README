@@ -5,7 +5,7 @@ https://sourceforge.net/projects/wxmathplot/
 http://wxmathplot.sourceforge.net/
 
 0.1.1 Release notes
-
+Minor bugfixes, introduced show/hide for single layer and added library packaging.
 
 0.1.0 Release notes
 -------------------
@@ -48,28 +48,28 @@ cdron77(at)sourceforge.net
 Installing
 ----------
 
-wxMathPlot comes with a Makefile to build a static library.
-It requires wxWindows 2.x to be installed.
+wxMathPlot uses cmake build environment
+It requires wxWidgets >= 2.6 to be installed.
 
-To build and install wxMathPlot simply type 
+Under POSIX systems, to build and install wxMathPlot run:
 
+cmake -i .
 make
 make install
 
-This will install headers to
+Running cmake with -i option causes to get an interactive shell which asks some question on how to build the library.
+
+Default install directory for headers is:
 /usr/local/include
 
-and the static lib to
+and the lib to
 /usr/local/lib
 
 Samples
 -------
 
 A subdirectory 'samples' contains sample applications using wxMathLib.
-To build these, type:
-
-cd samples
-make
+They re built together with the library, if the relative option is selected by CMake.
 
 
 David Schalig, email sf(at)schalig.org
