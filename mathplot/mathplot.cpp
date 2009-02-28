@@ -710,54 +710,55 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 		int labelH = 0;
 		for (;n < end; n += step) {
 			const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
-		if ((p >= startPx) && (p <= endPx)) {
-			if (m_ticks) { // draw axis ticks
-				if (m_flags == mpALIGN_BORDER_BOTTOM)
-					dc.DrawLine( p, orgy, p, orgy-4);
-				else
-					dc.DrawLine( p, orgy, p, orgy+4);
-			} else { // draw grid dotted lines
-				m_pen.SetStyle(wxDOT);
-				dc.SetPen(m_pen);
-				if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
-					dc.DrawLine( p, orgy+4, p, minYpx );
-				} else {
-					if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
-						dc.DrawLine( p, orgy-4, p, maxYpx );
-								} else {
+			if ((p >= startPx) && (p <= endPx)) {
+				if (m_ticks) { // draw axis ticks
+					if (m_flags == mpALIGN_BORDER_BOTTOM)
+						dc.DrawLine( p, orgy, p, orgy-4);
+					else
+						dc.DrawLine( p, orgy, p, orgy+4);
+				} else { // draw grid dotted lines
+					m_pen.SetStyle(wxDOT);
+					dc.SetPen(m_pen);
+					if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
+						dc.DrawLine( p, orgy+4, p, minYpx );
+					} else {
+						if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
+							dc.DrawLine( p, orgy-4, p, maxYpx );
+						} else {
 							dc.DrawLine( p, 0/*-w.GetScrY()*/, p, w.GetScrY() );
-								}
-				}
-				m_pen.SetStyle(wxSOLID);
-				dc.SetPen(m_pen);
-			}
-					// Draw ticks labels
-					if (m_labelType == mpX_NORMAL)
-						s.Printf(fmt, n);
-					if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
-						double modulus = fabs(n);
-						double sign = n/modulus;
-						double hh = floor(modulus/3600);
-						double mm = floor((modulus - hh*3600)/60);
-						double ss = modulus - hh*3600 - mm*60;
-	#ifdef MATHPLOT_DO_LOGGING
-						wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
-	#endif // MATHPLOT_DO_LOGGING
-						if (fmt.Len() == 20) // Format with hours has 11 chars
-							s.Printf(fmt, sign*hh, mm, floor(ss));
-						else
-							s.Printf(fmt, sign*mm, ss);
+						}
 					}
-			dc.GetTextExtent(s, &tx, &ty);
-					labelH = (labelH <= ty) ? ty : labelH;
-			if ((p-tx/2-tmp) > 64) {
-				if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP))
-					dc.DrawText( s, p-tx/2, orgy-4-ty);
-				else
-					dc.DrawText( s, p-tx/2, orgy+4);
-				tmp=p+tx/2;
+					m_pen.SetStyle(wxSOLID);
+					dc.SetPen(m_pen);
+				}
+				// Draw ticks labels
+				if (m_labelType == mpX_NORMAL)
+					s.Printf(fmt, n);
+				if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+					double modulus = fabs(n);
+					double sign = n/modulus;
+					double hh = floor(modulus/3600);
+					double mm = floor((modulus - hh*3600)/60);
+					double ss = modulus - hh*3600 - mm*60;
+	#ifdef MATHPLOT_DO_LOGGING
+					wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
+	#endif // MATHPLOT_DO_LOGGING
+					if (fmt.Len() == 20) // Format with hours has 11 chars
+						s.Printf(fmt, sign*hh, mm, floor(ss));
+					else
+						s.Printf(fmt, sign*mm, ss);
+				}
+				dc.GetTextExtent(s, &tx, &ty);
+				labelH = (labelH <= ty) ? ty : labelH;
+				if ((p-tx/2-tmp) > 64) {
+					if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
+						dc.DrawText( s, p-tx/2, orgy-4-ty);
+					} else {
+						dc.DrawText( s, p-tx/2, orgy+4);
+					}
+					tmp=p+tx/2;
+				}
 			}
-		}
 		}
 		// Draw axis name
 		dc.GetTextExtent(m_name, &tx, &ty);
