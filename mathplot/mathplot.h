@@ -20,7 +20,7 @@
     The framework is designed for convenience and ease of use.
 
     @section screenshots Screenshots
-    <a href="screenshots.html">Go to the screenshots page.</a>
+    <a href="http://wxmathlot.sourceforge.net/screenshot.html">Go to the screenshots page.</a>
 
     @section overview Overview
     The heart of wxMathPlot is mpWindow, which is a 2D canvas for plot layers.

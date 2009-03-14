@@ -4,6 +4,9 @@ Version 0.1.1 - 2009-02-22
 * Added WXUNUSED macro to those events which remains unused (makes build more clear).
 * Introduced in CMakeLists.txt the choice to create a shared or static library
 * Modified axes label drawing to keep regular intervals between them
+* Introduced spec file to generate RPM
+* Fixed screenshot addresses in documentation
+* Added MSVC condition in samples CMakeLists.txt to avoid an error with MinGW
 
 
 Version 0.1.0 - 2008-11-06

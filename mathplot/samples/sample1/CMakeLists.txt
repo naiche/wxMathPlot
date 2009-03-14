@@ -5,10 +5,10 @@
 # License: wxWindows license
 
 add_executable(mpSample1 mp1.cpp)
-# Under Windows, the target type must be WINDOWS, not CONSOLE
-if(WIN32)
+# Under Visual C++, the target type must be WINDOWS, not CONSOLE
+if(WIN32 AND MSVC)
 	set_target_properties(mpSample1 PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-endif(WIN32)
+endif(WIN32 AND MSVC)
 # Linux cross compiling to x86 from x86_64 distribution
 if(LINUX_64_32_CROSSCOMPILE)
 #     set(CMAKE_LIBRARY_PATH "/usr/lib")

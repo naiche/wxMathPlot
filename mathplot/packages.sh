@@ -105,18 +105,18 @@ fi
 
 for PARAM in $* ; do
     if [[ $PARAM = "tgz" ]] ; then
-        clear_project
+        ./clear_project
         create_source_tgz
         exit 0 ;
     fi
     if [[ $PARAM = "rpm" ]] ; then
-        clear_project
+        ./clear_project
         create_rpm
 #echo "Not yet implemented"
         exit 0 ;
     fi
     if [[ $PARAM = "deb" ]] ; then
-        clear_project
+        ./clear_project
         create_deb
         exit 0 ;
     fi
