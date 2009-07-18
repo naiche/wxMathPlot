@@ -620,8 +620,8 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 
 			// xxx implement else ... if (!HasBBox())
 			{
-				const int sx = w.GetScrX();
-				const int sy = w.GetScrY();
+				// const int sx = w.GetScrX();
+				// const int sy = w.GetScrY();
 
 				if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
 				{
