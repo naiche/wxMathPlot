@@ -20,7 +20,7 @@
     The framework is designed for convenience and ease of use.
 
     @section screenshots Screenshots
-    <a href="http://wxmathlot.sourceforge.net/screenshot.html">Go to the screenshots page.</a>
+    <a href="http://wxmathplot.sourceforge.net/screenshot.shtml">Go to the screenshots page.</a>
 
     @section overview Overview
     The heart of wxMathPlot is mpWindow, which is a 2D canvas for plot layers.
@@ -751,7 +751,7 @@ typedef std::deque<mpLayer*> wxLayerList;
         - Mouse Wheel DOWN+CTRL: Zoom out
 
 */
-class WXDLLEXPORT mpWindow : public wxScrolledWindow
+class WXDLLEXPORT mpWindow : public wxWindow
 {
 public:
     mpWindow() {}
@@ -1095,13 +1095,43 @@ protected:
     void OnMouseMove     (wxMouseEvent     &event); //!< Mouse handler for mouse motion (for pan)
     void OnMouseLeftDown (wxMouseEvent     &event); //!< Mouse left click (for rect zoom)
     void OnMouseLeftRelease (wxMouseEvent  &event); //!< Mouse left click (for rect zoom)
+    void OnScrollThumbTrack (wxScrollWinEvent &event); //!< Scroll thumb on scroll bar moving
+    void OnScrollPageUp     (wxScrollWinEvent &event); //!< Scroll page up 
+    void OnScrollPageDown   (wxScrollWinEvent &event); //!< Scroll page down 
+    void OnScrollLineUp     (wxScrollWinEvent &event); //!< Scroll line up 
+    void OnScrollLineDown   (wxScrollWinEvent &event); //!< Scroll line down
+    void OnScrollTop        (wxScrollWinEvent &event); //!< Scroll to top 
+    void OnScrollBottom     (wxScrollWinEvent &event); //!< Scroll to bottom
 
-//     virtual void DoPrepareDC(wxDC& dc);
+    void DoScrollCalc    (const int position, const int orientation);
+
+    void DoZoomInXCalc   (const int         staticXpixel);
+    void DoZoomInYCalc   (const int         staticYpixel);
+    void DoZoomOutXCalc  (const int         staticXpixel);
+    void DoZoomOutYCalc  (const int         staticYpixel);
+
+    /** Set current view's X position. */
+    void DoPosXCalc(double posX) 
+    { 
+        double newDesiredXmin = posX + (m_marginLeft / m_scaleX);
+        m_desiredXmax = (m_desiredXmax - m_desiredXmin) + newDesiredXmin; 
+        m_desiredXmin = newDesiredXmin; 
+        m_posX = posX; 
+    }
+
+    /** Set current view's Y position. */
+    void DoPosYCalc(double posY) 
+    { 
+        double newDesiredYMax = posY - (m_marginTop / m_scaleY);
+        m_desiredYmin = newDesiredYMax - (m_desiredYmax - m_desiredYmin); 
+        m_desiredYmax = newDesiredYMax; 
+        m_posY = posY; 
+    }
 
     /** Recalculate global layer bounding box, and save it in m_minX,...
       * \return true if there is any valid BBox information.
       */
-    bool UpdateBBox();
+    virtual bool UpdateBBox();
 
     //wxList m_layers;    //!< List of attached plot layers
     wxLayerList m_layers; //!< List of attached plot layers

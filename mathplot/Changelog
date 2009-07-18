@@ -1,3 +1,8 @@
+Version 0.1.2 - 2009-06-20
+* Reimplemented scrollers: patch by ngpaton
+* MATHPLOT_DO_LOGGING is now an option to be enabled by CMake building
+
+
 Version 0.1.1 - 2009-02-22
 * Fixed mathplot.cpp:654, where were a missing "orgy ="
 * Commented out line mathplot.cpp:848: wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft(); it was a useless variable.
