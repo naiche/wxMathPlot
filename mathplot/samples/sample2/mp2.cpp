@@ -163,7 +163,7 @@ MyFrame::MyFrame()
 
     SetMenuBar( menu_bar );
 
-    mpLayer *e, *f, *h, *bs;
+    mpLayer *e, *f; //, *h, *bs;
 
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
     m_plot->AddLayer(     new mpScaleX( wxT("Ganzzahl N")));

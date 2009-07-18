@@ -47,6 +47,17 @@
     Jose Luis Blanco, Val Greene.<br>
 */
 
+//this definition uses windows dll to export function. 
+//WXDLLIMPEXP_MATHPLOT definition definition changed to WXDLLIMPEXP_MATHPLOT  
+//mathplot_EXPORTS will be defined by cmake 
+#ifdef mathplot_EXPORTS 
+ #define WXDLLIMPEXP_MATHPLOT WXEXPORT 
+ #define WXDLLIMPEXP_DATA_MATHPLOT(type) WXEXPORT type 
+#else // not making DLL 
+ #define WXDLLIMPEXP_MATHPLOT 
+ #define WXDLLIMPEXP_DATA_MATHPLOT(type) type 
+#endif
+
 #if defined(__GNUG__) && !defined(__APPLE__)
 #pragma interface "mathplot.h"
 #endif
@@ -68,6 +79,16 @@
 
 #include <deque>
 
+// For memory leak debug
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define DEBUG_NEW new(_NORMAL_BLOCK ,__FILE__, __LINE__)
+#else
+#define DEBUG_NEW new
+#endif // _DEBUG
+#endif // _WINDOWS
+
 // Separation for axes when set close to border
 #define X_BORDER_SEPARATION 40
 #define Y_BORDER_SEPARATION 60
@@ -76,16 +97,16 @@
 // classes
 //-----------------------------------------------------------------------------
 
-class WXDLLEXPORT mpLayer;
-class WXDLLEXPORT mpFX;
-class WXDLLEXPORT mpFY;
-class WXDLLEXPORT mpFXY;
-class WXDLLEXPORT mpFXYVector;
-class WXDLLEXPORT mpScaleX;
-class WXDLLEXPORT mpScaleY;
-class WXDLLEXPORT mpWindow;
-class WXDLLEXPORT mpText;
-class WXDLLEXPORT mpPrintout;
+class WXDLLIMPEXP_MATHPLOT mpLayer;
+class WXDLLIMPEXP_MATHPLOT mpFX;
+class WXDLLIMPEXP_MATHPLOT mpFY;
+class WXDLLIMPEXP_MATHPLOT mpFXY;
+class WXDLLIMPEXP_MATHPLOT mpFXYVector;
+class WXDLLIMPEXP_MATHPLOT mpScaleX;
+class WXDLLIMPEXP_MATHPLOT mpScaleY;
+class WXDLLIMPEXP_MATHPLOT mpWindow;
+class WXDLLIMPEXP_MATHPLOT mpText;
+class WXDLLIMPEXP_MATHPLOT mpPrintout;
 
 /** Command IDs used by mpWindow */
 enum
@@ -120,7 +141,7 @@ typedef enum __mp_Layer_Type {
      continuity set to false (draw separate points).
     These may or may not be used by implementations.
 */
-class WXDLLEXPORT mpLayer : public wxObject
+class WXDLLIMPEXP_MATHPLOT mpLayer : public wxObject
 {
 public:
     mpLayer();
@@ -285,7 +306,7 @@ protected:
     bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins o over all DC
     mpLayerType m_type; //!< Define layer type, which is assigned by constructor
 	bool 	m_visible;	//!< Toggles layer visibility
-    DECLARE_CLASS(mpLayer)
+    DECLARE_DYNAMIC_CLASS(mpLayer)
 };
 
 
@@ -297,7 +318,7 @@ protected:
     @brief Base class to create small rectangular info boxes
     mpInfoLayer is the base class to create a small rectangular info box in transparent overlay over plot layers. It is used to implement objects like legends.
 */
-class WXDLLEXPORT mpInfoLayer : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpInfoLayer : public mpLayer
 {
 public:
     /** Default constructor. */
@@ -358,13 +379,13 @@ protected:
     wxBrush m_brush;        //!< The brush to be used for the background
     int m_winX, m_winY;     //!< Holds the mpWindow size. Used to rescale position when window is resized.
     
-    DECLARE_CLASS(mpInfoLayer)
+    DECLARE_DYNAMIC_CLASS(mpInfoLayer)
 };
 
 /** @class mpInfoCoords
     @brief Implements an overlay box which shows the mouse coordinates in plot units.
     When an mpInfoCoords layer is activated, when mouse is moved over the mpWindow, its coordinates (in mpWindow units, not pixels) are continuously reported inside the layer box. */
-class WXDLLEXPORT mpInfoCoords : public mpInfoLayer
+class WXDLLIMPEXP_MATHPLOT mpInfoCoords : public mpInfoLayer
 {
 public:
     /** Default constructor */
@@ -395,7 +416,7 @@ protected:
 /** @class mpInfoLegend
     @brief Implements the legend to be added to the plot
     This layer allows to add a legend to describe the plots in the window. The legend uses the layer name as a label, and displays only layers of type mpLAYER_PLOT. */
-class WXDLLEXPORT mpInfoLegend : public mpInfoLayer
+class WXDLLIMPEXP_MATHPLOT mpInfoLegend : public mpInfoLayer
 {
 public:
     /** Default constructor */
@@ -478,7 +499,7 @@ protected:
     Optionally implement a constructor and pass a name (label) and a label alignment
     to the constructor mpFX::mpFX. If the layer name is empty, no label will be plotted.
 */
-class WXDLLEXPORT mpFX : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpFX : public mpLayer
 {
 public:
     /** @param name  Label
@@ -502,7 +523,7 @@ public:
 protected:
     int m_flags; //!< Holds label alignment
 
-    DECLARE_CLASS(mpFX)
+    DECLARE_DYNAMIC_CLASS(mpFX)
 };
 
 /** Abstract base class providing plot and labeling functionality for functions F:Y->X.
@@ -510,7 +531,7 @@ protected:
     Optionally implement a constructor and pass a name (label) and a label alignment
     to the constructor mpFY::mpFY. If the layer name is empty, no label will be plotted.
 */
-class WXDLLEXPORT mpFY : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpFY : public mpLayer
 {
 public:
     /** @param name  Label
@@ -534,7 +555,7 @@ public:
 protected:
     int m_flags; //!< Holds label alignment
 
-    DECLARE_CLASS(mpFY)
+    DECLARE_DYNAMIC_CLASS(mpFY)
 };
 
 /** Abstract base class providing plot and labeling functionality for a locus plot F:N->X,Y.
@@ -543,7 +564,7 @@ protected:
     Optionally implement a constructor and pass a name (label) and a label alignment
     to the constructor mpFXY::mpFXY. If the layer name is empty, no label will be plotted.
 */
-class WXDLLEXPORT mpFXY : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpFXY : public mpLayer
 {
 public:
     /** @param name  Label
@@ -569,10 +590,21 @@ public:
     */
     virtual void Plot(wxDC & dc, mpWindow & w);
 
+
 protected:
     int m_flags; //!< Holds label alignment
 
-    DECLARE_CLASS(mpFXY)
+	// Data to calculate label positioning
+	wxCoord maxDrawX, minDrawX, maxDrawY, minDrawY;
+	//int drawnPoints;
+
+    /** Update Label positioning data
+	    @param xnew New x coordinate
+		#param ynew New y coordinate
+	*/
+	void UpdateViewBoundary(wxCoord xnew, wxCoord ynew);
+
+    DECLARE_DYNAMIC_CLASS(mpFXY)
 };
 
 /** Abstract base class providing plot and labeling functionality for functions F:Y->X.
@@ -581,7 +613,7 @@ protected:
     Optionally implement a constructor and pass a name (label) and a label alignment
     to the constructor mpProfile::mpProfile. If the layer name is empty, no label will be plotted.
 */
-class WXDLLEXPORT mpProfile : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpProfile : public mpLayer
 {
 public:
     /** @param name  Label
@@ -605,7 +637,7 @@ public:
 protected:
     int m_flags; //!< Holds label alignment
 
-    DECLARE_CLASS(mpProfile)
+    DECLARE_DYNAMIC_CLASS(mpProfile)
 };
 
 /*@}*/
@@ -622,7 +654,7 @@ protected:
     the bottom-right hand of the ruler. The scale numbering automatically
     adjusts to view and zoom factor.
 */
-class WXDLLEXPORT mpScaleX : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpScaleX : public mpLayer
 {
 public:
     /** @param name Label to plot by the ruler
@@ -666,7 +698,7 @@ protected:
     bool m_ticks; //!< Flag to toggle between ticks or grid
     unsigned int m_labelType; //!< Select labels mode: mpX_NORMAL for normal labels, mpX_TIME for time axis in hours, minutes, seconds
 
-    DECLARE_CLASS(mpScaleX)
+    DECLARE_DYNAMIC_CLASS(mpScaleX)
 };
 
 /** Plot layer implementing a y-scale ruler.
@@ -674,7 +706,7 @@ protected:
     the top-right hand of the ruler. The scale numbering automatically
     adjusts to view and zoom factor.
 */
-class WXDLLEXPORT mpScaleY : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpScaleY : public mpLayer
 {
 public:
     /** @param name Label to plot by the ruler
@@ -709,7 +741,7 @@ protected:
     int m_flags; //!< Flag for axis alignment
     bool m_ticks; //!< Flag to toggle between ticks or grid
 
-    DECLARE_CLASS(mpScaleY)
+    DECLARE_DYNAMIC_CLASS(mpScaleY)
 };
 
 //-----------------------------------------------------------------------------
@@ -751,7 +783,7 @@ typedef std::deque<mpLayer*> wxLayerList;
         - Mouse Wheel DOWN+CTRL: Zoom out
 
 */
-class WXDLLEXPORT mpWindow : public wxWindow
+class WXDLLIMPEXP_MATHPLOT mpWindow : public wxWindow
 {
 public:
     mpWindow() {}
@@ -1079,6 +1111,9 @@ public:
 		@return layer visibility status */
 	bool IsLayerVisible(const unsigned int position );
 
+	/** Set Color theme */
+	void SetColorTheme(const wxColour& bgColor, const wxColour& drawColor);
+
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
     void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes
@@ -1110,24 +1145,6 @@ protected:
     void DoZoomOutXCalc  (const int         staticXpixel);
     void DoZoomOutYCalc  (const int         staticYpixel);
 
-    /** Set current view's X position. */
-    void DoPosXCalc(double posX) 
-    { 
-        double newDesiredXmin = posX + (m_marginLeft / m_scaleX);
-        m_desiredXmax = (m_desiredXmax - m_desiredXmin) + newDesiredXmin; 
-        m_desiredXmin = newDesiredXmin; 
-        m_posX = posX; 
-    }
-
-    /** Set current view's Y position. */
-    void DoPosYCalc(double posY) 
-    { 
-        double newDesiredYMax = posY - (m_marginTop / m_scaleY);
-        m_desiredYmin = newDesiredYMax - (m_desiredYmax - m_desiredYmin); 
-        m_desiredYmax = newDesiredYMax; 
-        m_posY = posY; 
-    }
-
     /** Recalculate global layer bounding box, and save it in m_minX,...
       * \return true if there is any valid BBox information.
       */
@@ -1138,6 +1155,8 @@ protected:
     wxMenu m_popmenu;   //!< Canvas' context menu
     bool   m_lockaspect;//!< Scale aspect is locked or not
     // bool   m_coordTooltip; //!< Selects whether to show coordinate tooltip
+	wxColour m_bgColour;	//!< Background Colour
+	wxColour m_fgColour;	//!< Foreground Colour
 
     double m_minX;      //!< Global layer bounding box, left border incl.
     double m_maxX;      //!< Global layer bounding box, right border incl.
@@ -1170,7 +1189,7 @@ protected:
     int         m_scrollX, m_scrollY;
     mpInfoLayer* m_movingInfoLayer;      //!< For moving info layers over the window area
 
-    DECLARE_CLASS(mpWindow)
+    DECLARE_DYNAMIC_CLASS(mpWindow)
     DECLARE_EVENT_TABLE()
 };
 
@@ -1197,7 +1216,7 @@ protected:
 
      (Added: Jose Luis Blanco, AGO-2007)
 */
-class WXDLLEXPORT mpFXYVector : public mpFXY
+class WXDLLIMPEXP_MATHPLOT mpFXYVector : public mpFXY
 {
 public:
     /** @param name  Label
@@ -1209,7 +1228,7 @@ public:
         Both vectors MUST be of the same length. This method DOES NOT refresh the mpWindow, do it manually.
       * @sa Clear
     */
-    void SetData( const std::vector<float> &xs,const std::vector<float> &ys);
+    void SetData( const std::vector<double> &xs,const std::vector<double> &ys);
 
     /** Clears all the data, leaving the layer empty.
       * @sa SetData
@@ -1219,7 +1238,7 @@ public:
 protected:
     /** The internal copy of the set of data to draw.
       */
-    std::vector<float>  m_xs,m_ys;
+    std::vector<double>  m_xs,m_ys;
 
     /** The internal counter for the "GetNextXY" interface
       */
@@ -1259,7 +1278,7 @@ protected:
 
     int     m_flags; //!< Holds label alignment
 
-    DECLARE_CLASS(mpFXYVector)
+    DECLARE_DYNAMIC_CLASS(mpFXYVector)
 };
 
 //-----------------------------------------------------------------------------
@@ -1272,7 +1291,7 @@ coordinates for the location are not required, and the text stays
 on the plot reguardless of the other layers location and scaling
 factors.
 */
-class WXDLLEXPORT mpText : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpText : public mpLayer
 {
 public:
     /** @param name text to be drawn in the plot
@@ -1291,7 +1310,7 @@ protected:
     int m_offsetx; //!< Holds offset for X in percentage
     int m_offsety; //!< Holds offset for Y in percentage
 
-    DECLARE_CLASS(mpText)
+    DECLARE_DYNAMIC_CLASS(mpText)
 };
 
 
@@ -1303,7 +1322,7 @@ protected:
     The object itself can then used by the default wxWidgets printing system
     to print mppWindow objects.
 */
-class WXDLLEXPORT mpPrintout : public wxPrintout
+class WXDLLIMPEXP_MATHPLOT mpPrintout : public wxPrintout
 {
 public:
     mpPrintout(mpWindow* drawWindow, const wxChar *title = _T("wxMathPlot print output"));
@@ -1328,7 +1347,7 @@ private:
   *  be in charge of Bounding Box computation and layer render, assuming that
   *  the object updates its shape in m_shape_xs & m_shape_ys.
   */
-class WXDLLEXPORT mpMovableObject : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpMovableObject : public mpLayer
 {
 public:
     /** Default constructor (sets location and rotation to (0,0,0))
@@ -1436,7 +1455,7 @@ protected:
   *
   * The ellipse will be always centred at the origin. Use mpMovableObject::SetCoordinateBase to move it.
   */
-class WXDLLEXPORT mpCovarianceEllipse : public mpMovableObject
+class WXDLLIMPEXP_MATHPLOT mpCovarianceEllipse : public mpMovableObject
 {
 public:
     /** Default constructor.
@@ -1517,7 +1536,7 @@ protected:
   *  Use "setPoints" to set the list of N points. This class also can draw non-closed polygons by
   *   passing the appropriate parameters to "setPoints". To draw a point-cloud, call "SetContinuity(false)".
   */
-class WXDLLEXPORT mpPolygon : public mpMovableObject
+class WXDLLIMPEXP_MATHPLOT mpPolygon : public mpMovableObject
 {
 public:
     /** Default constructor.
@@ -1553,7 +1572,7 @@ public:
   *  be in charge of Bounding Box computation and layer render, assuming that
   *  the object updates its shape in m_shape_xs & m_shape_ys.
   */
-class WXDLLEXPORT mpBitmapLayer : public mpLayer
+class WXDLLIMPEXP_MATHPLOT mpBitmapLayer : public mpLayer
 {
 public:
     /** Default constructor.

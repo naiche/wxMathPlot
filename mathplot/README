@@ -4,7 +4,12 @@ For more information go to
 https://sourceforge.net/projects/wxmathplot/
 http://wxmathplot.sourceforge.net/
 
+0.1.2 Release notes
+-------------------
+Scrollers back again. Ability to build as DLL in Windows. Introduced colour theme, plus minor fixes.
+
 0.1.1 Release notes
+-------------------
 Minor bugfixes, introduced show/hide for single layer and added library packaging.
 
 0.1.0 Release notes

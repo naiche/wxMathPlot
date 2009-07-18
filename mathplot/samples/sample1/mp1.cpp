@@ -22,6 +22,11 @@
 #include <math.h>
 // #include <time.h>
 
+// Memory leak debugging
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 // derived classes
 
 class MySIN;
@@ -36,7 +41,7 @@ class MySIN : public mpFX
 {
     double m_freq, m_amp;
 public:
-    MySIN(double freq, double amp) : mpFX( wxT("f(x) = SIN(x)")) { m_freq=freq; m_amp=amp; }
+    MySIN(double freq, double amp) : mpFX( wxT("f(x) = SIN(x)"), mpALIGN_LEFT) { m_freq=freq; m_amp=amp; m_drawOutsideMargins = false; }
     virtual double GetY( double x ) { return m_amp * sin(x/6.283185/m_freq); }
     virtual double GetMinY() { return -m_amp; }
     virtual double GetMaxY() { return  m_amp; }
@@ -48,7 +53,7 @@ class MyCOSinverse : public mpFY
 {
     double m_freq, m_amp;
 public:
-    MyCOSinverse(double freq, double amp) : mpFY( wxT("g(y) = COS(y)")) { m_freq=freq; m_amp=amp;}
+    MyCOSinverse(double freq, double amp) : mpFY( wxT("g(y) = COS(y)"), mpALIGN_BOTTOM) { m_freq=freq; m_amp=amp; m_drawOutsideMargins = false;}
     virtual double GetX( double y ) { return m_amp * cos(y/6.283185/m_freq); }
     virtual double GetMinX() { return -m_amp; }
     virtual double GetMaxX() { return  m_amp; }
@@ -106,6 +111,7 @@ public:
 	void OnToggleLissajoux(wxCommandEvent& event);
 	void OnToggleSine(wxCommandEvent& event);
 	void OnToggleCosine(wxCommandEvent& event);
+	void OnBlackTheme(wxCommandEvent& event);
 
     mpWindow        *m_plot;
     wxTextCtrl      *m_log;
@@ -145,7 +151,8 @@ enum {
     ID_SAVE_SCREENSHOT,
 	ID_TOGGLE_LISSAJOUX,
 	ID_TOGGLE_SINE,
-	ID_TOGGLE_COSINE
+	ID_TOGGLE_COSINE,
+	ID_BLACK_THEME
 };
 
 IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
@@ -162,6 +169,7 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
   EVT_MENU(ID_TOGGLE_INFO, MyFrame::OnToggleInfoLayer)
   EVT_MENU(ID_SAVE_SCREENSHOT, MyFrame::OnSaveScreenshot)
+  EVT_MENU(ID_BLACK_THEME, MyFrame::OnBlackTheme)
   EVT_MENU(ID_TOGGLE_LISSAJOUX, MyFrame::OnToggleLissajoux)
   EVT_MENU(ID_TOGGLE_SINE, MyFrame::OnToggleSine)
   EVT_MENU(ID_TOGGLE_COSINE, MyFrame::OnToggleCosine)
@@ -190,6 +198,7 @@ MyFrame::MyFrame()
     view_menu->Append( ID_TOGGLE_GRID, wxT("Toggle grid/ticks"));
     view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
     view_menu->AppendCheckItem( ID_TOGGLE_INFO, wxT("Show overlay info box"));
+	view_menu->AppendCheckItem( ID_BLACK_THEME, wxT("Switch to black background theme"));
 	
 	show_menu->AppendCheckItem( ID_TOGGLE_LISSAJOUX, wxT("Lissajoux"));
 	show_menu->AppendCheckItem( ID_TOGGLE_SINE, wxT("Sine"));
@@ -209,6 +218,23 @@ MyFrame::MyFrame()
 
     mpLayer* l;
 
+	// Create a mpFXYVector layer
+	mpFXYVector* vectorLayer = new mpFXYVector(_("Vector"));
+	// Create two vectors for x,y and fill them with data
+	std::vector<double> vectorx, vectory;
+	double xcoord;
+	for (unsigned int p = 0; p < 100; p++) {
+		xcoord = ((double)p-50.0)*5.0;
+		vectorx.push_back(xcoord);
+		vectory.push_back(0.0001*pow(xcoord, 3));
+	}
+	vectorLayer->SetData(vectorx, vectory);
+	vectorLayer->SetContinuity(true);
+	wxPen vectorpen(*wxBLUE, 2, wxSOLID);
+	vectorLayer->SetPen(vectorpen);
+	vectorLayer->SetDrawOutsideMargins(false);
+
+
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
     mpScaleX* xaxis = new mpScaleX(wxT("X"), mpALIGN_BOTTOM, true, mpX_NORMAL);
@@ -217,21 +243,22 @@ MyFrame::MyFrame()
     yaxis->SetFont(graphFont);
     xaxis->SetDrawOutsideMargins(false);
     yaxis->SetDrawOutsideMargins(false);
-    m_plot->SetMargins(0, 0, 50, 100);
+    m_plot->SetMargins(30, 30, 50, 100);
 //     m_plot->SetMargins(50, 50, 200, 150);
     m_plot->AddLayer(     xaxis );
     m_plot->AddLayer(     yaxis );
     m_plot->AddLayer(     new MySIN( 10.0, 220.0 ) );
     m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
+	m_plot->AddLayer(     vectorLayer );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
     wxBrush hatch(wxColour(200,200,200), wxSOLID);
     //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
-    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,10,10), &hatch));
+    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,10,10), wxTRANSPARENT_BRUSH)); //&hatch));
     nfo->SetVisible(false);
     wxBrush hatch2(wxColour(163,208,212), wxSOLID);
     mpInfoLegend* leg;
-    m_plot->AddLayer( leg = new mpInfoLegend(wxRect(200,20,40,40), &hatch2));
+    m_plot->AddLayer( leg = new mpInfoLegend(wxRect(200,20,40,40), wxTRANSPARENT_BRUSH)); //&hatch2));
     leg->SetVisible(true);
     
     // m_plot->EnableCoordTooltip(true);
@@ -385,6 +412,14 @@ void MyFrame::OnToggleInfoLayer(wxCommandEvent& event)
         nfo->SetVisible(false);
     m_plot->UpdateAll();
     event.Skip();
+}
+
+void MyFrame::OnBlackTheme(wxCommandEvent& event)
+{
+	//wxColor black(0,0,0);
+	//wxColor white(255,255,255);
+	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
+	m_plot->SetColorTheme(*wxBLACK, *wxWHITE);
 }
 
 void MyFrame::OnPrintPreview( wxCommandEvent &WXUNUSED(event))

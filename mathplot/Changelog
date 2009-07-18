@@ -1,4 +1,10 @@
-Version 0.1.2 - 2009-06-20
+Version 0.1.2 - 2009-07-18
+* Introduced mpWindow::SetColorTheme to set background and foregriund colors different from black and white.
+* Fixed drawing of labels for mpFX, mpFY and mpFXY.
+  It is not really meaningful to use the label for mpFXY objects and similar ones: it is recommended to use mpInfoLegend instead, it is more clear and elegant.
+* Fixed evaluation of m_posY in mpWindow::Fit (margin top to be added, not subtracted)
+* Fixed mpFXYVector (and mpFXY) which did not respected margins when set as continuous
+* Can now build as a DLL on Windows (works only if wxWidgets are built as DLL): patch by zundoya
 * Reimplemented scrollers: patch by ngpaton
 * MATHPLOT_DO_LOGGING is now an option to be enabled by CMake building
 

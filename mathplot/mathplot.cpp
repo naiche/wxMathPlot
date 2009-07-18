@@ -51,6 +51,11 @@
 
 // #include "pixel.xpm"
 
+// Memory leak debugging
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 // Legend margins
 #define mpLEGEND_MARGIN 5
 #define mpLEGEND_LINEWIDTH 10
@@ -97,7 +102,7 @@ wxBitmap mpLayer::GetColourSquare(int side)
 //-----------------------------------------------------------------------------
 // mpInfoLayer
 //-----------------------------------------------------------------------------
-IMPLEMENT_CLASS(mpInfoLayer, mpLayer)
+IMPLEMENT_DYNAMIC_CLASS(mpInfoLayer, mpLayer)
 
 mpInfoLayer::mpInfoLayer()
 {
@@ -112,7 +117,7 @@ mpInfoLayer::mpInfoLayer()
 mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
 {
     m_brush = *brush;
-    m_reference.x = rect.x;
+	m_reference.x = rect.x;
     m_reference.y = rect.y;
     m_winX = 1; //parent->GetScrX();
     m_winY = 1; //parent->GetScrY();
@@ -121,7 +126,7 @@ mpInfoLayer::mpInfoLayer(wxRect rect, const wxBrush* brush) : m_dim(rect)
 
 mpInfoLayer::~mpInfoLayer()
 {
-    
+
 }
 
 void mpInfoLayer::UpdateInfo(mpWindow& w, wxEvent& event)
@@ -146,6 +151,7 @@ void mpInfoLayer::UpdateReference()
     m_reference.y = m_dim.y;
 }
 
+
 void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 {
     if (m_visible) {
@@ -156,9 +162,9 @@ void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor((float)(m_dim.x*scrx/m_winX));
+            if (m_winX != 1) m_dim.x = (int) floor((double)(m_dim.x*scrx/m_winX));
             if (m_winY != 1) {
-                m_dim.y = (int) floor((float)(m_dim.y*scry/m_winY));
+                m_dim.y = (int) floor((double)(m_dim.y*scry/m_winY));
                 UpdateReference();
             }
             // Finally update window size
@@ -225,9 +231,9 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor((float)(m_dim.x*scrx/m_winX));
+            if (m_winX != 1) m_dim.x = (int) floor((double)(m_dim.x*scrx/m_winX));
             if (m_winY != 1) {
-                m_dim.y = (int) floor((float)(m_dim.y*scry/m_winY));
+                m_dim.y = (int) floor((double)(m_dim.y*scry/m_winY));
                 UpdateReference();
             }
             // Finally update window size
@@ -279,9 +285,9 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor((float)(m_dim.x*scrx/m_winX));
+            if (m_winX != 1) m_dim.x = (int) floor((double)(m_dim.x*scrx/m_winX));
             if (m_winY != 1) {
-                m_dim.y = (int) floor((float)(m_dim.y*scry/m_winY));
+                m_dim.y = (int) floor((double)(m_dim.y*scry/m_winY));
                 UpdateReference();
             }
             // Finally update window size
@@ -399,13 +405,19 @@ void mpFX::Plot(wxDC & dc, mpWindow & w)
 			wxCoord tx, ty;
 			dc.GetTextExtent(m_name, &tx, &ty);
 
-			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
+			/*if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
 				tx = (w.GetScrX()>>1) - tx - 8;
 			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
 				tx = -tx/2;
 			else
 				tx = -(w.GetScrX()>>1) + 8;
-
+			*/
+			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT) 
+				tx = (w.GetScrX() - tx) - w.GetMarginRight() - 8; 
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER) 
+				tx = ((w.GetScrX() - w.GetMarginRight() - w.GetMarginLeft() - tx) / 2) + w.GetMarginLeft(); 
+			else 
+				tx = w.GetMarginLeft() + 8;
 			dc.DrawText( m_name, tx, w.y2p(GetY(w.p2x(tx))) ); // (wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
 		}
 	}
@@ -461,11 +473,11 @@ void mpFY::Plot(wxDC & dc, mpWindow & w)
 			dc.GetTextExtent(m_name, &tx, &ty);
 
 			if ((m_flags & mpALIGNMASK) == mpALIGN_TOP)
-				ty = (w.GetScrY()>>1) - 8;
+				ty = w.GetMarginTop() + 8;
 			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-				ty = 16 - ty/2;
+				ty = ((w.GetScrY() - w.GetMarginTop() - w.GetMarginBottom() - ty) / 2) + w.GetMarginTop();
 			else
-				ty = -(w.GetScrY()>>1) + 8;
+				ty = w.GetScrY() - 8 - ty - w.GetMarginBottom();
 
 			dc.DrawText( m_name, w.x2p(GetX(w.p2y(ty))), ty ); // (wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -ty);
 		}
@@ -481,12 +493,26 @@ mpFXY::mpFXY(wxString name, int flags)
     m_type = mpLAYER_PLOT;
 }
 
+void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
+{
+	// Keep track of how many points have been drawn and the bouding box
+	maxDrawX = (xnew > maxDrawX) ? xnew : maxDrawX;
+	minDrawX = (xnew < minDrawX) ? xnew : minDrawX;
+	maxDrawY = (maxDrawY > ynew) ? maxDrawY : ynew;
+	minDrawY = (minDrawY < ynew) ? minDrawY : ynew;
+	//drawnPoints++;
+}
+
 void mpFXY::Plot(wxDC & dc, mpWindow & w)
 {
 	if (m_visible) {
 		dc.SetPen( m_pen);
 
 		double x, y;
+		// Do this to reset the counters to evaluate bounding box for label positioning
+		Rewind(); GetNextXY(x, y);
+		maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
+		//drawnPoints = 0;
 		Rewind();
 
 		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
@@ -506,8 +532,10 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 				{
 					ix = w.x2p(x);
 					iy = w.y2p(y);
-					if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx)))
+					if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
 						dc.DrawPoint(ix, iy);
+						UpdateViewBoundary(ix, iy);
+					};
 				}
 			}
 			else
@@ -516,27 +544,70 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 				{
 					ix = w.x2p(x);
 					iy = w.y2p(y);
-					if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx)))
+					if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
 						dc.DrawLine(ix, iy, ix, iy);
+						UpdateViewBoundary(ix, iy);
+					}
 	//                dc.DrawLine(cx, cy, cx, cy);
 				}
 			}
 		}
 		else
 		{
-			wxCoord cx0=0,cy0=0;
+			// Old code
+			wxCoord x0=0,c0=0;
 			bool    first = TRUE;
 			while (GetNextXY(x, y))
 			{
-				wxCoord cx = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
-				wxCoord cy = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
+				wxCoord x1 = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
+				wxCoord c1 = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
 				if (first)
 				{
 					first=FALSE;
-					cx0=cx;cy0=cy;
+					x0=x1;c0=c1;
 				}
-				dc.DrawLine(cx0, cy0, cx, cy);
-				cx0=cx; cy0=cy;
+				bool outUp, outDown;
+				if((x1 >= startPx)&&(x0 <= endPx)) {
+					outDown = (c0 > maxYpx) && (c1 > maxYpx);
+					outUp = (c0 < minYpx) && (c1 < minYpx);
+					if (!outUp && !outDown) {
+						if (c1 != c0) {
+							if (c0 < minYpx) {
+								x0 = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+								c0 = minYpx;
+							}
+							if (c0 > maxYpx) {
+								x0 = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+								//wxLogDebug(wxT("old x0 = %d, new x0 = %d"), x0, newX0);
+								//x0 = newX0;
+								c0 = maxYpx;
+							}
+							if (c1 < minYpx) {
+								x1 = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+								c1 = minYpx;
+							}
+							if (c1 > maxYpx) {
+								x1 = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+								//wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
+								//x1 = newX1;
+								c1 = maxYpx;
+							}
+						}
+						if (x1 != x0) {
+							if (x0 < startPx) {
+								c0 = (int)(((float)(startPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
+								x0 = startPx;
+							}
+							if (x1 > endPx) {
+								c1 = (int)(((float)(endPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
+								x1 = endPx;
+							}
+						}
+						dc.DrawLine(x0, c0, x1, c1);
+						UpdateViewBoundary(x1, c1);
+					}
+				}
+				x0=x1; c0=c1;
 			}
 		}
 
@@ -549,28 +620,28 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
 
 			// xxx implement else ... if (!HasBBox())
 			{
-				const int sx = w.GetScrX()>>1;
-				const int sy = w.GetScrY()>>1;
+				const int sx = w.GetScrX();
+				const int sy = w.GetScrY();
 
-				if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+				if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
 				{
-					tx = sx - tx - 8;
-					ty = -sy + 8;
+					tx = minDrawX + 8;
+					ty = maxDrawY + 8;
 				}
-				else if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+				else if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
 				{
-					tx = -sx + 8;
-					ty = -sy + 8;
+					tx = maxDrawX - tx - 8;
+					ty = maxDrawY + 8;
 				}
-				else if ((m_flags & mpALIGNMASK) == mpALIGN_SW)
+				else if ((m_flags & mpALIGNMASK) == mpALIGN_SE)
 				{
-					tx = -sx + 8;
-					ty = sy - 8 - ty;
+					tx = maxDrawX - tx - 8;
+					ty = minDrawY - ty - 8;
 				}
 				else
-				{
-					tx = sx - tx - 8;
-					ty = sy - 8 - ty;
+				{ // mpALIGN_SW
+					tx = minDrawX + 8;
+					ty = minDrawY - ty - 8;
 				}
 			}
 
@@ -620,12 +691,12 @@ void mpProfile::Plot(wxDC & dc, mpWindow & w)
 			wxCoord tx, ty;
 			dc.GetTextExtent(m_name, &tx, &ty);
 
-			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
-				tx = (w.GetScrX()>>1) - tx - 8;
-			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-				tx = -tx/2;
-			else
-				tx = -(w.GetScrX()>>1) + 8;
+			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT) 
+				tx = (w.GetScrX() - tx) - w.GetMarginRight() - 8; 
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER) 
+				tx = ((w.GetScrX() - w.GetMarginRight() - w.GetMarginLeft() - tx) / 2) + w.GetMarginLeft(); 
+			else 
+				tx = w.GetMarginLeft() + 8;
 
 			dc.DrawText( m_name, tx, w.y2p( GetY( w.p2x(tx) ) ) );//(wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
 		}
@@ -638,7 +709,7 @@ void mpProfile::Plot(wxDC & dc, mpWindow & w)
 
 #define mpLN10 2.3025850929940456840179914546844
 
-IMPLEMENT_CLASS(mpScaleX, mpLayer)
+IMPLEMENT_DYNAMIC_CLASS(mpScaleX, mpLayer)
 
 mpScaleX::mpScaleX(wxString name, int flags, bool ticks, unsigned int type)
 {
@@ -856,7 +927,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
     }; */
 }
 
-IMPLEMENT_CLASS(mpScaleY, mpLayer)
+IMPLEMENT_DYNAMIC_CLASS(mpScaleY, mpLayer)
 
 mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
 {
@@ -1092,6 +1163,9 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 
     m_layers.clear();
     SetBackgroundColour( *wxWHITE );
+	 m_bgColour = *wxWHITE;
+	 m_fgColour = *wxBLACK;
+
     m_enableScrollBars = false;
     SetSizeHints(128, 128);
 
@@ -1150,8 +1224,8 @@ void mpWindow::OnMouseWheel( wxMouseEvent &event )
     {
         // Scroll vertically or horizontally (this is SHIFT is hold down).
         int change = - event.GetWheelRotation(); // Opposite direction (More intuitive)!
-        float changeUnitsX = change / m_scaleX;
-        float changeUnitsY = change / m_scaleY;
+        double changeUnitsX = change / m_scaleX;
+        double changeUnitsY = change / m_scaleY;
 
         if (event.m_shiftDown)
 	{
@@ -1192,8 +1266,8 @@ void mpWindow::OnMouseMove(wxMouseEvent     &event)
         m_mouseRClick_X = event.GetX();
         m_mouseRClick_Y = event.GetY();
 
-        float   Ax_units = Ax / m_scaleX;
-        float   Ay_units = -Ay / m_scaleY;
+        double   Ax_units = Ax / m_scaleX;
+        double   Ay_units = -Ay / m_scaleY;
 
         m_posX += Ax_units;
         m_posY += Ay_units;
@@ -1684,6 +1758,7 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
     trgDc->SetPen( *wxTRANSPARENT_PEN );
     wxBrush brush( GetBackgroundColour() );
     trgDc->SetBrush( brush );
+	trgDc->SetTextForeground(m_fgColour);
     trgDc->DrawRectangle(0,0,m_scrX,m_scrY);
 
     // Draw all the layers:
@@ -2187,6 +2262,27 @@ bool mpWindow::IsLayerVisible(const unsigned int position )
 	return (lx) ? lx->IsVisible() : false;
 }
 
+void mpWindow::SetColorTheme(const wxColour& bgColor, const wxColour& drawColor)
+{
+	 SetBackgroundColour(bgColor);
+	 m_bgColour = bgColor;
+	 m_fgColour = drawColor;
+	// cycle between layers to set colours and properties to them
+    wxLayerList::iterator li;
+    for (li = m_layers.begin(); li != m_layers.end(); li++) {
+		if ((*li)->GetLayerType() == mpLAYER_AXIS) {
+			wxPen axisPen = (*li)->GetPen(); // Get the old pen to modify only colour, not style or width
+			axisPen.SetColour(drawColor);
+			(*li)->SetPen(axisPen);
+		}
+		if ((*li)->GetLayerType() == mpLAYER_INFO) {
+			wxPen infoPen = (*li)->GetPen(); // Get the old pen to modify only colour, not style or width
+			infoPen.SetColour(drawColor);
+			(*li)->SetPen(infoPen);
+		}
+	}
+}
+
 // void mpWindow::EnableCoordTooltip(bool value)
 // {
 //      m_coordTooltip = value;
@@ -2246,7 +2342,7 @@ wxCoord mpWindow::y2p(double y, bool drawOutside)
 // mpFXYVector implementation - by Jose Luis Blanco (AGO-2007)
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(mpFXYVector, mpFXY)
+IMPLEMENT_DYNAMIC_CLASS(mpFXYVector, mpFXY)
 
 // Constructor
 mpFXYVector::mpFXYVector(wxString name, int flags ) : mpFXY(name,flags)
@@ -2282,7 +2378,7 @@ void mpFXYVector::Clear()
     m_ys.clear();
 }
 
-void mpFXYVector::SetData( const std::vector<float> &xs,const std::vector<float> &ys)
+void mpFXYVector::SetData( const std::vector<double> &xs,const std::vector<double> &ys)
 {
     // Copy the data:
     m_xs = xs;
@@ -2297,7 +2393,7 @@ void mpFXYVector::SetData( const std::vector<float> &xs,const std::vector<float>
         m_minY  = ys[0];
         m_maxY  = ys[0];
 
-        std::vector<float>::const_iterator  it;
+        std::vector<double>::const_iterator  it;
 
         for (it=xs.begin();it!=xs.end();it++)
         {
@@ -2327,7 +2423,7 @@ void mpFXYVector::SetData( const std::vector<float> &xs,const std::vector<float>
 // mpText - provided by Val Greene
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(mpText, mpLayer)
+IMPLEMENT_DYNAMIC_CLASS(mpText, mpLayer)
 
 
 /** @param name text to be displayed
