@@ -19,4 +19,4 @@ done
 # Clear libs and executables
 rm -f libmathplot.a samples/sample1/mpSample1 samples/sample2/mpSample2  samples/sample3/mpSample3
 
-echo "Pulizia completata!"
+echo "wxMathPlot cleaning completed!"

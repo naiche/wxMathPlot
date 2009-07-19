@@ -2380,6 +2380,11 @@ void mpFXYVector::Clear()
 
 void mpFXYVector::SetData( const std::vector<double> &xs,const std::vector<double> &ys)
 {
+	// Check if the data vectora are of the same size
+	if (xs.size() != ys.size()) {
+		wxLogError(_("wxMathPlot error: X and Y vector are not of the same length!"));
+		return;
+	}
     // Copy the data:
     m_xs = xs;
     m_ys = ys;

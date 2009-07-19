@@ -356,11 +356,11 @@ public:
     /** Checks whether a point is inside the info box rectangle.
         @param point The point to be checked
         @return \a true if the point is inside the bounding box */
-    bool Inside(wxPoint& point);
+    virtual bool Inside(wxPoint& point);
 
     /** Moves the layer rectangle of given pixel deltas.
         @param delta The wxPoint container for delta coordinates along x and y. Units are in pixels */
-    void Move(wxPoint delta);
+    virtual void Move(wxPoint delta);
 
     /** Updates the rectangle reference point. Used by internal methods of mpWindow to correctly move mpInfoLayers */
     void UpdateReference();
