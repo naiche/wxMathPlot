@@ -363,7 +363,7 @@ public:
     virtual void Move(wxPoint delta);
 
     /** Updates the rectangle reference point. Used by internal methods of mpWindow to correctly move mpInfoLayers */
-    void UpdateReference();
+    virtual void UpdateReference();
 
     /** Returns the position of the upper left corner of the box (in pixels)
         @return The rectangle position */
@@ -1005,7 +1005,7 @@ public:
     unsigned int CountLayers();
     
     /** Counts the number of plot layers, regardless they have a bounding box or not.
-    	\return The number of profiles plotted.
+    	\return The number of layers in the mpWindow
     */
     unsigned int CountAllLayers() { return m_layers.size(); };
 
