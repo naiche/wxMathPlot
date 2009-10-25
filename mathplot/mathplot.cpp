@@ -48,6 +48,7 @@
 
 #include <cmath>
 #include <cstdio> // used only for debug
+#include <ctime> // used for representation of x axes involving date
 
 // #include "pixel.xpm"
 
@@ -158,6 +159,10 @@ void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
         // Adjust relative position inside the window
         int scrx = w.GetScrX();
         int scry = w.GetScrY();
+		// Avoid dividing by 0
+		if(scrx == 0) scrx=1;
+		if(scry == 0) scry=1;
+		
         if ((m_winX != scrx) || (m_winY != scry)) {
 #ifdef MATHPLOT_DO_LOGGING
             // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
@@ -720,6 +725,7 @@ mpScaleX::mpScaleX(wxString name, int flags, bool ticks, unsigned int type)
     m_ticks = ticks;
     m_labelType = type;
     m_type = mpLAYER_AXIS;
+	m_labelFormat = wxT("");
 }
 
 void mpScaleX::Plot(wxDC & dc, mpWindow & w)
@@ -766,16 +772,23 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 		wxString fmt;
 		int tmp = (int)dig;
 		if (m_labelType == mpX_NORMAL) {
-			if (tmp>=1) {
-				fmt = wxT("%.f");
+			if (!m_labelFormat.IsEmpty()) {
+				fmt = m_labelFormat;
 			} else {
-				tmp=8-tmp;
-				fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
+				if (tmp>=1) {
+					fmt = wxT("%.f");
+				} else {
+					tmp=8-tmp;
+					fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
+				}
 			}
-		}
-		// Time axis representation
-		if (m_labelType != mpX_NORMAL) {
-			if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
+		} else {
+			// Date and/or time axis representation
+			if (m_labelType == mpX_DATETIME) {
+				fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
+			} else if (m_labelType == mpX_DATE) {
+				fmt = (wxT("%04.0f-%02.0f-%02.0f"));
+			} else if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
 				fmt = (wxT("%02.0f:%02.3f"));
 			} else {
 				fmt = (wxT("%02.0f:%02.0f:%02.0f"));
@@ -825,7 +838,15 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 				// Write ticks labels in s string
 				if (m_labelType == mpX_NORMAL)
 					s.Printf(fmt, n);
-				if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+				else if (m_labelType == mpX_DATETIME) {
+					time_t when = (time_t)n;
+					struct tm tm = *localtime(&when);
+					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday, (double)tm.tm_hour, (double)tm.tm_min, (double)tm.tm_sec);
+				} else if (m_labelType == mpX_DATE) {
+					time_t when = (time_t)n;
+					struct tm tm = *localtime(&when);
+					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday);
+				} else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
 					double modulus = fabs(n);
 					double sign = n/modulus;
 					double hh = floor(modulus/3600);
@@ -864,7 +885,15 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 				// Write ticks labels in s string
 				if (m_labelType == mpX_NORMAL)
 					s.Printf(fmt, n);
-				if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+				else if (m_labelType == mpX_DATETIME) {
+					time_t when = (time_t)n;
+					struct tm tm = *localtime(&when);
+					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday, (double)tm.tm_hour, (double)tm.tm_min, (double)tm.tm_sec);
+				} else if (m_labelType == mpX_DATE) {
+					time_t when = (time_t)n;
+					struct tm tm = *localtime(&when);
+					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday);
+				} else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
 					double modulus = fabs(n);
 					double sign = n/modulus;
 					double hh = floor(modulus/3600);
@@ -937,6 +966,7 @@ mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
     m_flags = flags;
     m_ticks = ticks;
     m_type = mpLAYER_AXIS;
+	m_labelFormat = wxT("");
 }
 
 void mpScaleY::Plot(wxDC & dc, mpWindow & w)
@@ -987,10 +1017,14 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
 		double maxScaleAbs = fabs(w.GetDesiredYmax());
 		double minScaleAbs = fabs(w.GetDesiredYmin()); 
 		double endscale = (maxScaleAbs > minScaleAbs) ? maxScaleAbs : minScaleAbs;
-		if ((endscale < 1e4) && (endscale > 1e-3))
-			fmt = wxT("%.2f");
-		else
-			fmt = wxT("%.1e");
+		if (m_labelFormat.IsEmpty()) {
+			if ((endscale < 1e4) && (endscale > 1e-3))
+				fmt = wxT("%.2f");
+			else
+				fmt = wxT("%.1e");
+		} else {
+			fmt = m_labelFormat;
+		}
 	/*    if (tmp>=1)
 		{*/
 		//    fmt = wxT("%7.5g");
@@ -2262,22 +2296,24 @@ bool mpWindow::IsLayerVisible(const unsigned int position )
 	return (lx) ? lx->IsVisible() : false;
 }
 
-void mpWindow::SetColorTheme(const wxColour& bgColor, const wxColour& drawColor)
+void mpWindow::SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour)
 {
-	 SetBackgroundColour(bgColor);
-	 m_bgColour = bgColor;
-	 m_fgColour = drawColor;
+	 SetBackgroundColour(bgColour);
+	 SetForegroundColour(drawColour);
+	 m_bgColour = bgColour;
+	 m_fgColour = drawColour;
+	 m_axColour = axesColour;
 	// cycle between layers to set colours and properties to them
     wxLayerList::iterator li;
     for (li = m_layers.begin(); li != m_layers.end(); li++) {
 		if ((*li)->GetLayerType() == mpLAYER_AXIS) {
 			wxPen axisPen = (*li)->GetPen(); // Get the old pen to modify only colour, not style or width
-			axisPen.SetColour(drawColor);
+			axisPen.SetColour(axesColour);
 			(*li)->SetPen(axisPen);
 		}
 		if ((*li)->GetLayerType() == mpLAYER_INFO) {
 			wxPen infoPen = (*li)->GetPen(); // Get the old pen to modify only colour, not style or width
-			infoPen.SetColour(drawColor);
+			infoPen.SetColour(drawColour);
 			(*li)->SetPen(infoPen);
 		}
 	}
@@ -2516,11 +2552,15 @@ bool mpPrintout::OnPrintPage(int page)
                         &m_prnX, 
                         &m_prnY );
 
-
-        // Draw background:
-        //trgDc->SetDeviceOrigin(0,0);
+		// Get the colours of the plotWindow to restore them ath the end
+		wxColour oldBgColour = plotWindow->GetBackgroundColour();
+		wxColour oldFgColour = plotWindow->GetForegroundColour();
+		wxColour oldAxColour = plotWindow->GetAxesColour();
+		
+        // Draw background, ensuring to use white background for printing.
         trgDc->SetPen( *wxTRANSPARENT_PEN );
-        wxBrush brush( plotWindow->GetBackgroundColour() );
+        // wxBrush brush( plotWindow->GetBackgroundColour() );
+		wxBrush brush = *wxWHITE_BRUSH;
         trgDc->SetBrush( brush );
         trgDc->DrawRectangle(0,0,m_prnX,m_prnY);
 
@@ -2532,7 +2572,9 @@ bool mpPrintout::OnPrintPage(int page)
             layer->Plot(*trgDc, *plotWindow);
         };
         // Restore device origin
-        trgDc->SetDeviceOrigin(0, 0);
+        // trgDc->SetDeviceOrigin(0, 0);
+		// Restore colours
+		plotWindow->SetColourTheme(oldBgColour, oldFgColour, oldAxColour);
         // Restore drawing
         plotWindow->Fit(plotWindow->GetDesiredXmin(), plotWindow->GetDesiredXmax(), plotWindow->GetDesiredYmin(), plotWindow->GetDesiredYmax(), NULL, NULL);
         plotWindow->UpdateAll();

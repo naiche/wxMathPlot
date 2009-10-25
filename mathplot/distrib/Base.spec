@@ -1,4 +1,4 @@
-# This is the spec file for AMaCA
+# This is the spec file for wxMathPlot
 # Copyright (c) 2008, Davide Rondini
 # RPM bulding reference:
 # http://docs.fedoraproject.org/developers-guide/ch-rpm-building.html

@@ -243,6 +243,9 @@ MyFrame::MyFrame()
     yaxis->SetFont(graphFont);
     xaxis->SetDrawOutsideMargins(false);
     yaxis->SetDrawOutsideMargins(false);
+	// Fake axes formatting to test arbitrary format string
+	// xaxis->SetLabelFormat(wxT("%.2f €"));
+	// yaxis->SetLabelFormat(wxT("%p"));
     m_plot->SetMargins(30, 30, 50, 100);
 //     m_plot->SetMargins(50, 50, 200, 150);
     m_plot->AddLayer(     xaxis );
@@ -418,8 +421,10 @@ void MyFrame::OnBlackTheme(wxCommandEvent& event)
 {
 	//wxColor black(0,0,0);
 	//wxColor white(255,255,255);
+	wxColour grey(96, 96, 96);
 	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
-	m_plot->SetColorTheme(*wxBLACK, *wxWHITE);
+	m_plot->SetColourTheme(*wxBLACK, *wxWHITE, grey);
+	m_plot->UpdateAll();
 }
 
 void MyFrame::OnPrintPreview( wxCommandEvent &WXUNUSED(event))

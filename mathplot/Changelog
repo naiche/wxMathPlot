@@ -1,5 +1,7 @@
-Version 0.1.2 - 2009-07-18
-* Introduced mpWindow::SetColorTheme to set background and foregriund colors different from black and white.
+Version 0.1.2 - 2009-10-25
+* Added mpX_DATE and mpX_DATETIME formats for X axis.
+* Axes labels' format can now be set using the SetLabelFormat function, so the user can select the appropriate format fitting his needs.
+* Introduced mpWindow::SetColourTheme to set background and foreground colors different from default black on white. mpPrintout will continue to print everything with white background.
 * Fixed drawing of labels for mpFX, mpFY and mpFXY.
   It is not really meaningful to use the label for mpFXY objects and similar ones: it is recommended to use mpInfoLegend instead, it is more clear and elegant.
 * Fixed evaluation of m_posY in mpWindow::Fit (margin top to be added, not subtracted)
@@ -7,6 +9,7 @@ Version 0.1.2 - 2009-07-18
 * Can now build as a DLL on Windows (works only if wxWidgets are built as DLL): patch by zundoya
 * Reimplemented scrollers: patch by ngpaton
 * MATHPLOT_DO_LOGGING is now an option to be enabled by CMake building
+* Minor fixes.
 
 
 Version 0.1.1 - 2009-02-22
