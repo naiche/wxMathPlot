@@ -381,6 +381,10 @@ public:
     /** Returns the size of the box (in pixels)
         @return The rectangle size */
     wxSize GetSize();
+	
+	/** Returns the current rectangle coordinates.
+	    @return The info layer rectangle */
+	const wxRect& GetRectangle() { return m_dim; };
 
 protected:
     wxRect m_dim;           //!< The bounding rectangle of the box. It may be resized dynamically by the Plot method.

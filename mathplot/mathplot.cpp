@@ -1331,10 +1331,11 @@ void mpWindow::OnMouseMove(wxMouseEvent     &event)
         } else {
             wxLayerList::iterator li;
             for (li = m_layers.begin(); li != m_layers.end(); li++) {
-                if ((*li)->IsInfo()) {
+                if ((*li)->IsInfo() && (*li)->IsVisible()) {
                     mpInfoLayer* tmpLyr = (mpInfoLayer*) (*li);
                     tmpLyr->UpdateInfo(*this, event);
-                    UpdateAll();
+                    // UpdateAll();
+					RefreshRect(tmpLyr->GetRectangle());
                 }
             }
             /* if (m_coordTooltip) {
