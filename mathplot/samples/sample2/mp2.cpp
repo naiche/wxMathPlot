@@ -1,21 +1,21 @@
 // For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
+#include <wx/wxprec.h>
 
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
 
 #ifndef WX_PRECOMP
-#include "wx/wx.h"
+#include <wx/wx.h>
 #endif
 
-#include "../../mathplot.h"
+#include <mathplot.h>
 
-#include "wx/image.h"
-#include "wx/listctrl.h"
-#include "wx/sizer.h"
-#include "wx/log.h"
-#include "wx/intl.h"
+#include <wx/image.h>
+#include <wx/listctrl.h>
+#include <wx/sizer.h>
+#include <wx/log.h>
+#include <wx/intl.h>
 
 #include <math.h>
 

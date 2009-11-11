@@ -1,0 +1,15 @@
+wxmathplot (0.1.2) unstable; urgency=low
+
+  * Initial DEB Release.
+  * Added mpX_DATE and mpX_DATETIME formats for X axis.
+  * Axes labels' format can now be set using the SetLabelFormat function, so the user can select the appropriate format fitting his needs.
+  * Introduced mpWindow::SetColourTheme to set background and foreground colors different from default black on white. mpPrintout will continue to print everything with white background.
+  * Fixed drawing of labels for mpFX, mpFY and mpFXY. It is not really meaningful to use the label for mpFXY objects and similar ones: it is recommended to use mpInfoLegend instead, it is more clear and elegant.
+  * Fixed evaluation of m_posY in mpWindow::Fit (margin top to be added, not subtracted)
+  * Fixed mpFXYVector (and mpFXY) which did not respected margins when set as continuous
+  * Can now build as a DLL on Windows (works only if wxWidgets are built as DLL): patch by zundoya
+  * Reimplemented scrollers: patch by ngpaton
+  * MATHPLOT_DO_LOGGING is now an option to be enabled by CMake building
+  * Minor fixes.
+
+ -- Davide Rondini <cdron77@users.sourceforge.net>  Thu, 11 Nov 2009 17:44:55 +0100

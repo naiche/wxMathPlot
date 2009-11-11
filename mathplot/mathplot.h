@@ -65,16 +65,16 @@
 #include <vector>
 
 // #include <wx/wx.h>
-#include "wx/defs.h"
-#include "wx/menu.h"
-#include "wx/scrolwin.h"
-#include "wx/event.h"
-#include "wx/dynarray.h"
-#include "wx/pen.h"
-#include "wx/dcmemory.h"
-#include "wx/string.h"
-#include "wx/print.h"
-#include "wx/image.h"
+#include <wx/defs.h>
+#include <wx/menu.h>
+#include <wx/scrolwin.h>
+#include <wx/event.h>
+#include <wx/dynarray.h>
+#include <wx/pen.h>
+#include <wx/dcmemory.h>
+#include <wx/string.h>
+#include <wx/print.h>
+#include <wx/image.h>
 
 
 #include <deque>
