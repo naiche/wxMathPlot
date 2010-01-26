@@ -14,8 +14,11 @@ SET(wxWidgets_USE_LIBS base core)
 find_package(wxWidgets)
 if(wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})
-
 	include_directories(../..)
+	
+	if (MATHPLOT_UNICODE AND NOT UNIX)
+			set_source_files_properties(sample3.cpp PROPERTIES COMPILE_FLAGS "/DUNICODE /D_UNICODE" )
+	endif(MATHPLOT_UNICODE AND NOT UNIX)
 	
 	add_executable(mpSample3 sample3.cpp)
 	# Under Windows, the target type must be WINDOWS, not CONSOLE

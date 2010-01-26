@@ -16,6 +16,7 @@ if(wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})
 	include_directories(../..)
 	
+
 	add_executable(mpSample1 mp1.cpp)
 	# Under Visual C++, the target type must be WINDOWS, not CONSOLE
 	if(WIN32 AND MSVC)
