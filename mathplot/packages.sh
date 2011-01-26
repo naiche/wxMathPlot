@@ -19,6 +19,9 @@ function create_source_tgz {
     if [[ -d /usr/share/cmake-2.6 ]] ; then
         CMAKEDIR=/usr/share/cmake-2.6 ;
     fi
+    if [[ -d /usr/share/cmake-2.8 ]] ; then
+        CMAKEDIR=/usr/share/cmake-2.8 ;
+    fi
     if [[ -z $CMAKEDIR ]] ; then
         echo "CMake modules path not found. Aborting."
         exit 0 ;

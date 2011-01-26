@@ -15,7 +15,9 @@ Group: Applications/Development
 Packager: Davide Rondini
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Source: %{name}-%{version}.tar.gz
-Requires: wxBase wxGTK
+# Since OpenSUSE has only wxGTK package, and wxGTK in Fedora depends on wxBase, wxBase is removed for higher compatibility
+# Requires: wxBase wxGTK
+Requires: wxGTK
 BuildPrereq: cmake wxGTK-devel
 
 %description
