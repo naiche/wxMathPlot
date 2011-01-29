@@ -7,7 +7,7 @@
 
 Name: wxMathPlot
 Version:
-Release: 1
+Release: 2
 Vendor: wxMathPlot team
 License: wxWindows
 Summary: 2D plot library for wxWidgets
@@ -32,19 +32,36 @@ cmake -D CMAKE_INSTALL_PREFIX:STRING=%{buildroot}/usr -D GDB_DEBUG:BOOL=FALSE -D
 make
 
 %install
-rm -rf %{buildroot}
-#%makeinstall
+# rm -rf %{buildroot}
+%makeinstall
 
 %clean
 rm -rf %{buildroot}
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
+
+%package devel
+Summary: 2D plot library for wxWidgets - Development files
+Group: Applications/Development
+# NOTE on arch: this will set architecture for only the devel package (which do not contain built files)
+# This works on recent Fedora, but not on CentOS 5.x (And so Red Hat...), and the procedure is more complicated, explained here:
+# http://lists.centos.org/pipermail/centos/2007-December/048261.html
+BuildArch: noarch
+%description devel
+wxMathPlot is a library to add 2D scientific plot functionality to wxWidgets.
+It allows to embed inside your program a window for plotting scientific, statistical or mathematical data, with additions like legend or coordinate display in overlay.
+This is development package: header files and sample code.
+
+
 %files
+%defattr(-, root, root)
+%{_libdir}/libmathplot.so
+
+%files devel
 %defattr(-, root, root)
 %doc README
 %doc Changelog
-%{_libdir}/libmathplot.so
 %{_includedir}/mathplot.h
 %{_datadir}/wxMathPlot/samples/*
 %{_datadir}/wxMathPlot/Doxyfile
