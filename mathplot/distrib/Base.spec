@@ -15,10 +15,18 @@ Group: Applications/Development
 Packager: Davide Rondini
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Source: %{name}-%{version}.tar.gz
-# Since OpenSUSE has only wxGTK package, and wxGTK in Fedora depends on wxBase, wxBase is removed for higher compatibility
-# Requires: wxBase wxGTK
-Requires: wxGTK
+# Managing wxWidgets dependecy is quite complicated
+# Both Fedora and SuSE (up to 11.3) use the package wxGTK as main package for wxWidgets, but SuSE includes
+# everything in one package, while Fedora divides the library into wxBase and wxGTK. So, the dependency list
+# removed wxBase to increase compatibility, since in Fedora it is wxGTK depends on it and automatically installs.
+# Finally, starting from 11.4, OpenSuSE changed the package name, calling it wxWidgets, forcing to put an if statement
+%if 0%{?suse_version} >= 1140
+Requires: wxWidgets
+BuildPrereq: cmake wxWidgets-devel
+%else
+Requires: wxGTK wxGTK-gl
 BuildPrereq: cmake wxGTK-devel
+%endif
 
 %description
 wxMathPlot is a library to add 2D scientific plot functionality to wxWidgets. It allows to embed inside your program a window for plotting scientific, statistical or mathematical data, with additions like legend or coordinate display in overlay.
