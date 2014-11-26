@@ -23,7 +23,7 @@
 // #include <time.h>
 
 // wxWidgets 2.6 backward compatibility
-#if wxMINOR_VERSION < 7
+#if wxMAJOR_VERSION < 3 && wxMINOR_VERSION < 7
 #define wxFD_SAVE wxSAVE
 #endif
 
