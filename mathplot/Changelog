@@ -1,3 +1,7 @@
+Version 0.1.3 - 2014-11-26
+* Add mpMarker (a mpText using absolute position)
+* Fix Sample 1 compilation against wxWdiget > 2.7
+
 Version 0.1.2 - 2009-10-25
 * Added mpX_DATE and mpX_DATETIME formats for X axis.
 * Axes labels' format can now be set using the SetLabelFormat function, so the user can select the appropriate format fitting his needs.

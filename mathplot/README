@@ -3,6 +3,11 @@ wxMathPlot is a framework for mathematical graph plotting in wxWindows.
 For more information go to
 https://sourceforge.net/projects/wxmathplot/
 http://wxmathplot.sourceforge.net/
+https://github.com/R1kk3r/wxMathPlot/
+
+0.1.3 Release notes
+-------------------
+New github repo. New class mpMarker. Minor bugfixes.
 
 0.1.2 Release notes
 -------------------
