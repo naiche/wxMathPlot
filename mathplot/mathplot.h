@@ -1358,6 +1358,41 @@ protected:
 
 
 //-----------------------------------------------------------------------------
+// mpMarker - provided by R1kk3r
+//-----------------------------------------------------------------------------
+
+/** Plot layer implementing a text string.
+The text is plotted using an absolute x,y position.
+*/
+class WXDLLIMPEXP_MATHPLOT mpMarker : public mpLayer
+{
+public:
+    /** @param name text to be drawn in the plot
+        @param atX absolute X location
+        @param atY absolute Y location */
+    mpMarker(wxString name = wxT("[M]"), double atX = 0.0, double atY = 0.0);
+    
+    /** Set the position of the marker.
+        @param atX absolute X location
+        @param atY absolute Y location */
+    void SetPos(double atX, double atY) {mX = atX, mY = atY; };
+
+    /** Marker Layer plot handler.
+        This implementation will plot text at the given x,y position. */
+    virtual void Plot(wxDC & dc, mpWindow & w);
+
+    /** mpMarker should not be used for scaling decisions. */
+    virtual bool HasBBox() { return FALSE; }
+
+protected:
+
+    double  mX, mY;
+
+    DECLARE_DYNAMIC_CLASS(mpText)
+};
+
+
+//-----------------------------------------------------------------------------
 // mpPrintout - provided by Davide Rondini
 //-----------------------------------------------------------------------------
 

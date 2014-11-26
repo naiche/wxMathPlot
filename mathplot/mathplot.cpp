@@ -3,9 +3,9 @@
 // Purpose:         Framework for plotting in wxWindows
 // Original Author: David Schalig
 // Maintainer:      Davide Rondini
-// Contributors:    Jose Luis Blanco, Val Greene
+// Contributors:    Jose Luis Blanco, Val Greene, R1kk3r
 // Created:         21/07/2003
-// Last edit:       09/09/2007
+// Last edit:       26/11/2014
 // Copyright:       (c) David Schalig, Davide Rondini
 // Licence:         wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2518,6 +2518,57 @@ void mpText::Plot(wxDC & dc, mpWindow & w)
 		int py = m_offsety*(w.GetScrY() - w.GetMarginTop() - w.GetMarginBottom())/100;
 		dc.DrawText( GetName(), px, py);
 	}
+}
+
+//-----------------------------------------------------------------------------
+// mpMarker - provided by R1kk3r
+//-----------------------------------------------------------------------------
+
+IMPLEMENT_DYNAMIC_CLASS(mpMarker, mpLayer)
+
+
+/** @param name text to be displayed
+@param atX x absolute position
+@param atY y absolute position
+*/
+mpMarker::mpMarker( wxString name, double atX, double atY )
+{
+    SetName(name);
+
+    mX = atX;
+    mY = atY;
+}
+
+
+void mpMarker::Plot(wxDC & dc, mpWindow & w)
+{
+    wxCoord     cx, cy, tw, th;
+    wxColour    cc;
+    wxString    ss;
+
+    // setup
+
+    dc.SetPen(m_pen);
+    dc.SetFont(m_font);
+
+    // part of setup is setting the text color
+
+    cc = m_pen.GetColour();
+    dc.SetTextForeground(cc);
+
+    // what to draw
+
+    ss = GetName();
+
+    // where to draw
+
+    dc.GetTextExtent(ss, &tw, &th);
+    cx = (wxCoord) ((mX - w.GetPosX()) * w.GetScaleX()) - (tw / 2);
+    cy = (wxCoord) ((w.GetPosY() - mY) * w.GetScaleY()) - (th / 2);
+
+    // do it
+
+    dc.DrawText( ss, cx, cy);
 }
 
 //-----------------------------------------------------------------------------
