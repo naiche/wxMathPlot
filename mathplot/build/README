@@ -1,0 +1,1 @@
+This is the build directory. You should configure cmake to output the generated files (like Makefile and others) into this directory.
