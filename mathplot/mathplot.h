@@ -1642,13 +1642,11 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// mpMovableObject  - provided by Jose Luis Blanco
+// mpBitmapLayer - provided by Jose Luis Blanco
 //-----------------------------------------------------------------------------
-/** This virtual class represents objects that can be moved to an arbitrary 2D location+rotation.
-  *  The current transformation is set through SetCoordinateBase.
-  *  To ease the implementation of descendent classes, mpMovableObject will
-  *  be in charge of Bounding Box computation and layer render, assuming that
-  *  the object updates its shape in m_shape_xs & m_shape_ys.
+/** A layer that allows you to have a bitmap image printed in the mpWindow.
+    Use SetBitmap() to load the image in the right place.
+    You can retrieve the image from the layer at anytime you want with getBitmapCopy()
   */
 class WXDLLIMPEXP_MATHPLOT mpBitmapLayer : public mpLayer
 {
