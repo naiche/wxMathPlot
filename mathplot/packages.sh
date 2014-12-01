@@ -2,14 +2,14 @@
 
 NATIVE=FALSE
 DEBUG=FALSE
-PKGNAME=wxMathPlot
+PKGNAME=wxmathplot
 
 function create_source_tgz {
     VERSION=`cat ./distrib/VERSION`
     echo "Building packet $PKGNAME Versione $VERSION"
     PKGBASE=$PKGNAME-$VERSION
     PKGDIR=$PKGNAME-$VERSION
-    CMAKEDIR=""
+    CMAKEDIR="/usr/bin/cmake"
     if [[ -d /usr/share/cmake ]] ; then
         CMAKEDIR=/usr/share/cmake ;
     fi
@@ -66,7 +66,7 @@ function create_rpm {
 function create_deb {
     VERSION=`cat ./distrib/VERSION`
     TMPCL=distrib/deb_tmp_cl
-    unlink debian/control
+    #unlink debian/control
     DEBVERSION=`cat /etc/debian_version`
     case $DEBVERSION in
     	"4.0")
@@ -84,6 +84,10 @@ function create_deb {
     		OSVER="ubuntu1"
     		cd debian && ln -s control-ubuntu control && cd ..
     	;;
+	*)
+		echo "This is an undetected OS version !"
+		OSVER="default"
+	;;
     esac
     COMPLETE_VERSION=$VERSION-$OSVER
     echo "$PKGNAME ($COMPLETE_VERSION) unstable; urgency=low" > $TMPCL
