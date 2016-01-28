@@ -134,10 +134,17 @@ mpInfoLayer::~mpInfoLayer()
 
 }
 
+#ifdef _WINDOWS
+#pragma warning( push )
+#pragma warning( disable : 4100 )
+#endif
 void mpInfoLayer::UpdateInfo(mpWindow& w, wxEvent& event)
 {
     
 }
+#ifdef _WINDOWS
+#pragma warning( pop )
+#endif
 
 bool mpInfoLayer::Inside(wxPoint& point)
 {
@@ -283,10 +290,17 @@ mpInfoLegend::~mpInfoLegend()
     
 }
 
+#ifdef _WINDOWS
+#pragma warning( push )
+#pragma warning( disable : 4100 )
+#endif
 void mpInfoLegend::UpdateInfo(mpWindow& w, wxEvent& event)
 {
     
 }
+#ifdef _WINDOWS
+#pragma warning( pop )
+#endif
 
 void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
 {
