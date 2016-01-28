@@ -493,6 +493,8 @@ protected:
 #define mpX_DATE 0x03
 /** Set label for X axis in datetime mode: the value is always represented as yyyy-mm-ddThh:mm:ss. */
 #define mpX_DATETIME 0x04
+/** Set label for X axis in time-of-day mode: the value is always represented as hh:mm:ss(.mmm)? using local time (data is assumed to be in GMT, milliseconds are optionally displayed depending on the view width). */
+#define mpX_TIMEOFDAY 0x05
 /** Aligns Y axis to left border. For mpScaleY */
 #define mpALIGN_BORDER_LEFT mpALIGN_BORDER_BOTTOM
 /** Aligns Y axis to right border. For mpScaleY */
@@ -1726,3 +1728,4 @@ protected:
 /*@}*/
 
 #endif // _MP_MATHPLOT_H_
+

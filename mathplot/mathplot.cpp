@@ -10,6 +10,8 @@
 // Licence:         wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+#include "stdafx.h"
+
 #ifdef __GNUG__
 // #pragma implementation "plot.h"
 #pragma implementation "mathplot.h"
@@ -18,7 +20,7 @@
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wx.h>
 // #include <wx/window.h>
-// #include <wx/wxprec.h>
+//#include <wx/wxprec.h>
 
 // Comment out for release operation:
 // (Added by J.L.Blanco, Aug 2007)
@@ -50,6 +52,7 @@
 #include <cmath>
 #include <cstdio> // used only for debug
 #include <ctime> // used for representation of x axes involving date
+#include <cstdint>
 
 // #include "pixel.xpm"
 
@@ -768,6 +771,10 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
         else
             dc.DrawLine( w.GetMarginLeft(), orgy, w.GetScrX() - w.GetMarginRight(), orgy); */
 
+#ifdef MATHPLOT_DO_LOGGING
+		wxLogMessage(wxT("mpScaleX::Plot: ScaleX: %f, ScreenX %d"), w.GetScaleX(), w.GetScrX());
+#endif
+
 		const double dig  = floor( log( 128.0 / w.GetScaleX() ) / mpLN10 );
 		const double step = exp( mpLN10 * dig);
 		const double end  = w.GetPosX() + (double)extend / w.GetScaleX();
@@ -788,13 +795,24 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 				}
 			}
 		} else {
+			// reverse-calculation of 'm_scaleX'
+			double view_delta_x = end - w.GetPosX();
+			
 			// Date and/or time axis representation
 			if (m_labelType == mpX_DATETIME) {
 				fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
 			} else if (m_labelType == mpX_DATE) {
 				fmt = (wxT("%04.0f-%02.0f-%02.0f"));
 			} else if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
+				// Include milliseconds if within the first two minutes.
 				fmt = (wxT("%02.0f:%02.3f"));
+			} else if (m_labelType == mpX_TIMEOFDAY) {
+				if (view_delta_x < 2) {
+					// Include milliseconds if the view is narrower than 2 seconds.
+					fmt = (wxT("%02.0f:%02.0f:%02.3f"));
+				} else {
+					fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+				}
 			} else {
 				fmt = (wxT("%02.0f:%02.0f:%02.0f"));
 			}
@@ -818,6 +836,7 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 			const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
 #ifdef MATHPLOT_DO_LOGGING
 		wxLogMessage(wxT("mpScaleX::Plot: n: %f -> p = %d"), n, p);
+		wxLogMessage(wxT("mpScaleX::Plot: Px range: %d,%d"), startPx,endPx);
 #endif
 			if ((p >= startPx) && (p <= endPx)) {
 				if (m_ticks) { // draw axis ticks
@@ -844,11 +863,20 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 				if (m_labelType == mpX_NORMAL)
 					s.Printf(fmt, n);
 				else if (m_labelType == mpX_DATETIME) {
-					time_t when = (time_t)n;
+					time_t when = (time_t)(n>=0 ? n : 0);
 					struct tm tm = *localtime(&when);
 					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday, (double)tm.tm_hour, (double)tm.tm_min, (double)tm.tm_sec);
+				} else if (m_labelType == mpX_TIMEOFDAY) {
+					time_t when = (time_t)(n>=0 ? n : 0);
+					struct tm tm = *localtime(&when);
+					// Get fractional seconds.
+					double seconds =  (double)tm.tm_sec + (n-(int64_t)n);
+	#ifdef MATHPLOT_DO_LOGGING
+					wxLogMessage(wxT("mpX_TIMEOFDAY: %02.0f Hour, %02.0f Minute, %02.3f seconds"), (double)tm.tm_hour, (double)tm.tm_min, seconds);
+	#endif // MATHPLOT_DO_LOGGING
+					s.Printf(fmt, (double)tm.tm_hour, (double)tm.tm_min, seconds);
 				} else if (m_labelType == mpX_DATE) {
-					time_t when = (time_t)n;
+					time_t when = (time_t)(n>=0 ? n : 0);
 					struct tm tm = *localtime(&when);
 					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday);
 				} else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
@@ -898,6 +926,15 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 					time_t when = (time_t)n;
 					struct tm tm = *localtime(&when);
 					s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday);
+				} else if (m_labelType == mpX_TIMEOFDAY) {
+					time_t when = (time_t)(n>=0 ? n : 0);
+					struct tm tm = *localtime(&when);
+					// Get fractional seconds.
+					double seconds =  (double)tm.tm_sec + (n-(int64_t)n);
+	#ifdef MATHPLOT_DO_LOGGING
+					wxLogMessage(wxT("mpX_TIMEOFDAY: %02.0f Hour, %02.0f Minute, %02.3f seconds"), (double)tm.tm_hour, (double)tm.tm_min, seconds);
+	#endif // MATHPLOT_DO_LOGGING
+					s.Printf(fmt, (double)tm.tm_hour, (double)tm.tm_min, seconds);
 				} else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
 					double modulus = fabs(n);
 					double sign = n/modulus;
@@ -1767,7 +1804,8 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 #ifdef MATHPLOT_DO_LOGGING
     {
         int px, py;
-        GetViewStart( &px, &py );
+        //GetViewStart( &px, &py );
+		px = -1; py = -1;
         wxLogMessage(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
     }
 #endif
@@ -2203,7 +2241,7 @@ void mpWindow::GetBoundingBox(double* bbox)
 bool mpWindow::SaveScreenshot(const wxString& filename, int type, wxSize imageSize, bool fit)
 {
 	int sizeX, sizeY;
-	int bk_scrX, bk_scrY;
+	int bk_scrX=-1, bk_scrY=-1;
 	if (imageSize == wxDefaultSize) {
 		sizeX = m_scrX;
 		sizeY = m_scrY;
@@ -3078,3 +3116,4 @@ void mpBitmapLayer::Plot(wxDC & dc, mpWindow & w)
         dc.DrawText( m_name, tx, ty);
     }
 }
+
