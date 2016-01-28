@@ -203,10 +203,10 @@ public:
                |                                           |
                |                                           |
                V ascending Y                               |
-	           |                                           |
-	           |                                           |
-	           |                                           |
-	           +-------------------------------------------+  <-- right-bottom corner of the mpWindow visible area.
+               |                                           |
+               |                                           |
+               |                                           |
+               +-------------------------------------------+  <-- right-bottom corner of the mpWindow visible area.
         </pre>
         Note that Y ascends in downward direction, whereas the usual vertical orientation
         for mathematical plots is vice versa. Thus Y-orientation will be swapped usually,
