@@ -86,6 +86,7 @@ mpLayer::mpLayer() : m_type(mpLAYER_UNDEF)
     SetPen((wxPen&) *wxBLACK_PEN);
     SetFont((wxFont&) *wxNORMAL_FONT);
     m_continuous = FALSE; // Default
+    m_contpoints = FALSE; // Default
     m_showName   = TRUE;  // Default
     m_drawOutsideMargins = TRUE;
     m_visible = true;
@@ -631,6 +632,9 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
                             }
                         }
                         dc.DrawLine(x0, c0, x1, c1);
+                        if (m_contpoints) {
+                            dc.DrawCircle(x1,c1,m_pen.GetWidth()*1.1);
+                        }
                         UpdateViewBoundary(x1, c1);
                     }
                 }
@@ -2792,6 +2796,9 @@ void mpMovableObject::Plot(wxDC & dc, mpWindow & w)
                     cx0=cx;cy0=cy;
                 }
                 dc.DrawLine(cx0, cy0, cx, cy);
+                if (m_contpoints) {
+                    dc.DrawCircle(cx,cy,m_pen.GetWidth()*1.25);
+                }
                 cx0=cx; cy0=cy;
             }
         }

@@ -253,6 +253,16 @@ public:
       */
     bool GetContinuity() const {return m_continuous;}
 
+    /** Set the 'points' property of the layer (true:draws points, false:does not draw points).
+      * @sa GetContinuousPoints
+      */
+    void SetContinuousPoints(bool points) {m_contpoints = points;}
+
+    /** Gets the 'points' property of the layer.
+      * @sa SetContinuousPoints
+      */
+    bool GetContinuousPoints() const {return m_contpoints;}
+
     /** Shows or hides the text label with the name of the layer (default is visible).
       */
     void ShowName(bool show) { m_showName = show; };
@@ -308,13 +318,14 @@ public:
 protected:
     wxFont   m_font;    //!< Layer's font
     wxPen    m_pen;     //!< Layer's pen
-    wxBrush  m_brush;       //!< Layer's brush
+    wxBrush  m_brush;   //!< Layer's brush
     wxString m_name;    //!< Layer's name
     bool     m_continuous; //!< Specify if the layer will be plotted as a continuous line or a set of points.
-    bool     m_showName;  //!< States whether the name of the layer must be shown (default is true).
+    bool     m_contpoints; //!< Draw the layer's points in continuous mode
+    bool     m_showName; //!< States whether the name of the layer must be shown (default is true).
     bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins or over all DC
     mpLayerType m_type; //!< Define layer type, which is assigned by constructor
-    bool     m_visible;    //!< Toggles layer visibility
+    bool     m_visible; //!< Toggles layer visibility
     DECLARE_DYNAMIC_CLASS(mpLayer)
 };
 
@@ -1728,4 +1739,5 @@ protected:
 /*@}*/
 
 #endif // _MP_MATHPLOT_H_
+
 
