@@ -595,45 +595,71 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
                     x0=x1;c0=c1;
                 }
                 bool outUp, outDown;
+                // These coordinates are used when part of the line is
+                //   outside the view space and will be clipped.
+                wxCoord xclip=-1,cclip=-1;
+                bool clip_from=false, clip_to=false;
+                // if the current and next points are in the x-view space
                 if((x1 >= startPx)&&(x0 <= endPx)) {
+                    // both current and next are above the y-view space
                     outDown = (c0 > maxYpx) && (c1 > maxYpx);
+                    // both current and next are below the y-view space
                     outUp = (c0 < minYpx) && (c1 < minYpx);
+                    // if at least one point is visible in the y-view space
                     if (!outUp && !outDown) {
+                        // Do any recalculation due to clipping.
+                        // Don't alter (x0,c0) or (x1,c1). We need these
+                        //   to properly handle clipping.
                         if (c1 != c0) {
+                            // current point is below view
                             if (c0 < minYpx) {
-                                x0 = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                c0 = minYpx;
+                                xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+                                cclip = minYpx;
+                                clip_from = true;
                             }
+                            // current point is above view
                             if (c0 > maxYpx) {
-                                x0 = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+                                xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
                                 //wxLogDebug(wxT("old x0 = %d, new x0 = %d"), x0, newX0);
                                 //x0 = newX0;
-                                c0 = maxYpx;
+                                cclip = maxYpx;
+                                clip_from = true;
                             }
                             if (c1 < minYpx) {
-                                x1 = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                c1 = minYpx;
+                                xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+                                cclip = minYpx;
+                                clip_to = true;
                             }
                             if (c1 > maxYpx) {
-                                x1 = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+                                xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
                                 //wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
                                 //x1 = newX1;
-                                c1 = maxYpx;
+                                cclip = maxYpx;
+                                clip_to = true;
                             }
                         }
                         if (x1 != x0) {
                             if (x0 < startPx) {
-                                c0 = (int)(((float)(startPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
-                                x0 = startPx;
+                                cclip = (int)(((float)(startPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
+                                xclip = startPx;
+                                clip_from = true;
                             }
                             if (x1 > endPx) {
-                                c1 = (int)(((float)(endPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
-                                x1 = endPx;
+                                cclip = (int)(((float)(endPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
+                                xclip = endPx;
+                                clip_to = true;
                             }
                         }
-                        dc.DrawLine(x0, c0, x1, c1);
+                        if (clip_from)
+                            dc.DrawLine(xclip, cclip, x1, c1);
+                        else if (clip_to)
+                            dc.DrawLine(x0, c0, xclip, cclip);
+                        else
+                            dc.DrawLine(x0, c0, x1, c1);
                         if (m_contpoints) {
-                            dc.DrawCircle(x1,c1,m_pen.GetWidth()*1.1);
+                            // Don't draw the point if it's outside the view space.
+                            if (!(clip_from || clip_to))
+                                dc.DrawCircle(x1,c1,m_pen.GetWidth()*1.1);
                         }
                         UpdateViewBoundary(x1, c1);
                     }
