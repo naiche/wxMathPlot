@@ -9,7 +9,7 @@
 #include <wx/wx.h>
 #endif
 
-#include <mathplot.h>
+#include "../../mathplot.h"
 
 #include <wx/image.h>
 #include <wx/listctrl.h>
@@ -235,7 +235,7 @@ MyFrame::MyFrame()
 	}
 	vectorLayer->SetData(vectorx, vectory);
 	vectorLayer->SetContinuity(true);
-	wxPen vectorpen(*wxBLUE, 2, wxSOLID);
+	wxPen vectorpen(*wxBLUE, 2, wxPENSTYLE_SOLID);
 	vectorLayer->SetPen(vectorpen);
 	vectorLayer->SetDrawOutsideMargins(false);
 
@@ -260,18 +260,18 @@ MyFrame::MyFrame()
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
 	m_plot->AddLayer(     vectorLayer );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
-    wxBrush hatch(wxColour(200,200,200), wxSOLID);
+    wxBrush hatch(wxColour(200,200,200), wxBRUSHSTYLE_SOLID);
     //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
     m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,10,10), wxTRANSPARENT_BRUSH)); //&hatch));
     nfo->SetVisible(false);
-    wxBrush hatch2(wxColour(163,208,212), wxSOLID);
+    wxBrush hatch2(wxColour(163,208,212), wxBRUSHSTYLE_SOLID);
     mpInfoLegend* leg;
     m_plot->AddLayer( leg = new mpInfoLegend(wxRect(200,20,40,40), wxTRANSPARENT_BRUSH)); //&hatch2));
     leg->SetVisible(true);
     
     // m_plot->EnableCoordTooltip(true);
     // set a nice pen for the lissajoux
-    wxPen mypen(*wxRED, 5, wxSOLID);
+    wxPen mypen(*wxRED, 5, wxPENSTYLE_SOLID);
     l->SetPen( mypen);
 
     m_log = new wxTextCtrl( this, -1, wxT("This is the log window.\n"), wxPoint(0,0), wxSize(100,100), wxTE_MULTILINE );
@@ -290,7 +290,7 @@ MyFrame::MyFrame()
     ticks = true;
 
     m_plot->EnableDoubleBuffer(true);
-    m_plot->SetMPScrollbars(false);
+    //m_plot->SetMPScrollbars(false);         //./src/gtk/window.cpp(5985): assert ""sb"" failed in SetScrollbar(): this window is not scrollable
     m_plot->Fit();
 
 	//double* bbx = new double[4];

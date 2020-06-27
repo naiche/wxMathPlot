@@ -10,8 +10,9 @@
 // Licence:         wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifndef _MP_MATHPLOT_H_
-#define _MP_MATHPLOT_H_
+//#ifndef _MP_MATHPLOT_H_
+#//define _MP_MATHPLOT_H_
+#pragma once
 
 /** @file mathplot.h */
 /** @mainpage wxMathPlot
@@ -1738,6 +1739,6 @@ protected:
 
 /*@}*/
 
-#endif // _MP_MATHPLOT_H_
+//#endif // _MP_MATHPLOT_H_
 
 

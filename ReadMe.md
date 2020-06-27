@@ -1,6 +1,9 @@
-This fork's purpose is to make available any enhancements/fixes we make when using this code.
+This fork's purpose is to make available any enhancements/fixes made when using this code.
 
 TODO:
-  * alter behavior of displayed points that are not in the view space
-  * fix mpX_TIME display criteria for milliseconds
+  * Changeable grid color
+  * Configurable mouse commands
+  * Display the coordinates of the nearest datapoint
+  * Fix error when zooming out or panning too far (mpX_DATE, mpX_DATETIME or mpX_TIME)
+
 
