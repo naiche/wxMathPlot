@@ -123,7 +123,6 @@ public:
 
 private:
     int axesPos[2];
-    bool ticks;
     mpInfoCoords *nfo; // mpInfoLayer* nfo;
     DECLARE_DYNAMIC_CLASS(MyFrame)
     DECLARE_EVENT_TABLE()
@@ -200,7 +199,8 @@ MyFrame::MyFrame()
     view_menu->AppendSeparator();
     view_menu->Append( ID_ALIGN_X_AXIS, wxT("Switch &X axis align"));
     view_menu->Append( ID_ALIGN_Y_AXIS, wxT("Switch &Y axis align"));
-    view_menu->Append( ID_TOGGLE_GRID, wxT("Toggle grid/ticks"));
+    view_menu->AppendCheckItem( ID_TOGGLE_GRID, wxT("Show grid/ticks"));
+    view_menu->Check(ID_TOGGLE_GRID, true);
     view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
     view_menu->AppendCheckItem( ID_TOGGLE_INFO, wxT("Show overlay info box"));
 	view_menu->AppendCheckItem( ID_BLACK_THEME, wxT("Switch to black background theme"));
@@ -242,8 +242,8 @@ MyFrame::MyFrame()
 
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    mpScaleX* xaxis = new mpScaleX(wxT("X"), mpALIGN_BOTTOM, true, mpX_NORMAL);
-    mpScaleY* yaxis = new mpScaleY(wxT("Y"), mpALIGN_LEFT, true);
+    mpScaleX* xaxis = new mpScaleX(wxT("X"), mpALIGN_BOTTOM, false, mpX_NORMAL);
+    mpScaleY* yaxis = new mpScaleY(wxT("Y"), mpALIGN_LEFT, false);
     xaxis->SetFont(graphFont);
     yaxis->SetFont(graphFont);
     xaxis->SetDrawOutsideMargins(false);
@@ -287,8 +287,7 @@ MyFrame::MyFrame()
     SetSizer( topsizer );
     axesPos[0] = 0;
     axesPos[1] = 0;
-    ticks = true;
-
+    
     m_plot->EnableDoubleBuffer(true);
     //m_plot->SetMPScrollbars(false);         //./src/gtk/window.cpp(5985): assert ""sb"" failed in SetScrollbar(): this window is not scrollable
     m_plot->Fit();
@@ -395,11 +394,10 @@ void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
     m_plot->UpdateAll();
 }
 
-void MyFrame::OnToggleGrid( wxCommandEvent &WXUNUSED(event) )
+void MyFrame::OnToggleGrid( wxCommandEvent& event) //&WXUNUSED(event) )
 {
-    ticks = !ticks;
-    ((mpScaleX*)(m_plot->GetLayer(0)))->SetTicks(ticks);
-    ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(ticks);
+    ((mpScaleX*)(m_plot->GetLayer(0)))->SetTicks(!event.IsChecked());
+    ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(!event.IsChecked());
     m_plot->UpdateAll();
 }
 
@@ -424,11 +422,17 @@ void MyFrame::OnToggleInfoLayer(wxCommandEvent& event)
 
 void MyFrame::OnBlackTheme(wxCommandEvent& event)
 {
-	//wxColor black(0,0,0);
-	//wxColor white(255,255,255);
-	wxColour grey(96, 96, 96);
-	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
-	m_plot->SetColourTheme(*wxBLACK, *wxWHITE, grey);
+    //wxColor black(0,0,0);
+    //wxColor white(255,255,255);
+    wxColour grey(96, 96, 96);
+    if (event.IsChecked()){	
+    	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
+	   m_plot->SetColourTheme(*wxBLACK, *wxWHITE, grey, wxColour(45,45,45));
+    }
+    else
+    {
+        m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
+    }
 	m_plot->UpdateAll();
 }
 

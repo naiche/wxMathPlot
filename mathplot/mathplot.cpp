@@ -890,8 +890,8 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
                     else
                         dc.DrawLine( p, orgy, p, orgy+4);
                 } else { // draw grid dotted lines
-                    m_pen.SetStyle(wxPENSTYLE_DOT);//wxDOT);
-                    dc.SetPen(m_pen);
+                	wxPen gridPen(w.GetGridColour(), 2, wxPENSTYLE_DOT);
+					dc.SetPen(gridPen);
                     if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
                         dc.DrawLine( p, orgy+4, p, minYpx );
                     } else {
@@ -901,7 +901,6 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
                             dc.DrawLine( p, 0/*-w.GetScrY()*/, p, w.GetScrY() );
                         }
                     }
-                    m_pen.SetStyle(wxPENSTYLE_SOLID);
                     dc.SetPen(m_pen);
                 }
                 // Write ticks labels in s string
@@ -1145,8 +1144,8 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
                     dc.DrawLine( orgx-4, p, orgx, p); //( orgx, p, orgx+4, p);
                 }
             } else {
-                m_pen.SetStyle(wxPENSTYLE_DOT);
-                dc.SetPen( m_pen);
+            	wxPen gridPen(w.GetGridColour(), 2, wxPENSTYLE_DOT);
+				dc.SetPen(gridPen);
                 if ((m_flags == mpALIGN_LEFT) && !m_drawOutsideMargins) {
                     dc.DrawLine( orgx-4, p, endPx, p);
                 } else {
@@ -1156,7 +1155,6 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
                     dc.DrawLine( 0/*-w.GetScrX()*/, p, w.GetScrX(), p);
                         }
                 }
-                m_pen.SetStyle(wxPENSTYLE_SOLID);
                 dc.SetPen( m_pen);
             }
             // Print ticks labels
@@ -2385,13 +2383,14 @@ bool mpWindow::IsLayerVisible(const unsigned int position )
     return (lx) ? lx->IsVisible() : false;
 }
 
-void mpWindow::SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour)
+void mpWindow::SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour, const wxColour& gridColour)
 {
      SetBackgroundColour(bgColour);
      SetForegroundColour(drawColour);
      m_bgColour = bgColour;
      m_fgColour = drawColour;
      m_axColour = axesColour;
+	 m_grColour = gridColour;
     // cycle between layers to set colours and properties to them
     wxLayerList::iterator li;
     for (li = m_layers.begin(); li != m_layers.end(); li++) {
@@ -2714,7 +2713,7 @@ bool mpPrintout::OnPrintPage(int page)
         // Restore device origin
         // trgDc->SetDeviceOrigin(0, 0);
         // Restore colours
-        plotWindow->SetColourTheme(oldBgColour, oldFgColour, oldAxColour);
+        plotWindow->SetColourTheme(oldBgColour, oldFgColour, oldAxColour, oldAxColour);
         // Restore drawing
         plotWindow->Fit(plotWindow->GetDesiredXmin(), plotWindow->GetDesiredXmax(), plotWindow->GetDesiredYmin(), plotWindow->GetDesiredYmax(), NULL, NULL);
         plotWindow->UpdateAll();

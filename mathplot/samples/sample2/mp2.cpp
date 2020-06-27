@@ -9,7 +9,7 @@
 #include <wx/wx.h>
 #endif
 
-#include <mathplot.h>
+#include "../../mathplot.h"
 
 #include <wx/image.h>
 #include <wx/listctrl.h>
@@ -173,8 +173,8 @@ MyFrame::MyFrame()
     m_plot->AddLayer( e = new Elias() );
     m_plot->AddLayer( f = new Fibonacci() );
   
-    e->SetPen( wxPen(*wxRED, 1, wxSOLID));
-    f->SetPen( wxPen(*wxGREEN, 1, wxSOLID));
+    e->SetPen( wxPen(*wxRED, 1, wxPENSTYLE_SOLID));
+    f->SetPen( wxPen(*wxGREEN, 1, wxPENSTYLE_SOLID));
 
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
     topsizer->Add( m_plot, 1, wxEXPAND );

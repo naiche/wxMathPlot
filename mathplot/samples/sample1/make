@@ -1,0 +1,2 @@
+g++ ../../mathplot.cpp mp1.cpp `wx-config --cxxflags --libs std` -o sample1 -std=c++11
+./sample1

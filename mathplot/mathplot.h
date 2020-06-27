@@ -1164,11 +1164,13 @@ public:
         @param bgColour Background colour
         @param drawColour The colour used to draw all elements in foreground, axes excluded
         @param axesColour The colour used to draw axes (but not their labels) */
-    void SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour);
+    void SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour, const wxColour& gridColour);
     
     /** Get axes draw colour
         @return reference to axis colour used in theme */
     const wxColour& GetAxesColour() { return m_axColour; };
+
+    const wxColour& GetGridColour() {return m_grColour;};
 
 protected:
     void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
@@ -1214,6 +1216,7 @@ protected:
     wxColour m_bgColour;    //!< Background Colour
     wxColour m_fgColour;    //!< Foreground Colour
     wxColour m_axColour;    //!< Axes Colour
+    wxColour m_grColour = wxColour(200, 200, 200);    //!< Grids Colour   
 
     double m_minX;      //!< Global layer bounding box, left border incl.
     double m_maxX;      //!< Global layer bounding box, right border incl.
