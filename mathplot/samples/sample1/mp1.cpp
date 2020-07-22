@@ -290,6 +290,16 @@ MyFrame::MyFrame()
     
     m_plot->EnableDoubleBuffer(true);
     //m_plot->SetMPScrollbars(false);         //./src/gtk/window.cpp(5985): assert ""sb"" failed in SetScrollbar(): this window is not scrollable
+    
+	m_plot->BindMouseButton(mpDOUBLE_CLICK, mpFIT);
+	m_plot->BindMouseButton(mpMIDDLE_DOWN, mpPAN);
+	m_plot->BindMouseButton(mpRIGHT_DOWN, mpCONTEXT_MENU);
+	m_plot->BindMouseButton(mpLEFT_DOWN, mpZOOM_RECTANGLE);
+	
+	m_plot->BindMouseWheel(mpWHEEL, mpZOOM);
+	m_plot->BindMouseWheel(mpSHIFT_WHEEL, mpHORIZONTAL_PAN);
+	m_plot->BindMouseWheel(mpCTRL_WHEEL, mpVERTICAL_PAN);
+
     m_plot->Fit();
 
 	//double* bbx = new double[4];
