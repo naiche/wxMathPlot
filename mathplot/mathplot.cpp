@@ -75,7 +75,7 @@
 #define mpSCROLL_NUM_PIXELS_PER_LINE  10
 
 // See doxygen comments.
-double mpWindow::zoomIncrementalFactor = 1.5;
+double mpWindow::zoomIncrementalFactor = 1.1;
 //#pragma endregion
 
 //#pragma region mpLayers
@@ -1581,7 +1581,8 @@ void mpWindow::ZoomRectRelease(int x, int y) {
 	}
 	else {
 		if (release != press) {
-			ZoomRect(press, release);
+      if(abs(m_mouseLClick_X - x)>10)   //Avoids accidentally zooming when double clicking
+			   ZoomRect(press, release);
 		}
 	}
 }
@@ -2600,6 +2601,7 @@ void mpWindow::BindMouseWheel(mpMouseWheel mouseWheel, mpMouseWheelCommand comma
 
 //#pragma endregion
 
+//#pragma region mpFXYVector
 //-----------------------------------------------------------------------------
 // mpFXYVector implementation - by Jose Luis Blanco (AGO-2007)
 //-----------------------------------------------------------------------------
@@ -2685,7 +2687,9 @@ void mpFXYVector::SetData( const std::vector<double> &xs,const std::vector<doubl
         m_maxY  = 1;
     }
 }
+//#pragma endregion
 
+//#pragma region mpText
 //-----------------------------------------------------------------------------
 // mpText - provided by Val Greene
 //-----------------------------------------------------------------------------
@@ -2739,7 +2743,9 @@ void mpText::Plot(wxDC & dc, mpWindow & w)
         dc.DrawText( GetName(), px, py);
     }
 }
+//#pragma endregion
 
+//#pragma region mpMarker
 //-----------------------------------------------------------------------------
 // mpMarker - provided by R1kk3r
 //-----------------------------------------------------------------------------
@@ -2790,7 +2796,9 @@ void mpMarker::Plot(wxDC & dc, mpWindow & w)
 
     dc.DrawText( ss, cx, cy);
 }
+//#pragma endregion
 
+//#pragma region mpPrintout
 //-----------------------------------------------------------------------------
 // mpPrintout - provided by Davide Rondini
 //-----------------------------------------------------------------------------
@@ -2863,8 +2871,9 @@ bool mpPrintout::HasPage(int page)
 {
     return (page == 1);
 }
+//#pragma endregion
 
-
+//#pragma region mpMovableObject
 //-----------------------------------------------------------------------------
 // mpMovableObject - provided by Jose Luis Blanco
 //-----------------------------------------------------------------------------
@@ -3013,7 +3022,9 @@ void mpMovableObject::Plot(wxDC & dc, mpWindow & w)
         }
     }
 }
+//#pragma endregion
 
+//#pragma region mpCovarianceEllipse
 //-----------------------------------------------------------------------------
 // mpCovarianceEllipse - provided by Jose Luis Blanco
 //-----------------------------------------------------------------------------
@@ -3112,7 +3123,9 @@ void mpCovarianceEllipse::RecalculateShape()
 
     ShapeUpdated();
 }
+//#pragma endregion
 
+//#pragma region mpPolygon
 //-----------------------------------------------------------------------------
 // mpPolygon - provided by Jose Luis Blanco
 //-----------------------------------------------------------------------------
@@ -3139,7 +3152,9 @@ void mpPolygon::setPoints(
         ShapeUpdated();
     }
 }
+//#pragma endregion
 
+//#pragma region mpBitmapLayer
 //-----------------------------------------------------------------------------
 // mpBitmapLayer - provided by Jose Luis Blanco
 //-----------------------------------------------------------------------------
@@ -3165,7 +3180,6 @@ void mpBitmapLayer::SetBitmap( const wxImage &inBmp, double x, double y, double 
         m_validImg = true;
     }
 }
-
 
 void mpBitmapLayer::Plot(wxDC & dc, mpWindow & w)
 {
@@ -3301,3 +3315,4 @@ void mpBitmapLayer::Plot(wxDC & dc, mpWindow & w)
         dc.DrawText( m_name, tx, ty);
     }
 }
+//#pragma endregion
