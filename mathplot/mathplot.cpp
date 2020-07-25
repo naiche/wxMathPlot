@@ -143,10 +143,7 @@ mpInfoLayer::~mpInfoLayer()
 #pragma warning( push )
 #pragma warning( disable : 4100 )
 #endif
-void mpInfoLayer::UpdateInfo(mpWindow& w, wxEvent& event)
-{
 
-}
 #ifdef _WINDOWS
 #pragma warning( pop )
 #endif
@@ -230,25 +227,19 @@ mpInfoCoords::~mpInfoCoords()
 
 }
 
-void mpInfoCoords::UpdateInfo(mpWindow& w, wxEvent& event)
-{
-    if (event.GetEventType() == wxEVT_MOTION) {
-        int mouseX = ((wxMouseEvent&)event).GetX();
-        int mouseY = ((wxMouseEvent&)event).GetY();
-/* It seems that Windows port of wxWidgets don't support multi-line test to be drawn in a wxDC.
-   wxGTK instead works perfectly with it.
-   Info on wxForum: http://wxforum.shadonet.com/viewtopic.php?t=3451&highlight=drawtext+eol */
-#ifdef _WINDOWS
-        m_content.Printf(wxT("x = %f y = %f"), w.p2x(mouseX), w.p2y(mouseY));
-#else
-        m_content.Printf(wxT("x = %f\ny = %f"), w.p2x(mouseX), w.p2y(mouseY));
-#endif
-    }
-}
-
 void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_visible) {
+    if (m_visible)
+    {
+    /* It seems that Windows port of wxWidgets don't support multi-line test to be drawn in a wxDC.
+     wxGTK instead works perfectly with it.
+     Info on wxForum: http://wxforum.shadonet.com/viewtopic.php?t=3451&highlight=drawtext+eol */
+#ifdef _WINDOWS
+        m_content.Printf(wxT("x = %f y = %f"), w.p2x(w.GetMouseX()), w.p2y(w.GetMouseY()));
+#else
+        m_content.Printf(wxT("x = %f\ny = %f"), w.p2x(w.GetMouseX()), w.p2y(w.GetMouseY()));
+#endif
+
         // Adjust relative position inside the window
         int scrx = w.GetScrX();
         int scry = w.GetScrY();
@@ -276,7 +267,8 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
         if (m_dim.width < textX + 10) m_dim.width = textX + 10;
         if (m_dim.height < textY + 10) m_dim.height = textY + 10;
         dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-        dc.DrawText(m_content, m_dim.x + 5, m_dim.y + 5);
+        dc.DrawText(m_content, m_dim.x + 8, m_dim.y + 5);
+        //std::cout << '\n' << m_content;printf(" %d %d ", textX, textY);
     }
 }
 
@@ -299,10 +291,7 @@ mpInfoLegend::~mpInfoLegend()
 #pragma warning( push )
 #pragma warning( disable : 4100 )
 #endif
-void mpInfoLegend::UpdateInfo(mpWindow& w, wxEvent& event)
-{
 
-}
 #ifdef _WINDOWS
 #pragma warning( pop )
 #endif

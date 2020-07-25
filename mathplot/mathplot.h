@@ -387,12 +387,6 @@ public:
     /** Destructor */
     virtual ~mpInfoLayer();
 
-    /** Updates the content of the info box. Should be overidden by derived classes.
-        Update may behave in different ways according to the type of event which called it.
-        @param w parent mpWindow from which to obtain informations
-        @param event The event which called the update. */
-    virtual void UpdateInfo(mpWindow& w, wxEvent& event);
-
     /** mpInfoLayer has not bounding box. @sa mpLayer::HasBBox
         @return always \a FALSE */
     virtual bool HasBBox() { return false; };
@@ -457,11 +451,6 @@ public:
     /** Default destructor */
     ~mpInfoCoords();
 
-    /** Updates the content of the info box. It is used to update coordinates.
-        @param w parent mpWindow from which to obtain information
-        @param event The event which called the update. */
-    virtual void UpdateInfo(mpWindow& w, wxEvent& event);
-
     /** Plot method.
         @param dc the device content where to plot
         @param w the window to plot
@@ -489,11 +478,6 @@ public:
 
     /**  Default destructor */
     ~mpInfoLegend();
-
-    /** Updates the content of the info box. Unused in this class.
-        @param w parent mpWindow from which to obtain information
-        @param event The event which called the update. */
-    virtual void UpdateInfo(mpWindow& w, wxEvent& event);
 
     /** Plot method.
         @param dc the device content where to plot
