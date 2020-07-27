@@ -458,7 +458,7 @@ public:
     virtual void   Plot(wxDC & dc, mpWindow & w);
 
 protected:
-    wxString m_content; //!< string holding the coordinates to be drawn.
+    //wxString m_content; //!< string holding the coordinates to be drawn.
 };
 
 /** @class mpInfoLegend

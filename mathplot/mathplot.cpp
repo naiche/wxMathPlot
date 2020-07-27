@@ -231,15 +231,6 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 {
     if (m_visible)
     {
-    /* It seems that Windows port of wxWidgets don't support multi-line test to be drawn in a wxDC.
-     wxGTK instead works perfectly with it.
-     Info on wxForum: http://wxforum.shadonet.com/viewtopic.php?t=3451&highlight=drawtext+eol */
-#ifdef _WINDOWS
-        m_content.Printf(wxT("x = %f y = %f"), w.p2x(w.GetMouseX()), w.p2y(w.GetMouseY()));
-#else
-        m_content.Printf(wxT("x = %f\ny = %f"), w.p2x(w.GetMouseX()), w.p2y(w.GetMouseY()));
-#endif
-
         // Adjust relative position inside the window
         int scrx = w.GetScrX();
         int scry = w.GetScrY();
@@ -262,13 +253,32 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 //     wxBrush semiWhite(image1);
         dc.SetBrush(m_brush);
         dc.SetFont(m_font);
-        int textX, textY;
-        dc.GetTextExtent(m_content, &textX, &textY);
-        if (m_dim.width < textX + 10) m_dim.width = textX + 10;
-        if (m_dim.height < textY + 10) m_dim.height = textY + 10;
+
+		    /*if(m_labelType == mpX_DATETIME) {
+		      fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
+			  }
+		    else if (m_labelType == mpX_DATE) {
+			     fmt = (wxT("%04.0f-%02.0f-%02.0f"));
+		    }
+		    else if (m_labelType == mpX_TIME) {
+			     fmt = (wxT("%02.0f:%02.3f"));
+		    }
+		    else if (m_labelType == mpX_TIMEOFDAY) {
+				      fmt = (wxT("%02.0f:%02.0f:%02.3f"));*/
+
+        wxString line1 = wxT("x = ") + std::to_string(w.p2x(w.GetMouseX()));
+    		wxString line2 = wxT("y = ") + std::to_string(w.p2y(w.GetMouseY()));
+    		int textX1, textY1, textX2, textY2, textX, textY;
+        dc.GetTextExtent(line1, &textX1, &textY1);
+    		dc.GetTextExtent(line2, &textX2, &textY2);
+    		if (textX1 > textX2) textX = textX1; else textX = textX2;
+    		textY = textY1 + textY2;
+
+        if (m_dim.width < textX + 18) m_dim.width = textX + 19;
+        if (m_dim.height < textY + 18) m_dim.height = textY + 18;
         dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-        dc.DrawText(m_content, m_dim.x + 8, m_dim.y + 5);
-        //std::cout << '\n' << m_content;printf(" %d %d ", textX, textY);
+        dc.DrawText(line1, m_dim.x + 10, m_dim.y + 7);
+        dc.DrawText(line2, m_dim.x + 10, m_dim.y + textY1 + 10);
     }
 }
 
