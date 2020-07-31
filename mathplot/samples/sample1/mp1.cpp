@@ -180,7 +180,7 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
 END_EVENT_TABLE()
 
 MyFrame::MyFrame()
-       : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample"), wxDefaultPosition, wxSize(500, 500))
+       : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample"), wxDefaultPosition, wxSize(900, 800))
 {
     wxMenu *file_menu = new wxMenu();
     wxMenu *view_menu = new wxMenu();
@@ -262,11 +262,11 @@ MyFrame::MyFrame()
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
     wxBrush hatch(wxColour(200,200,200), wxBRUSHSTYLE_SOLID);
     //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
-    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(80,20,100,10), &hatch));    //wxRED_BRUSH));
+    m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(130,20,100,10), &hatch));    //wxRED_BRUSH));
     nfo->SetVisible(true);
     wxBrush hatch2(wxColour(163,208,212), wxBRUSHSTYLE_SOLID);
     mpInfoLegend* leg;
-    m_plot->AddLayer( leg = new mpInfoLegend(wxRect(200,20,40,40), wxTRANSPARENT_BRUSH)); //&hatch2));
+    m_plot->AddLayer( leg = new mpInfoLegend(wxRect(300,20,40,40), wxTRANSPARENT_BRUSH)); //&hatch2));
     leg->SetVisible(true);
     
     // m_plot->EnableCoordTooltip(true);
@@ -293,7 +293,8 @@ MyFrame::MyFrame()
     
 	m_plot->BindMouseButton(mpDOUBLE_CLICK, mpFIT);
 	m_plot->BindMouseButton(mpMIDDLE_DOWN, mpPAN);
-	m_plot->BindMouseButton(mpRIGHT_DOWN, mpCONTEXT_MENU);
+	//m_plot->BindMouseButton(mpRIGHT_DOWN, mpCONTEXT_MENU);
+    m_plot->BindMouseButton(mpRIGHT_DOWN, mpTRACK);
 	m_plot->BindMouseButton(mpLEFT_DOWN, mpZOOM_RECTANGLE);
 	
 	m_plot->BindMouseWheel(mpWHEEL, mpZOOM);

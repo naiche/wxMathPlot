@@ -229,30 +229,30 @@ mpInfoCoords::~mpInfoCoords()
 
 void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_visible)
-    {
-        // Adjust relative position inside the window
-        int scrx = w.GetScrX();
-        int scry = w.GetScrY();
-        if ((m_winX != scrx) || (m_winY != scry)) {
+  if (m_visible)
+  {
+    // Adjust relative position inside the window
+    int scrx = w.GetScrX();
+    int scry = w.GetScrY();
+    if ((m_winX != scrx) || (m_winY != scry)) {
 #ifdef MATHPLOT_DO_LOGGING
-            // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
+      // wxLogMessage(_("mpInfoLayer::Plot() screen size has changed from %d x %d to %d x %d"), m_winX, m_winY, scrx, scry);
 #endif
-            if (m_winX != 1) m_dim.x = (int) floor((double)(m_dim.x*scrx/m_winX));
-            if (m_winY != 1) {
-                m_dim.y = (int) floor((double)(m_dim.y*scry/m_winY));
-                UpdateReference();
-            }
-            // Finally update window size
-            m_winX = scrx;
-            m_winY = scry;
-        }
-        dc.SetPen(m_pen);
+      if (m_winX != 1) m_dim.x = (int) floor((double)(m_dim.x*scrx/m_winX));
+      if (m_winY != 1) {
+          m_dim.y = (int) floor((double)(m_dim.y*scry/m_winY));
+          UpdateReference();
+      }
+      // Finally update window size
+      m_winX = scrx;
+      m_winY = scry;
+    }
+    dc.SetPen(m_pen);
 //     wxImage image0(wxT("pixel.png"), wxBITMAP_TYPE_PNG);
 //     wxBitmap image1(image0);
 //     wxBrush semiWhite(image1);
-        dc.SetBrush(m_brush);
-        dc.SetFont(m_font);
+    dc.SetBrush(m_brush);
+    dc.SetFont(m_font);
 
 		    /*if(m_labelType == mpX_DATETIME) {
 		      fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
@@ -266,20 +266,20 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 		    else if (m_labelType == mpX_TIMEOFDAY) {
 				      fmt = (wxT("%02.0f:%02.0f:%02.3f"));*/
 
-        wxString line1 = wxT("x = ") + std::to_string(w.p2x(w.GetMouseX()));
-    		wxString line2 = wxT("y = ") + std::to_string(w.p2y(w.GetMouseY()));
-    		int textX1, textY1, textX2, textY2, textX, textY;
-        dc.GetTextExtent(line1, &textX1, &textY1);
-    		dc.GetTextExtent(line2, &textX2, &textY2);
-    		if (textX1 > textX2) textX = textX1; else textX = textX2;
-    		textY = textY1 + textY2;
+    wxString line1 = wxT("x = ") + std::to_string(w.p2x(w.GetMouseX()));
+    wxString line2 = wxT("y = ") + std::to_string(w.p2y(w.GetMouseY()));
+    int textX1, textY1, textX2, textY2, textX, textY;
+    dc.GetTextExtent(line1, &textX1, &textY1);
+    dc.GetTextExtent(line2, &textX2, &textY2);
+    if (textX1 > textX2) textX = textX1; else textX = textX2;
+    textY = textY1 + textY2;
 
-        if (m_dim.width < textX + 18) m_dim.width = textX + 19;
-        if (m_dim.height < textY + 18) m_dim.height = textY + 18;
-        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-        dc.DrawText(line1, m_dim.x + 10, m_dim.y + 7);
-        dc.DrawText(line2, m_dim.x + 10, m_dim.y + textY1 + 10);
-    }
+    if (m_dim.width < textX + 18) m_dim.width = textX + 19;
+    if (m_dim.height < textY + 18) m_dim.height = textY + 18;
+    dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+    dc.DrawText(line1, m_dim.x + 10, m_dim.y + 7);
+    dc.DrawText(line2, m_dim.x + 10, m_dim.y + textY1 + 10);
+  }
 }
 
 mpInfoLegend::mpInfoLegend() : mpInfoLayer()
@@ -1369,20 +1369,18 @@ mpWindow::~mpWindow()
 		}
 	}
 
-	// If the user "drags" with the right buttom pressed, do "pan"
+	// If the user "drags" with the pan buttom pressed, do "pan"
 	// JLB
 	void mpWindow::OnMouseMove(wxMouseEvent &event)
 	{
 		m_cursorX = event.GetX();
 		m_cursorY = event.GetY();
 
-		if (!m_enableMouseNavigation)
-		{
-			event.Skip();
-			return;
-		}
+    if (!m_enableMouseNavigation) {
+      event.Skip();
+      return;
+    }
 
-		m_trackDown = false;
 		bool panDown = false, rectZoomDown = false;
 
 		if (event.m_rightDown) {
@@ -1390,24 +1388,18 @@ mpWindow::~mpWindow()
 				rectZoomDown = true;
 			else if(rightDownCommand == mpPAN)
 				panDown = true;
-			else if (rightDownCommand == mpTRACK)
-				m_trackDown = true;
 		}
 		else if (event.MiddleIsDown()) {
 			if (middleDownCommand == mpZOOM_RECTANGLE)
 				rectZoomDown = true;
 			else if (middleDownCommand == mpPAN)
 				panDown = true;
-			else if (middleDownCommand == mpTRACK)
-				m_trackDown = true;
 		}
 		else if (event.LeftIsDown()) {
 			if (leftDownCommand == mpZOOM_RECTANGLE)
 				rectZoomDown = true;
 			else if (leftDownCommand == mpPAN)
 				panDown = true;
-			else if (leftDownCommand == mpTRACK)
-				m_trackDown = true;
 		}
 
 		if (panDown)	//Pan
@@ -1427,12 +1419,12 @@ mpWindow::~mpWindow()
 
 			m_posX += Ax_units;
 			m_posY += Ay_units;
-		m_desiredXmax 	+= Ax_units;
-		m_desiredXmin 	+= Ax_units;
-		m_desiredYmax 	+= Ay_units;
-		m_desiredYmin 	+= Ay_units;
+      m_desiredXmax 	+= Ax_units;
+      m_desiredXmin 	+= Ax_units;
+      m_desiredYmax 	+= Ay_units;
+      m_desiredYmin 	+= Ay_units;
 
-			UpdateAll();
+      UpdateAll();
 
 	#ifdef MATHPLOT_DO_LOGGING
 			wxLogMessage(_("[mpWindow::OnMouseMove] Ax:%i Ay:%i m_posX:%f m_posY:%f"),Ax,Ay,m_posX,m_posY);
@@ -1452,10 +1444,11 @@ mpWindow::~mpWindow()
 				}
 			}
 			else if (m_trackDown) {		//Track
-				UpdateAll();
+        //UpdateAll();
 			}
 		}
-		event.Skip();
+
+    event.Skip();
 	}
 
 	void mpWindow::OnMouseLeftDown (wxMouseEvent &event)
@@ -1524,22 +1517,105 @@ mpWindow::~mpWindow()
   		ZoomRectEnter(GetMouseX(),GetMouseY());
   		break;
   	case mpTRACK:
-  		//DrawTrackBox();
+      m_trackDown = true;
+  		DrawTrackBox();
   		break;
   	}
   }
 
   void mpWindow::PanPlot()
-{
-	m_trackDown = true;//event.m_rightDown;
+  {
+    m_trackDown = true;//event.m_rightDown;
 
-	m_mouseMovedAfterRightClick = FALSE;
-	m_mouseRClick_X = GetMouseX();//event.GetX();
-	m_mouseRClick_Y = GetMouseY();//event.GetY();
+    m_mouseMovedAfterRightClick = FALSE;
+    m_mouseRClick_X = GetMouseX();//event.GetX();
+    m_mouseRClick_Y = GetMouseY();//event.GetY();
+  }
+
+  void mpWindow::DrawTrackBox() {
+    std::pair<wxString, std::pair<double, double>> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
+
+    //__time64_t xTime = (time_t)pointInfo.second.first;
+    //struct tm xTm = *localtime(&xTime);
+    //long long int ticks = pointInfo.second.first;
+    // wxLongLong ticks = pointInfo.second.first;
+    // wxDateTime xTime(ticks);
+
+    wxString label, valueX, valueY;
+    label.Printf(wxT("%s"), pointInfo.first);
+    //date.Printf(wxT("Date:  %02d/%02d/%d"), xTm.tm_mday, xTm.tm_mon + 1, xTm.tm_year + 1900);
+    //valueX.Printf(wxT("x: %02d/%02d/%d"), xTime.GetDay(), xTime.GetMonth() + 1, xTime.GetYear());
+    valueX.Printf(wxT("x: %.4f"), pointInfo.second.first);
+    valueY.Printf(wxT("y: %.4f"), pointInfo.second.second);
+
+    wxClientDC dc(this);
+    wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
+    dc.SetPen(pen);
+    dc.SetBrush(m_bgColour);//SetBrush(*wxTRANSPARENT_BRUSH);
+
+
+    int textX, textY;
+    dc.GetTextExtent(valueX, &textX, &textY);
+    if (dc.GetTextExtent(label).GetX() > textX)
+      textX = dc.GetTextExtent(label).GetX();
+    if (dc.GetTextExtent(valueY).GetX() > textX)
+        textX = dc.GetTextExtent(valueY).GetX();
+
+    wxRect m_dim;
+    m_dim.width = textX + 37;
+    m_dim.height = 3 * textY + 28;
+
+    if(GetMouseX() < GetScreenRect().width-m_dim.width)
+    	m_dim.x = GetMouseX();
+    else
+    	m_dim.x = GetMouseX() - m_dim.width;
+
+    if (GetMouseY() < GetScreenRect().height - m_dim.height)
+    	m_dim.y = GetMouseY();
+    else
+    	m_dim.y = GetMouseY() - m_dim.height;
+
+    int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
+    int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
+    int valueMargin = (m_dim.width - dc.GetTextExtent(valueY).GetX()) / 2.1;
+
+    dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+    dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
+    dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
+    dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 54);
+  }
+
+std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double x, double y) {
+	wxString LayerName;
+	double pointX, pointY;
+	double previousDelta = 999999999999;
+
+	for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+	{
+		if ((*li)->IsVector()) {
+			mpFXYVector *vect = (mpFXYVector*)(*li);
+
+			int distX, closestI;
+			distX = x - vect->m_xs[0];
+			for (int i = 1; i < vect->m_ys.size(); i++) {
+				if (abs(x - vect->m_xs[i]) < distX) {
+					distX = x - vect->m_xs[i];
+					closestI = i;
+				}
+			}
+
+			if (closestI > vect->m_ys.size()) return std::make_pair(LayerName, std::make_pair(vect->m_xs[0], vect->m_ys[0]));;
+			double delta = sqrt(pow(x - vect->m_xs[closestI], 2) + pow(y - vect->m_ys[closestI], 2));
+			if (delta < previousDelta) {
+				LayerName = (*li)->GetName();
+				previousDelta = delta;
+				pointX = vect->m_xs[closestI];
+				pointY = vect->m_ys[closestI];
+			}
+		}
+	}
+	return std::make_pair(LayerName, std::make_pair(pointX, pointY));
 }
-
-//void mpWindow::DrawTrackBox() {
-//}
 
 void mpWindow::ShowPopupMenu(int x, int y)//(wxMouseEvent &event)
 {
@@ -2010,9 +2086,9 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 //         int centerX = (m_scrX - m_marginLeft - m_marginRight)/2; // + m_marginLeft; // c.x = m_scrX/2;
 //     int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
         /*SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));*/ //, x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
-}
-
-}
+    }
+    if (m_trackDown) DrawTrackBox();
+  }
 
 // void mpWindow::OnScroll2(wxScrollWinEvent &event)
 // {

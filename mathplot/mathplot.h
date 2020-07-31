@@ -199,6 +199,7 @@ public:
         @return whether the layer is an info boxes
         @sa mpInfoLayer::IsInfo */
     virtual bool IsInfo() { return false; };
+    virtual bool IsVector() { return false; }
 
     /** Get inclusive left border of bounding box.
         @return Value
@@ -1246,6 +1247,8 @@ protected:
 
     void ShowPopupMenu(int x, int y);// (wxMouseEvent     &event); //!< Mouse handler, will show context menu
     void PanPlot();
+    void DrawTrackBox();
+    std::pair<wxString, std::pair<double, double>> GetClosestPoint(double x, double y);
     void ZoomRectEnter(int x, int y);
     void ZoomRectRelease(int x, int y);
     //void DrawTrackBox();
@@ -1353,10 +1356,10 @@ public:
       */
     void Clear();
 
-protected:
-    /** The internal copy of the set of data to draw.
+    /** The set of data to draw.
       */
-    std::vector<double>  m_xs,m_ys;
+        std::vector<double>  m_xs,m_ys;
+protected:
 
     /** The internal counter for the "GetNextXY" interface
       */
@@ -1393,6 +1396,8 @@ protected:
     /** Returns the actual maximum Y data (loaded in SetData).
       */
     double GetMaxY() { return m_maxY; }
+
+    bool IsVector() { return TRUE; }
 
     int     m_flags; //!< Holds label alignment
 
