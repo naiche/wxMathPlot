@@ -1289,7 +1289,9 @@ protected:
     int    m_clickedY;  //!< Last mouse click Y position, for centering and zooming the view
     int	   m_cursorX;
     int	   m_cursorY;
-    bool   m_trackDown;
+    bool   m_trackDown=false;
+    bool   m_zoomRectDown=false;
+    bool   m_panDown=false;
 
     /** These are updated in Fit() only, and may be different from the real borders (layer coordinates) only if lock aspect ratio is true.
       */

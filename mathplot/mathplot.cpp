@@ -1381,28 +1381,7 @@ mpWindow::~mpWindow()
       return;
     }
 
-		bool panDown = false, rectZoomDown = false;
-
-		if (event.m_rightDown) {
-			if (rightDownCommand == mpZOOM_RECTANGLE)
-				rectZoomDown = true;
-			else if(rightDownCommand == mpPAN)
-				panDown = true;
-		}
-		else if (event.MiddleIsDown()) {
-			if (middleDownCommand == mpZOOM_RECTANGLE)
-				rectZoomDown = true;
-			else if (middleDownCommand == mpPAN)
-				panDown = true;
-		}
-		else if (event.LeftIsDown()) {
-			if (leftDownCommand == mpZOOM_RECTANGLE)
-				rectZoomDown = true;
-			else if (leftDownCommand == mpPAN)
-				panDown = true;
-		}
-
-		if (panDown)	//Pan
+		if (m_panDown)	//Pan
 		{
 			m_mouseMovedAfterRightClick = TRUE;  // Hides the popup menu after releasing the button!
 
@@ -1431,20 +1410,12 @@ mpWindow::~mpWindow()
 	#endif
 		} else {
 			UpdateAll();
-			if (rectZoomDown){		//RectangleZoom
-				if (m_movingInfoLayer == NULL) {
-					wxClientDC dc(this);
-					wxPen pen(*wxBLACK, 1, wxPENSTYLE_DOT);		//wxDOT);
-					dc.SetPen(pen);
-					dc.SetBrush(*wxTRANSPARENT_BRUSH);
-					dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, event.GetX() - m_mouseLClick_X, event.GetY() - m_mouseLClick_Y);
-				} else {
+			if (event.LeftIsDown()) {
+				if (m_movingInfoLayer != NULL) {
+          m_zoomRectDown = false;
 					wxPoint moveVector(event.GetX() - m_mouseLClick_X, event.GetY() - m_mouseLClick_Y);
 					m_movingInfoLayer->Move(moveVector);
 				}
-			}
-			else if (m_trackDown) {		//Track
-        //UpdateAll();
 			}
 		}
 
@@ -1462,9 +1433,12 @@ mpWindow::~mpWindow()
 			m_trackDown = false;
 			UpdateAll();
 		}
-		if (leftDownCommand == mpZOOM_RECTANGLE) {
+		else if (leftDownCommand == mpZOOM_RECTANGLE) {
 			ZoomRectRelease(event.GetX(), event.GetY());
 		}
+    else if (leftDownCommand == mpPAN) {
+      m_panDown = false;
+    }
 
 		event.Skip();
 	}
@@ -1479,9 +1453,12 @@ mpWindow::~mpWindow()
 			m_trackDown = false;
 			UpdateAll();
 		}
-		if (middleDownCommand == mpZOOM_RECTANGLE) {
+		else if (middleDownCommand == mpZOOM_RECTANGLE) {
 			ZoomRectRelease(event.GetX(), event.GetY());
 		}
+    else if (middleDownCommand == mpPAN) {
+      m_panDown = false;
+    }
 	}
 	void mpWindow::OnMouseMiddleDown(wxMouseEvent &event) {
 		ExecuteMouseCommand(middleDownCommand);
@@ -1496,8 +1473,11 @@ mpWindow::~mpWindow()
 			m_trackDown = false;
 			UpdateAll();
 		}
-		if (rightDownCommand == mpZOOM_RECTANGLE) {
+		else if (rightDownCommand == mpZOOM_RECTANGLE) {
 			ZoomRectRelease(event.GetX(), event.GetY());
+		}
+    else if (rightDownCommand == mpPAN) {
+			m_panDown = false;
 		}
 		ExecuteMouseCommand(rightUpCommand);
 	}
@@ -1525,8 +1505,7 @@ mpWindow::~mpWindow()
 
   void mpWindow::PanPlot()
   {
-    m_trackDown = true;//event.m_rightDown;
-
+    m_panDown = true;
     m_mouseMovedAfterRightClick = FALSE;
     m_mouseRClick_X = GetMouseX();//event.GetX();
     m_mouseRClick_Y = GetMouseY();//event.GetY();
@@ -1634,7 +1613,8 @@ void mpWindow::ShowPopupMenu(int x, int y)//(wxMouseEvent &event)
 }
 
 void mpWindow::ZoomRectEnter(int x, int y) {
-	m_mouseLClick_X = x;
+  m_zoomRectDown = true;
+  m_mouseLClick_X = x;
 	m_mouseLClick_Y = y;
 #ifdef MATHPLOT_DO_LOGGING
 	wxLogMessage(_("mpWindow::OnMouseLeftDown() X = %d , Y = %d"), event.GetX(), event.GetY());/*m_mouseLClick_X, m_mouseLClick_Y);*/
@@ -1648,6 +1628,7 @@ void mpWindow::ZoomRectEnter(int x, int y) {
 	}
 }
 void mpWindow::ZoomRectRelease(int x, int y) {
+  m_zoomRectDown = false;
 	wxPoint release(x, y);
 	wxPoint press(m_mouseLClick_X, m_mouseLClick_Y);
 	if (m_movingInfoLayer != NULL) {
@@ -2086,6 +2067,12 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 //         int centerX = (m_scrX - m_marginLeft - m_marginRight)/2; // + m_marginLeft; // c.x = m_scrX/2;
 //     int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
         /*SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));*/ //, x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
+    }
+    if (m_zoomRectDown){
+      wxPen pen(*wxBLACK, 1, wxPENSTYLE_DOT);		//wxDOT);
+      dc.SetPen(pen);
+      dc.SetBrush(*wxTRANSPARENT_BRUSH);
+      dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, GetMouseX() - m_mouseLClick_X, GetMouseY() - m_mouseLClick_Y);
     }
     if (m_trackDown) DrawTrackBox();
   }
