@@ -2069,7 +2069,7 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
         /*SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));*/ //, x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
     }
     if (m_zoomRectDown){
-      wxPen pen(*wxBLACK, 1, wxPENSTYLE_DOT);		//wxDOT);
+      wxPen pen(m_fgColour, 1, wxPENSTYLE_DOT);		//wxDOT);
       dc.SetPen(pen);
       dc.SetBrush(*wxTRANSPARENT_BRUSH);
       dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, GetMouseX() - m_mouseLClick_X, GetMouseY() - m_mouseLClick_Y);

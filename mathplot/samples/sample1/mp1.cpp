@@ -260,7 +260,7 @@ MyFrame::MyFrame()
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
 	m_plot->AddLayer(     vectorLayer );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
-    wxBrush hatch(wxColour(200,200,200), wxBRUSHSTYLE_SOLID);
+    wxBrush hatch(wxColour(150,150,150), wxBRUSHSTYLE_SOLID);
     //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
     m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(130,20,100,10), &hatch));    //wxRED_BRUSH));
     nfo->SetVisible(true);
@@ -438,7 +438,8 @@ void MyFrame::OnBlackTheme(wxCommandEvent& event)
     wxColour grey(96, 96, 96);
     if (event.IsChecked()){	
     	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
-	   m_plot->SetColourTheme(*wxBLACK, *wxWHITE, grey, wxColour(45,45,45));
+        //      SetColourTheme(background, foreground, axes, grids)	   
+        m_plot->SetColourTheme(wxColour(25,25,25), *wxWHITE, grey, wxColour(45,45,45));
     }
     else
     {
