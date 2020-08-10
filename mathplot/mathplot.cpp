@@ -1544,15 +1544,15 @@ mpWindow::~mpWindow()
     m_dim.width = textX + 37;
     m_dim.height = 3 * textY + 28;
 
-    if(GetMouseX() < GetScreenRect().width-m_dim.width)
-    	m_dim.x = GetMouseX();
+    if(x2p(pointInfo.second.first) < GetScreenRect().width-m_dim.width)
+    	m_dim.x = x2p(pointInfo.second.first);
     else
-    	m_dim.x = GetMouseX() - m_dim.width;
+    	m_dim.x = x2p(pointInfo.second.first) - m_dim.width;
 
-    if (GetMouseY() < GetScreenRect().height - m_dim.height)
-    	m_dim.y = GetMouseY();
+    if (y2p(pointInfo.second.second) < GetScreenRect().height - m_dim.height)
+    	m_dim.y = y2p(pointInfo.second.second);
     else
-    	m_dim.y = GetMouseY() - m_dim.height;
+    	m_dim.y = y2p(pointInfo.second.second) - m_dim.height;
 
     int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
     int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
