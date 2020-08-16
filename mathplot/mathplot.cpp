@@ -1575,7 +1575,7 @@ std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double 
 			mpFXYVector *vect = (mpFXYVector*)(*li);
 
 			int distX, closestI;
-			distX = x - vect->m_xs[0];             //runs through vector looking for closest X value
+			distX = x - vect->m_xs[0];             //runs through vector looking for the closest X value
 			for (int i = 1; i < vect->m_ys.size(); i++) {
 				if (abs(x - vect->m_xs[i]) < distX) {
 					distX = x - vect->m_xs[i];
@@ -1584,8 +1584,8 @@ std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double 
 			}
 
 			if (closestI > vect->m_ys.size()) return std::make_pair(LayerName, std::make_pair(vect->m_xs[0], vect->m_ys[0]));;
-			double delta = sqrt(pow(x - vect->m_xs[closestI], 2) + pow(y - vect->m_ys[closestI], 2));
-			if (delta < previousDelta) {   //compares delta of this function to previous in order to determine the closest
+			double delta = sqrt(pow((x - vect->m_xs[closestI]), 2) + pow((y - vect->m_ys[closestI]), 2));
+			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
 				LayerName = vect->GetName();
 				previousDelta = delta;
 				pointX = vect->m_xs[closestI];
@@ -1593,14 +1593,25 @@ std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double 
 			}
 		}
     else if ((*li)->IsFX()) {
-      mpFX *fy = (mpFX*)(*li);
+      mpFX *fx = (mpFX*)(*li);
 
-		  double delta = abs(y - fy->GetY(x));
+		  double delta = abs(y - fx->GetY(x));
 			if (delta < previousDelta) {
-				LayerName = fy->GetName();
+				LayerName = fx->GetName();
 				previousDelta = delta;
 				pointX = x;
-			  pointY = fy->GetY(x);
+			  pointY = fx->GetY(x);
+      }
+    }
+    else if ((*li)->IsFY()) {
+      mpFY *fy = (mpFY*)(*li);
+
+      double delta = abs(x - fy->GetX(y));
+      if (delta < previousDelta) {
+        LayerName = fy->GetName();
+        previousDelta = delta;
+        pointX = fy->GetX(y);
+        pointY = y;
       }
     }
 	}

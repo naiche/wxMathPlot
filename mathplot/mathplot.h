@@ -201,6 +201,7 @@ public:
     virtual bool IsInfo() { return false; };
     virtual bool IsVector() { return false; }
     virtual bool IsFX() { return false; }
+    virtual bool IsFY() { return false; }
 
     /** Get inclusive left border of bounding box.
         @return Value
@@ -604,6 +605,8 @@ public:
         put a label according to the aligment specified.
     */
     virtual void Plot(wxDC & dc, mpWindow & w);
+
+    bool IsFY() { return TRUE; }
 
 protected:
     int m_flags; //!< Holds label alignment
