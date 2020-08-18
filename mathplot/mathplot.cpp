@@ -534,6 +534,26 @@ void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
     //drawnPoints++;
 }
 
+wxRealPoint mpFXY::GetClosestXY(double x, double y){
+    double delta, closestX, closestY;
+    double xValue, yValue;
+    Rewind();
+    GetNextXY(xValue, yValue);
+    delta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
+    closestX = xValue;
+    closestY = yValue;
+
+    while(GetNextXY(xValue, yValue)) {            //runs through function looking for the closest X and Y value
+      double thisPointDelta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
+      if (thisPointDelta < delta) {
+        closestX = xValue;
+        closestY = yValue;
+        delta = thisPointDelta;
+      }
+    }
+    return wxRealPoint(closestX, closestY);
+}
+
 void mpFXY::Plot(wxDC & dc, mpWindow & w)
 {
     if (m_visible) {
@@ -1512,7 +1532,8 @@ mpWindow::~mpWindow()
   }
 
   void mpWindow::DrawTrackBox() {
-    std::pair<wxString, std::pair<double, double>> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
+    //std::pair<wxString, wxPoint>
+    std::pair<wxString, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
 
     //__time64_t xTime = (time_t)pointInfo.second.first;
     //struct tm xTm = *localtime(&xTime);
@@ -1524,8 +1545,8 @@ mpWindow::~mpWindow()
     label.Printf(wxT("%s"), pointInfo.first);
     //date.Printf(wxT("Date:  %02d/%02d/%d"), xTm.tm_mday, xTm.tm_mon + 1, xTm.tm_year + 1900);
     //valueX.Printf(wxT("x: %02d/%02d/%d"), xTime.GetDay(), xTime.GetMonth() + 1, xTime.GetYear());
-    valueX.Printf(wxT("x: %.4f"), pointInfo.second.first);
-    valueY.Printf(wxT("y: %.4f"), pointInfo.second.second);
+    valueX.Printf(wxT("x: %.4f"), pointInfo.second.x);
+    valueY.Printf(wxT("y: %.4f"), pointInfo.second.y);
 
     wxClientDC dc(this);
     wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
@@ -1544,15 +1565,15 @@ mpWindow::~mpWindow()
     m_dim.width = textX + 37;
     m_dim.height = 3 * textY + 28;
 
-    if(x2p(pointInfo.second.first) < GetScreenRect().width-m_dim.width)
-    	m_dim.x = x2p(pointInfo.second.first);
+    if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
+    	m_dim.x = x2p(pointInfo.second.x);
     else
-    	m_dim.x = x2p(pointInfo.second.first) - m_dim.width;
+    	m_dim.x = x2p(pointInfo.second.x) - m_dim.width;
 
-    if (y2p(pointInfo.second.second) < GetScreenRect().height - m_dim.height)
-    	m_dim.y = y2p(pointInfo.second.second);
+    if (y2p(pointInfo.second.y) < GetScreenRect().height - m_dim.height)
+    	m_dim.y = y2p(pointInfo.second.y);
     else
-    	m_dim.y = y2p(pointInfo.second.second) - m_dim.height;
+    	m_dim.y = y2p(pointInfo.second.y) - m_dim.height;
 
     int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
     int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
@@ -1562,9 +1583,9 @@ mpWindow::~mpWindow()
     dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
     dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
     dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 54);
-  }
+}
 
-std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double x, double y) {
+std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
 	wxString LayerName;
 	double pointX, pointY;
 	double previousDelta = 999999999999;
@@ -1582,8 +1603,6 @@ std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double 
 					closestI = i;
 				}
 			}
-
-			if (closestI > vect->m_ys.size()) return std::make_pair(LayerName, std::make_pair(vect->m_xs[0], vect->m_ys[0]));;
 			double delta = sqrt(pow((x - vect->m_xs[closestI]), 2) + pow((y - vect->m_ys[closestI]), 2));
 			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
 				LayerName = vect->GetName();
@@ -1614,8 +1633,21 @@ std::pair<wxString, std::pair<double, double>> mpWindow::GetClosestPoint(double 
         pointY = y;
       }
     }
+    else if ((*li)->IsFXY()) {
+      mpFXY *fxy = (mpFXY*)(*li);
+
+      wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
+      double thisFunctionDelta = sqrt(pow((x - closestPoint.x), 2) + pow((y - closestPoint.y), 2));
+
+      if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
+        LayerName = fxy->GetName();
+        previousDelta = thisFunctionDelta;
+        pointX = closestPoint.x;
+        pointY = closestPoint.y;
+      }
+    }
 	}
-	return std::make_pair(LayerName, std::make_pair(pointX, pointY));
+  return std::make_pair(LayerName, wxRealPoint(pointX, pointY));
 }
 
 void mpWindow::ShowPopupMenu(int x, int y)//(wxMouseEvent &event)

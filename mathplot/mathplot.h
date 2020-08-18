@@ -202,6 +202,7 @@ public:
     virtual bool IsVector() { return false; }
     virtual bool IsFX() { return false; }
     virtual bool IsFY() { return false; }
+    virtual bool IsFXY() { return false; }
 
     /** Get inclusive left border of bounding box.
         @return Value
@@ -640,12 +641,15 @@ public:
     */
     virtual bool GetNextXY(double & x, double & y) = 0;
 
+    wxRealPoint GetClosestXY(double x, double y);
+
     /** Layer plot handler.
         This implementation will plot the locus in the visible area and
         put a label according to the alignment specified.
     */
     virtual void Plot(wxDC & dc, mpWindow & w);
 
+    bool IsFXY() { return TRUE; }
 
 protected:
     int m_flags; //!< Holds label alignment
@@ -1254,7 +1258,8 @@ protected:
     void ShowPopupMenu(int x, int y);// (wxMouseEvent     &event); //!< Mouse handler, will show context menu
     void PanPlot();
     void DrawTrackBox();
-    std::pair<wxString, std::pair<double, double>> GetClosestPoint(double x, double y);
+    //std::pair<wxString, std::pair<double, double>>
+    std::pair<wxString, wxRealPoint> GetClosestPoint(double x, double y);
     void ZoomRectEnter(int x, int y);
     void ZoomRectRelease(int x, int y);
     //void DrawTrackBox();
