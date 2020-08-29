@@ -1562,8 +1562,13 @@ mpWindow::~mpWindow()
         textX = dc.GetTextExtent(valueY).GetX();
 
     wxRect m_dim;
-    m_dim.width = textX + 37;
-    m_dim.height = 3 * textY + 28;
+    #ifdef __linux__
+      m_dim.width = textX + 37;
+      m_dim.height = 3 * textY + 28;
+    #else
+      m_dim.width = textX + 35;
+      m_dim.height = 3 * textY + 32;
+    #endif
 
     if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
     	m_dim.x = x2p(pointInfo.second.x);
@@ -1595,7 +1600,7 @@ std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
 		if ((*li)->IsVector()) {
 			mpFXYVector *vect = (mpFXYVector*)(*li);
 
-			int distX, closestI;
+			int distX, closestI=0;
 			distX = x - vect->m_xs[0];             //runs through vector looking for the closest X value
 			for (int i = 1; i < vect->m_ys.size(); i++) {
 				if (abs(x - vect->m_xs[i]) < distX) {
