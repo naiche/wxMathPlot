@@ -78,7 +78,7 @@
 double mpWindow::zoomIncrementalFactor = 1.1;
 //#pragma endregion
 
-//#pragma region mpLayers
+//#pragma region mpLayer
 //-----------------------------------------------------------------------------
 // mpLayer
 //-----------------------------------------------------------------------------
@@ -108,7 +108,9 @@ wxBitmap mpLayer::GetColourSquare(int side)
     dc.SelectObject(wxNullBitmap);
     return square;
 }
+//#pragma endregion
 
+//#pragma region mpInfoLayer
 //-----------------------------------------------------------------------------
 // mpInfoLayer
 //-----------------------------------------------------------------------------
@@ -211,7 +213,9 @@ wxSize mpInfoLayer::GetSize()
 {
     return m_dim.GetSize();
 }
+//#pragma endregion
 
+//#pragma region mpInfoCoords
 mpInfoCoords::mpInfoCoords() : mpInfoLayer()
 {
 
@@ -281,7 +285,9 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
     dc.DrawText(line2, m_dim.x + 10, m_dim.y + textY1 + 10);
   }
 }
+//#pragma endregion
 
+//#pragma region mpInfoLegend
 mpInfoLegend::mpInfoLegend() : mpInfoLayer()
 {
 
@@ -379,9 +385,9 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         }
     }
 }
+//#pragma endregion
 
-
-
+//#pragma region mpFX, mpFY, mpFXY
 //-----------------------------------------------------------------------------
 // mpLayer implementations - functions
 //-----------------------------------------------------------------------------
@@ -729,7 +735,9 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
         }
     }
 }
+//#pragma endregion
 
+//#pragma region mpProfile
 //-----------------------------------------------------------------------------
 // mpProfile implementation
 //-----------------------------------------------------------------------------
@@ -782,7 +790,9 @@ void mpProfile::Plot(wxDC & dc, mpWindow & w)
         }
     }
 }
+//#pragma endregion
 
+//#pragma region mpScaleX
 //-----------------------------------------------------------------------------
 // mpLayer implementations - furniture (scales, ...)
 //-----------------------------------------------------------------------------
@@ -1063,7 +1073,9 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
         }
     }; */
 }
+//#pragma endregion
 
+//#pragma region mpScaleY
 IMPLEMENT_DYNAMIC_CLASS(mpScaleY, mpLayer)
 
 mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
@@ -1545,8 +1557,19 @@ mpWindow::~mpWindow()
     label.Printf(wxT("%s"), pointInfo.first);
     //date.Printf(wxT("Date:  %02d/%02d/%d"), xTm.tm_mday, xTm.tm_mon + 1, xTm.tm_year + 1900);
     //valueX.Printf(wxT("x: %02d/%02d/%d"), xTime.GetDay(), xTime.GetMonth() + 1, xTime.GetYear());
-    valueX.Printf(wxT("x: %.4f"), pointInfo.second.x);
-    valueY.Printf(wxT("y: %.4f"), pointInfo.second.y);
+    wxString XscaleName;
+    wxString YscaleName;
+    for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+    {
+      if ((*li)->IsScaleX()) {
+        XscaleName = (*li)->GetName();
+      }
+      else if ((*li)->IsScaleY()) {
+        YscaleName = (*li)->GetName();
+      }
+    }
+    valueX.Printf(wxT("%s: %.4f"), XscaleName, pointInfo.second.x);
+    valueY.Printf(wxT("%s: %.4f"), YscaleName, pointInfo.second.y);
 
     wxClientDC dc(this);
     wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
@@ -1608,7 +1631,7 @@ std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
 					closestI = i;
 				}
 			}
-			double delta = sqrt(pow((x - vect->m_xs[closestI]), 2) + pow((y - vect->m_ys[closestI]), 2));
+			double delta = sqrt(pow((x - vect->m_xs[closestI])*GetScaleX(), 2) + pow((y - vect->m_ys[closestI])*GetScaleY(), 2));
 			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
 				LayerName = vect->GetName();
 				previousDelta = delta;
@@ -1619,7 +1642,7 @@ std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
     else if ((*li)->IsFX()) {
       mpFX *fx = (mpFX*)(*li);
 
-		  double delta = abs(y - fx->GetY(x));
+		  double delta = abs((y - fx->GetY(x))*GetScaleY());
 			if (delta < previousDelta) {
 				LayerName = fx->GetName();
 				previousDelta = delta;
@@ -1630,7 +1653,7 @@ std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
     else if ((*li)->IsFY()) {
       mpFY *fy = (mpFY*)(*li);
 
-      double delta = abs(x - fy->GetX(y));
+      double delta = abs((x - fy->GetX(y))*GetScaleX());
       if (delta < previousDelta) {
         LayerName = fy->GetName();
         previousDelta = delta;
@@ -1642,7 +1665,7 @@ std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
       mpFXY *fxy = (mpFXY*)(*li);
 
       wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
-      double thisFunctionDelta = sqrt(pow((x - closestPoint.x), 2) + pow((y - closestPoint.y), 2));
+      double thisFunctionDelta = sqrt(pow((x - closestPoint.x)*GetScaleX(), 2) + pow((y - closestPoint.y)*GetScaleY(), 2));
 
       if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
         LayerName = fxy->GetName();

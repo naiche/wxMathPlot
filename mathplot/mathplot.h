@@ -203,6 +203,8 @@ public:
     virtual bool IsFX() { return false; }
     virtual bool IsFY() { return false; }
     virtual bool IsFXY() { return false; }
+    virtual bool IsScaleX() { return false; }
+    virtual bool IsScaleY() { return false; }
 
     /** Get inclusive left border of bounding box.
         @return Value
@@ -761,6 +763,8 @@ public:
     @return The format string */
     const wxString& SetLabelFormat() { return m_labelFormat; };
 
+    bool IsScaleX() { return true; }
+
 protected:
     int m_flags; //!< Flag for axis alignment
     bool m_ticks; //!< Flag to toggle between ticks or grid
@@ -813,6 +817,8 @@ public:
     /** Get Y axis Label format.
     @return The format string */
     const wxString& SetLabelFormat() { return m_labelFormat; };
+
+    bool IsScaleY() { return true; }
 
 protected:
     int m_flags; //!< Flag for axis alignment
