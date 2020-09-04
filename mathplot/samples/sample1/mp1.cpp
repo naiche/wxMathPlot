@@ -222,6 +222,8 @@ MyFrame::MyFrame()
     CreateStatusBar(1);
 
     mpLayer* l;
+    mpLayer* s;
+    mpLayer* c;
 
 	// Create a mpFXYVector layer
 	mpFXYVector* vectorLayer = new mpFXYVector(_("Vector"));
@@ -254,8 +256,8 @@ MyFrame::MyFrame()
 //     m_plot->SetMargins(50, 50, 200, 150);
     m_plot->AddLayer(     xaxis );
     m_plot->AddLayer(     yaxis );
-    m_plot->AddLayer(     new MySIN( 10.0, 220.0 ) );
-    m_plot->AddLayer(     new MyCOSinverse( 10.0, 100.0 ) );
+    m_plot->AddLayer( s = new MySIN( 10.0, 220.0 ) );
+    m_plot->AddLayer( c = new MyCOSinverse( 10.0, 100.0 ) );
     m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
 	m_plot->AddLayer(     vectorLayer );
     m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
@@ -270,6 +272,10 @@ MyFrame::MyFrame()
     
     // m_plot->EnableCoordTooltip(true);
     // set a nice pen for the lissajoux
+    wxPen mySpen(*wxGREEN, 2, wxPENSTYLE_SOLID);
+    s->SetPen( mySpen);
+    wxPen myCpen(wxColour(255,120,0), 2, wxPENSTYLE_SOLID);
+    c->SetPen( myCpen);
     wxPen mypen(*wxRED, 5, wxPENSTYLE_SOLID);
     l->SetPen( mypen);
 

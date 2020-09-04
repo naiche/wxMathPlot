@@ -1544,32 +1544,50 @@ mpWindow::~mpWindow()
   }
 
   void mpWindow::DrawTrackBox() {
-    //std::pair<wxString, wxPoint>
     std::pair<wxString, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
 
-    //__time64_t xTime = (time_t)pointInfo.second.first;
-    //struct tm xTm = *localtime(&xTime);
-    //long long int ticks = pointInfo.second.first;
-    // wxLongLong ticks = pointInfo.second.first;
-    // wxDateTime xTime(ticks);
+    // Date and/or time axis representation
+    // if (m_labelType == mpX_DATETIME) {
+    //     fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
+    // } else if (m_labelType == mpX_DATE) {
+    //     fmt = (wxT("%04.0f-%02.0f-%02.0f"));
+    // } else if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
+    //     // Include milliseconds if within the first two minutes.
+    //     fmt = (wxT("%02.0f:%02.3f"));
+    // } else if (m_labelType == mpX_TIMEOFDAY) {
+    //     if (view_delta_x < 2) {
+    //         // Include milliseconds if the view is narrower than 2 seconds.
+    //         fmt = (wxT("%02.0f:%02.0f:%02.3f"));
+    //     } else {
+    //         fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+    //     }
+    // } else {
+    //     fmt = (wxT("%02.0f:%02.0f:%02.0f"));
 
     wxString label, valueX, valueY;
     label.Printf(wxT("%s"), pointInfo.first);
     //date.Printf(wxT("Date:  %02d/%02d/%d"), xTm.tm_mday, xTm.tm_mon + 1, xTm.tm_year + 1900);
     //valueX.Printf(wxT("x: %02d/%02d/%d"), xTime.GetDay(), xTime.GetMonth() + 1, xTime.GetYear());
-    wxString XscaleName;
-    wxString YscaleName;
+
+    //wxString YscaleName;
     for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
     {
       if ((*li)->IsScaleX()) {
-        XscaleName = (*li)->GetName();
+        mpScaleX *scaleX = (mpScaleX*)(*li);
+        if (scaleX->GetLabelMode() == mpX_DATE){
+          wxLongLong ticks = pointInfo.second.x;
+          wxDateTime xTime(ticks);
+          valueX.Printf(wxT("%s: %d/%d/%d"), scaleX->GetName(), xTime.GetDay(), xTime.GetMonth()+1, xTime.GetYear());
+        }
+        else{
+          valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+        }
       }
       else if ((*li)->IsScaleY()) {
-        YscaleName = (*li)->GetName();
+        valueY.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.y);
       }
     }
-    valueX.Printf(wxT("%s: %.4f"), XscaleName, pointInfo.second.x);
-    valueY.Printf(wxT("%s: %.4f"), YscaleName, pointInfo.second.y);
+    //valueY.Printf(wxT("%s: %.4f"), YscaleName, pointInfo.second.y);
 
     wxClientDC dc(this);
     wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
