@@ -3,6 +3,7 @@ This fork's purpose is to make available any enhancements/fixes made when using 
 TODO:
   * Fix error when zooming out or panning too far (mpX_DATE, mpX_DATETIME or mpX_TIME)
   * Use wxDateTime instead of time_t
+
 DONE:
   * Changeable grid color
   * Configurable mouse commands
