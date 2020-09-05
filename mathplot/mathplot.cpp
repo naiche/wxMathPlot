@@ -1566,18 +1566,15 @@ mpWindow::~mpWindow()
 
     wxString label, valueX, valueY;
     label.Printf(wxT("%s"), pointInfo.first);
-    //date.Printf(wxT("Date:  %02d/%02d/%d"), xTm.tm_mday, xTm.tm_mon + 1, xTm.tm_year + 1900);
-    //valueX.Printf(wxT("x: %02d/%02d/%d"), xTime.GetDay(), xTime.GetMonth() + 1, xTime.GetYear());
 
-    //wxString YscaleName;
     for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
     {
       if ((*li)->IsScaleX()) {
         mpScaleX *scaleX = (mpScaleX*)(*li);
         if (scaleX->GetLabelMode() == mpX_DATE){
-          wxLongLong ticks = pointInfo.second.x;
+          wxLongLong ticks = (long long)pointInfo.second.x;
           wxDateTime xTime(ticks);
-          valueX.Printf(wxT("%s: %d/%d/%d"), scaleX->GetName(), xTime.GetDay(), xTime.GetMonth()+1, xTime.GetYear());
+          valueX.Printf(wxT("%s: %2.d %s %d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear());
         }
         else{
           valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
@@ -1587,13 +1584,11 @@ mpWindow::~mpWindow()
         valueY.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.y);
       }
     }
-    //valueY.Printf(wxT("%s: %.4f"), YscaleName, pointInfo.second.y);
 
     wxClientDC dc(this);
     wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
     dc.SetPen(pen);
     dc.SetBrush(m_bgColour);//SetBrush(*wxTRANSPARENT_BRUSH);
-
 
     int textX, textY;
     dc.GetTextExtent(valueX, &textX, &textY);
@@ -1605,10 +1600,10 @@ mpWindow::~mpWindow()
     wxRect m_dim;
     #ifdef __linux__
       m_dim.width = textX + 37;
-      m_dim.height = 3 * textY + 28;
+      m_dim.height = 3 * textY + 29;
     #else
       m_dim.width = textX + 35;
-      m_dim.height = 3 * textY + 32;
+      m_dim.height = 3 * textY + 33;
     #endif
 
     if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
@@ -1628,7 +1623,7 @@ mpWindow::~mpWindow()
     dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
     dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
     dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
-    dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 54);
+    dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 56);
 }
 
 std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
