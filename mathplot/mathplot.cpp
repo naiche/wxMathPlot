@@ -1572,8 +1572,11 @@ mpWindow::~mpWindow()
       if ((*li)->IsScaleX()) {
         mpScaleX *scaleX = (mpScaleX*)(*li);
         if (scaleX->GetLabelMode() == mpX_DATE){
-          wxLongLong ticks = (long long)pointInfo.second.x;
+          time_t ticks = (time_t)pointInfo.second.x;
+          if (ticks == -1) ticks = (time_t)0; //-1 is wxInvalidDateTime
+
           wxDateTime xTime(ticks);
+          //wxLogMessage(_("x: %ld"), ticks);
           valueX.Printf(wxT("%s: %2.d %s %d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear());
         }
         else{
