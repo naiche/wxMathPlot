@@ -1546,24 +1546,6 @@ mpWindow::~mpWindow()
   void mpWindow::DrawTrackBox() {
     std::pair<wxString, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
 
-    // Date and/or time axis representation
-    // if (m_labelType == mpX_DATETIME) {
-    //     fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
-    // } else if (m_labelType == mpX_DATE) {
-    //     fmt = (wxT("%04.0f-%02.0f-%02.0f"));
-    // } else if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
-    //     // Include milliseconds if within the first two minutes.
-    //     fmt = (wxT("%02.0f:%02.3f"));
-    // } else if (m_labelType == mpX_TIMEOFDAY) {
-    //     if (view_delta_x < 2) {
-    //         // Include milliseconds if the view is narrower than 2 seconds.
-    //         fmt = (wxT("%02.0f:%02.0f:%02.3f"));
-    //     } else {
-    //         fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-    //     }
-    // } else {
-    //     fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-
     wxString label, valueX, valueY;
     label.Printf(wxT("%s"), pointInfo.first);
 
@@ -1571,16 +1553,41 @@ mpWindow::~mpWindow()
     {
       if ((*li)->IsScaleX()) {
         mpScaleX *scaleX = (mpScaleX*)(*li);
-        if (scaleX->GetLabelMode() == mpX_DATE){
-          time_t ticks = (time_t)pointInfo.second.x;
-          if (ticks == -1) ticks = (time_t)0; //-1 is wxInvalidDateTime
 
-          wxDateTime xTime(ticks);
-          //wxLogMessage(_("x: %ld"), ticks);
-          valueX.Printf(wxT("%s: %2.d %s %d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear());
-        }
-        else{
-          valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+        switch(scaleX->GetLabelMode()){
+          case mpX_NORMAL:
+            valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+            break;
+          case mpX_HOURS:
+          case mpX_TIME:
+          {
+            int remainder = abs((long)pointInfo.second.x % 3600);
+            int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
+            long hour = (long)pointInfo.second.x/3600;
+            if (hour == 0 && pointInfo.second.x < 0) {
+              valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+            }else{
+              valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+            }
+            break;
+          }
+          default:
+            //time_t ticks = (time_t)pointInfo.second.x;
+            //if (ticks == -1) ticks = (time_t)0; //-1 is wxInvalidDateTime
+            wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));//(time_t)ticks);
+            switch(scaleX->GetLabelMode()){
+              case mpX_DATE:
+                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y"));
+                break;
+              case mpX_DATETIME:
+                //wxLogMessage(_("x: %ld"), ticks);
+                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S"));
+                //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
+                break;
+              case mpX_TIMEOFDAY:
+                valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+                break;
+            }
         }
       }
       else if ((*li)->IsScaleY()) {
