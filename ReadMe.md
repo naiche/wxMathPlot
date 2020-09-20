@@ -14,7 +14,7 @@ DONE:
 	        
 	        m_plot->BindMouseWheel(command*, function**);
                 * -> command can be mpWHEEL, mpSHIFT_WHEEL or mpCTRL_WHEEL.
-	            ** -> function can be mpZOOM, mpHORIZONTAL_PAN or mpVERTICAL_PAN.
+                ** -> function can be mpZOOM, mpHORIZONTAL_PAN or mpVERTICAL_PAN.
 
   * Displays the coordinates of the nearest datapoint on mpXYVector, mpFX, mpFY and mpFXY layers  (mpTrack)
   * Disappearing zoom rectangle fixed
