@@ -117,6 +117,7 @@ public:
 	void OnToggleSine(wxCommandEvent& event);
 	void OnToggleCosine(wxCommandEvent& event);
 	void OnBlackTheme(wxCommandEvent& event);
+    void OnScientificNotation(wxCommandEvent& event);
 
     mpWindow        *m_plot;
     wxTextCtrl      *m_log;
@@ -156,7 +157,8 @@ enum {
 	ID_TOGGLE_LISSAJOUX,
 	ID_TOGGLE_SINE,
 	ID_TOGGLE_COSINE,
-	ID_BLACK_THEME
+	ID_BLACK_THEME,
+    ID_SCIENTIFIC_NOTATION
 };
 
 IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
@@ -174,6 +176,7 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_TOGGLE_INFO, MyFrame::OnToggleInfoLayer)
   EVT_MENU(ID_SAVE_SCREENSHOT, MyFrame::OnSaveScreenshot)
   EVT_MENU(ID_BLACK_THEME, MyFrame::OnBlackTheme)
+  EVT_MENU(ID_SCIENTIFIC_NOTATION, MyFrame::OnScientificNotation)
   EVT_MENU(ID_TOGGLE_LISSAJOUX, MyFrame::OnToggleLissajoux)
   EVT_MENU(ID_TOGGLE_SINE, MyFrame::OnToggleSine)
   EVT_MENU(ID_TOGGLE_COSINE, MyFrame::OnToggleCosine)
@@ -204,6 +207,7 @@ MyFrame::MyFrame()
     view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
     view_menu->AppendCheckItem( ID_TOGGLE_INFO, wxT("Show overlay info box"));
 	view_menu->AppendCheckItem( ID_BLACK_THEME, wxT("Switch to black background theme"));
+    view_menu->AppendCheckItem( ID_SCIENTIFIC_NOTATION, wxT("Show Y axis label as scientific notation"));
 	
 	show_menu->AppendCheckItem( ID_TOGGLE_LISSAJOUX, wxT("Lissajoux"));
 	show_menu->AppendCheckItem( ID_TOGGLE_SINE, wxT("Sine"));
@@ -449,6 +453,19 @@ void MyFrame::OnBlackTheme(wxCommandEvent& event)
     else
     {
         m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
+    }
+	m_plot->UpdateAll();
+}
+
+void MyFrame::OnScientificNotation(wxCommandEvent& event)
+{
+    mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
+    if (event.IsChecked()){	
+    	yaxis->SetLabelFormat("%1.1e ");
+    }
+    else
+    {
+        yaxis->SetLabelFormat("%1.0f ");
     }
 	m_plot->UpdateAll();
 }
