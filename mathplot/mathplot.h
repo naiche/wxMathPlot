@@ -761,7 +761,7 @@ public:
 
     /** Get X axis Label format (used for mpX_NORMAL draw mode).
     @return The format string */
-    const wxString& SetLabelFormat() { return m_labelFormat; };
+    const wxString& GetLabelFormat() { return m_labelFormat; };
 
     bool IsScaleX() { return true; }
 
@@ -816,7 +816,7 @@ public:
 
     /** Get Y axis Label format.
     @return The format string */
-    const wxString& SetLabelFormat() { return m_labelFormat; };
+    const wxString& GetLabelFormat() { return m_labelFormat; };
 
     bool IsScaleY() { return true; }
 
