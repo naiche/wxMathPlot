@@ -730,6 +730,8 @@ public:
         This implementation will plot the ruler adjusted to the visible area. */
     virtual void Plot(wxDC & dc, mpWindow & w);
 
+	int DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoord endPx);
+
     /** Check whether this layer has a bounding box.
         This implementation returns \a FALSE thus making the ruler invisible
         to the plot layer bounding box calculation by mpWindow. */
@@ -739,13 +741,21 @@ public:
         @param align alignment (choose between mpALIGN_BORDER_BOTTOM, mpALIGN_BOTTOM, mpALIGN_CENTER, mpALIGN_TOP, mpALIGN_BORDER_TOP */
     void SetAlign(int align) { m_flags = align; };
 
-    /** Set X axis ticks or grid
-        @param ticks TRUE to plot axis ticks, FALSE to plot grid. */
+    /** Set Y axis ticks
+        @param ticks TRUE to plot axis ticks. */
     void SetTicks(bool ticks) { m_ticks = ticks; };
 
-    /** Get X axis ticks or grid
-        @return TRUE if plot is drawing axis ticks, FALSE if the grid is active. */
+    /** Get Y axis ticks
+        @return TRUE if plot is drawing axis ticks. */
     bool GetTicks() { return m_ticks; };
+
+    /** Set Y axis grid
+        @param ticks TRUE to plot axis grid. */
+    void SetGrid(bool grid) { m_grid = grid; };
+
+    /** Get Y axis grid
+        @return TRUE if plot is drawing axis grid. */
+    bool GetGrid() { return m_grid; };
 
     /** Get X axis label view mode.
         @return mpX_NORMAL for normal labels, mpX_TIME for time axis in hours, minutes, seconds. */
@@ -767,7 +777,8 @@ public:
 
 protected:
     int m_flags; //!< Flag for axis alignment
-    bool m_ticks; //!< Flag to toggle between ticks or grid
+    bool m_ticks; //!< Flag to toggle axis ticks
+    bool m_grid; //!< Flag to toggle axis grid
     unsigned int m_labelType; //!< Select labels mode: mpX_NORMAL for normal labels, mpX_TIME for time axis in hours, minutes, seconds
     wxString m_labelFormat; //!< Format string used to print labels
 
@@ -802,13 +813,21 @@ public:
         @param align alignment (choose between mpALIGN_BORDER_LEFT, mpALIGN_LEFT, mpALIGN_CENTER, mpALIGN_RIGHT, mpALIGN_BORDER_RIGHT) */
     void SetAlign(int align) { m_flags = align; };
 
-    /** Set Y axis ticks or grid
-        @param ticks TRUE to plot axis ticks, FALSE to plot grid. */
+    /** Set Y axis ticks
+        @param ticks TRUE to plot axis ticks. */
     void SetTicks(bool ticks) { m_ticks = ticks; };
 
-    /** Get Y axis ticks or grid
-        @return TRUE if plot is drawing axis ticks, FALSE if the grid is active. */
+    /** Get Y axis ticks
+        @return TRUE if plot is drawing axis ticks. */
     bool GetTicks() { return m_ticks; };
+
+    /** Set Y axis grid
+        @param ticks TRUE to plot axis grid. */
+    void SetGrid(bool grid) { m_grid = grid; };
+
+    /** Get Y axis grid
+        @return TRUE if plot is drawing axis grid. */
+    bool GetGrid() { return m_grid; };
 
     /** Set Y axis Label format.
     @param format The format string */
@@ -822,7 +841,8 @@ public:
 
 protected:
     int m_flags; //!< Flag for axis alignment
-    bool m_ticks; //!< Flag to toggle between ticks or grid
+    bool m_ticks; //!< Flag to toggle ticks
+    bool m_grid; //!< Flag to toggle grid
     wxString m_labelFormat; //!< Format string used to print labels
 
     DECLARE_DYNAMIC_CLASS(mpScaleY)
@@ -1290,7 +1310,7 @@ protected:
     wxColour m_bgColour;    //!< Background Colour
     wxColour m_fgColour;    //!< Foreground Colour
     wxColour m_axColour;    //!< Axes Colour
-    wxColour m_grColour = wxColour(200, 200, 200);    //!< Grids Colour
+    wxColour m_grColour;    //!< Grids Colour
 
     double m_minX;      //!< Global layer bounding box, left border incl.
     double m_maxX;      //!< Global layer bounding box, right border incl.

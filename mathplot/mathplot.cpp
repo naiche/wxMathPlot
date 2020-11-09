@@ -59,9 +59,9 @@
 // #include "pixel.xpm"
 
 // Memory leak debugging		(not used in Visual Studio)
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
+//#ifdef _DEBUG
+//#define new DEBUG_NEW
+//#endif
 
 // Legend margins
 #define mpLEGEND_MARGIN 5
@@ -808,6 +808,7 @@ mpScaleX::mpScaleX(wxString name, int flags, bool ticks, unsigned int type)
     SetPen( (wxPen&) *wxGREY_PEN);
     m_flags = flags;
     m_ticks = ticks;
+    m_grid = !ticks;
     m_labelType = type;
     m_type = mpLAYER_AXIS;
     m_labelFormat = wxT("");
@@ -819,10 +820,14 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
         dc.SetPen( m_pen);
         dc.SetFont( m_font);
         int orgy=0;
+		wxCoord tx, ty;
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		int labelH = 0; // Control labels heigth to decide where to put axis name (below labels or on top of axis)
 
         const int extend = w.GetScrX(); //  /2;
         if (m_flags == mpALIGN_CENTER)
-        orgy   = w.y2p(0); //(int)(w.GetPosY() * w.GetScaleY());
+          orgy   = w.y2p(0); //(int)(w.GetPosY() * w.GetScaleY());
         if (m_flags == mpALIGN_TOP) {
             if (m_drawOutsideMargins)
                 orgy = X_BORDER_SEPARATION;
@@ -836,9 +841,9 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
                 orgy = w.GetScrY() - w.GetMarginBottom();
         }
         if (m_flags == mpALIGN_BORDER_BOTTOM )
-        orgy = w.GetScrY() - 1;//dc.LogicalToDeviceY(0) - 1;
+          orgy = w.GetScrY() - 1;//dc.LogicalToDeviceY(0) - 1;
         if (m_flags == mpALIGN_BORDER_TOP )
-        orgy = 1;//-dc.LogicalToDeviceY(0);
+          orgy = 1;//-dc.LogicalToDeviceY(0);
 
         dc.DrawLine( 0, orgy, w.GetScrX(), orgy);
 
@@ -851,16 +856,18 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 #ifdef MATHPLOT_DO_LOGGING
         wxLogMessage(wxT("mpScaleX::Plot: ScaleX: %f, ScreenX %d"), w.GetScaleX(), w.GetScrX());
 #endif
+		if (m_labelType != mpX_NORMAL) { // Date and/or time axis representation
+			labelH = DatePlot(dc, w, orgy, startPx, endPx);
+		}
+		else{							//mpX_NORMAL
+			const double dig  = floor( log( 128.0 / w.GetScaleX() ) / mpLN10 );
+			const double step = exp( mpLN10 * dig);
+			const double end  = w.GetPosX() + (double)extend / w.GetScaleX();
+			double n0 = floor( (w.GetPosX() /* - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX() */) / step ) * step ;
 
-        const double dig  = floor( log( 128.0 / w.GetScaleX() ) / mpLN10 );
-        const double step = exp( mpLN10 * dig);
-        const double end  = w.GetPosX() + (double)extend / w.GetScaleX();
+			wxString s, fmt;
 
-        wxCoord tx, ty;
-        wxString s;
-        wxString fmt;
-        int tmp = (int)dig;
-        if (m_labelType == mpX_NORMAL) {
+            int tmp = (int)dig;
             if (!m_labelFormat.IsEmpty()) {
                 fmt = m_labelFormat;
             } else {
@@ -871,168 +878,77 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
                     fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
                 }
             }
-        } else {
-            // reverse-calculation of 'm_scaleX'
-            double view_delta_x = end - w.GetPosX();
+			double n = 0;
 
-            // Date and/or time axis representation
-            if (m_labelType == mpX_DATETIME) {
-                fmt = (wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
-            } else if (m_labelType == mpX_DATE) {
-                fmt = (wxT("%04.0f-%02.0f-%02.0f"));
-            } else if ((m_labelType == mpX_TIME) && (end/60 < 2)) {
-                // Include milliseconds if within the first two minutes.
-                fmt = (wxT("%02.0f:%02.3f"));
-            } else if (m_labelType == mpX_TIMEOFDAY) {
-                if (view_delta_x < 2) {
-                    // Include milliseconds if the view is narrower than 2 seconds.
-                    fmt = (wxT("%02.0f:%02.0f:%02.3f"));
-                } else {
-                    fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-                }
-            } else {
-                fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-            }
+			wxCoord minYpx = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+			wxCoord maxYpx = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+#ifdef MATHPLOT_DO_LOGGING
+			wxLogMessage(wxT("mpScaleX::Plot: dig: %f , step: %f, end: %f, n: %f"), dig, step, end, n0);
+#endif
+			int maxExtent = 0;
+			for (n = n0; n < end; n += step) {
+				const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
+#ifdef MATHPLOT_DO_LOGGING
+				wxLogMessage(wxT("mpScaleX::Plot: n: %f -> p = %d"), n, p);
+				wxLogMessage(wxT("mpScaleX::Plot: Px range: %d,%d"), startPx, endPx);
+#endif
+				if ((p >= startPx) && (p <= endPx)) {
+					if (m_ticks) { // draw axis ticks
+						wxPen tickPen(w.GetAxesColour(), 2, wxPENSTYLE_DOT);
+						dc.SetPen(tickPen);
+						if (m_flags == mpALIGN_BORDER_BOTTOM)
+							dc.DrawLine(p, orgy, p, orgy - 4);
+						else
+							dc.DrawLine(p, orgy, p, orgy + 4);
+					}
+					if (m_grid) { // draw grid dotted lines
+						wxPen gridPen(w.GetGridColour(), 2, wxPENSTYLE_DOT);
+						dc.SetPen(gridPen);
+						if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
+							dc.DrawLine(p, orgy + 4, p, minYpx);
+						}
+						else {
+							if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
+								dc.DrawLine(p, orgy - 4, p, maxYpx);
+							}
+							else {
+								dc.DrawLine(p, 0/*-w.GetScrY()*/, p, w.GetScrY());
+							}
+						}
+						dc.SetPen(m_pen);
+					}
+					// Write ticks labels in s string
+
+					s.Printf(fmt, n);
+
+					dc.GetTextExtent(s, &tx, &ty);
+					labelH = (labelH <= ty) ? ty : labelH;
+
+					maxExtent = (tx > maxExtent) ? tx : maxExtent; // Keep in mind max label width
+				}
+			}
+			// Actually draw labels, taking care of not overlapping them, and distributing them regularly
+			double labelStep = ceil((maxExtent + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()*step))*step;
+			for (n = n0; n < end; n += labelStep) {
+				const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
+#ifdef MATHPLOT_DO_LOGGING
+				wxLogMessage(wxT("mpScaleX::Plot: n_label = %f -> p_label = %d"), n, p);
+#endif
+				if ((p >= startPx) && (p <= endPx)) {
+					// Write ticks labels in s string
+					s.Printf(fmt, n);
+
+					dc.GetTextExtent(s, &tx, &ty);
+					if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
+						dc.DrawText(s, p - tx / 2, orgy - 4 - ty);
+					}
+					else {
+						dc.DrawText(s, p - tx / 2, orgy + 4);
+					}
+				}
+			}
         }
 
-        //double n = floor( (w.GetPosX() - (double)extend / w.GetScaleX()) / step ) * step ;
-        double n0 = floor( (w.GetPosX() /* - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX() */) / step ) * step ;
-        double n = 0;
-#ifdef MATHPLOT_DO_LOGGING
-        wxLogMessage(wxT("mpScaleX::Plot: dig: %f , step: %f, end: %f, n: %f"), dig, step, end, n0);
-#endif
-        wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-        wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-        wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-        wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
-
-        tmp=-65535;
-        int labelH = 0; // Control labels heigth to decide where to put axis name (below labels or on top of axis)
-        int maxExtent = 0;
-        for (n = n0; n < end; n += step) {
-            const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
-#ifdef MATHPLOT_DO_LOGGING
-        wxLogMessage(wxT("mpScaleX::Plot: n: %f -> p = %d"), n, p);
-        wxLogMessage(wxT("mpScaleX::Plot: Px range: %d,%d"), startPx,endPx);
-#endif
-            if ((p >= startPx) && (p <= endPx)) {
-                if (m_ticks) { // draw axis ticks
-                    if (m_flags == mpALIGN_BORDER_BOTTOM)
-                        dc.DrawLine( p, orgy, p, orgy-4);
-                    else
-                        dc.DrawLine( p, orgy, p, orgy+4);
-                } else { // draw grid dotted lines
-                	wxPen gridPen(w.GetGridColour(), 2, wxPENSTYLE_DOT);
-					dc.SetPen(gridPen);
-                    if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
-                        dc.DrawLine( p, orgy+4, p, minYpx );
-                    } else {
-                        if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
-                            dc.DrawLine( p, orgy-4, p, maxYpx );
-                        } else {
-                            dc.DrawLine( p, 0/*-w.GetScrY()*/, p, w.GetScrY() );
-                        }
-                    }
-                    dc.SetPen(m_pen);
-                }
-                // Write ticks labels in s string
-                if (m_labelType == mpX_NORMAL)
-                    s.Printf(fmt, n);
-                else if (m_labelType == mpX_DATETIME) {
-                    time_t when = (time_t)(n>=0 ? n : 0);
-                    struct tm tm = *localtime(&when);
-                    s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday, (double)tm.tm_hour, (double)tm.tm_min, (double)tm.tm_sec);
-                } else if (m_labelType == mpX_TIMEOFDAY) {
-                    time_t when = (time_t)(n>=0 ? n : 0);
-                    struct tm tm = *localtime(&when);
-                    // Get fractional seconds.
-                    double seconds =  (double)tm.tm_sec + (n-(int64_t)n);
-    #ifdef MATHPLOT_DO_LOGGING
-                    wxLogMessage(wxT("mpX_TIMEOFDAY: %02.0f Hour, %02.0f Minute, %02.3f seconds"), (double)tm.tm_hour, (double)tm.tm_min, seconds);
-    #endif // MATHPLOT_DO_LOGGING
-                    s.Printf(fmt, (double)tm.tm_hour, (double)tm.tm_min, seconds);
-                } else if (m_labelType == mpX_DATE) {
-                    time_t when = (time_t)(n>=0 ? n : 0);
-                    struct tm tm = *localtime(&when);
-                    s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday);
-                } else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
-                    double modulus = fabs(n);
-                    double sign = n/modulus;
-                    double hh = floor(modulus/3600);
-                    double mm = floor((modulus - hh*3600)/60);
-                    double ss = modulus - hh*3600 - mm*60;
-    #ifdef MATHPLOT_DO_LOGGING
-                    wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
-    #endif // MATHPLOT_DO_LOGGING
-                    if (fmt.Len() == 20) // Format with hours has 11 chars
-                        s.Printf(fmt, sign*hh, mm, floor(ss));
-                    else
-                        s.Printf(fmt, sign*mm, ss);
-                }
-                dc.GetTextExtent(s, &tx, &ty);
-                labelH = (labelH <= ty) ? ty : labelH;
-/*                if ((p-tx/2-tmp) > 64) { // Problem about non-regular axis labels
-                    if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
-                        dc.DrawText( s, p-tx/2, orgy-4-ty);
-                    } else {
-                        dc.DrawText( s, p-tx/2, orgy+4);
-                    }
-                    tmp=p+tx/2;
-                }
-                */
-                maxExtent = (tx > maxExtent) ? tx : maxExtent; // Keep in mind max label width
-            }
-        }
-        // Actually draw labels, taking care of not overlapping them, and distributing them regularly
-        double labelStep = ceil((maxExtent + mpMIN_X_AXIS_LABEL_SEPARATION)/(w.GetScaleX()*step))*step;
-        for (n = n0; n < end; n += labelStep) {
-            const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
-#ifdef MATHPLOT_DO_LOGGING
-        wxLogMessage(wxT("mpScaleX::Plot: n_label = %f -> p_label = %d"), n, p);
-#endif
-            if ((p >= startPx) && (p <= endPx)) {
-                // Write ticks labels in s string
-                if (m_labelType == mpX_NORMAL)
-                    s.Printf(fmt, n);
-                else if (m_labelType == mpX_DATETIME) {
-                    time_t when = (time_t)n;
-                    struct tm tm = *localtime(&when);
-                    s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday, (double)tm.tm_hour, (double)tm.tm_min, (double)tm.tm_sec);
-                } else if (m_labelType == mpX_DATE) {
-                    time_t when = (time_t)n;
-                    struct tm tm = *localtime(&when);
-                    s.Printf(fmt, (double)tm.tm_year+1900, (double)tm.tm_mon+1, (double)tm.tm_mday);
-                } else if (m_labelType == mpX_TIMEOFDAY) {
-                    time_t when = (time_t)(n>=0 ? n : 0);
-                    struct tm tm = *localtime(&when);
-                    // Get fractional seconds.
-                    double seconds =  (double)tm.tm_sec + (n-(int64_t)n);
-    #ifdef MATHPLOT_DO_LOGGING
-                    wxLogMessage(wxT("mpX_TIMEOFDAY: %02.0f Hour, %02.0f Minute, %02.3f seconds"), (double)tm.tm_hour, (double)tm.tm_min, seconds);
-    #endif // MATHPLOT_DO_LOGGING
-                    s.Printf(fmt, (double)tm.tm_hour, (double)tm.tm_min, seconds);
-                } else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
-                    double modulus = fabs(n);
-                    double sign = n/modulus;
-                    double hh = floor(modulus/3600);
-                    double mm = floor((modulus - hh*3600)/60);
-                    double ss = modulus - hh*3600 - mm*60;
-    #ifdef MATHPLOT_DO_LOGGING
-                    wxLogMessage(wxT("%02.0f Hours, %02.0f minutes, %02.0f seconds"), sign*hh, mm, ss);
-    #endif // MATHPLOT_DO_LOGGING
-                    if (fmt.Len() == 20) // Format with hours has 11 chars
-                        s.Printf(fmt, sign*hh, mm, floor(ss));
-                    else
-                        s.Printf(fmt, sign*mm, ss);
-                }
-                dc.GetTextExtent(s, &tx, &ty);
-                if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
-                    dc.DrawText( s, p-tx/2, orgy-4-ty);
-                } else {
-                    dc.DrawText( s, p-tx/2, orgy+4);
-                }
-            }
-        }
 
         // Draw axis name
         dc.GetTextExtent(m_name, &tx, &ty);
@@ -1064,19 +980,223 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
             break;
         }
     }
-/*    if (m_flags != mpALIGN_TOP) {
-
-        if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
-            dc.DrawText( m_name, extend - tx - 4, orgy - 4 - (ty*2));
-        } else {
-            dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty); //orgy + 4 + ty);
-        }
-    }; */
 }
 //#pragma endregion
 
 //#pragma region mpScaleY
 IMPLEMENT_DYNAMIC_CLASS(mpScaleY, mpLayer)
+
+//int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoord endPx) {
+//	const int extend = w.GetScrX();
+//	const double dig = floor(log(128.0 / w.GetScaleX()) / mpLN10);
+//	const double step = exp(mpLN10 * dig);
+//	const double end = w.GetPosX() + (double)extend / w.GetScaleX();
+//	double n0 = floor((w.GetPosX() /* - (double)(extend - w.GetMarginLeft() - w.GetMarginRight())/ w.GetScaleX() */) / step) * step;
+//
+//	wxCoord tx, ty;
+//	wxString fmt, s;
+//
+//	double view_delta_x = end - w.GetPosX(); // reverse-calculation of 'm_scaleX'
+//	if (m_labelType == mpX_DATETIME) {
+//		fmt = (wxT("%Y-%m-%dT%H:%M:%S"));//(wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
+//	}
+//	else if (m_labelType == mpX_DATE) {
+//		long long int interval = end - n0;
+//		if (interval > 3600 * 24 * 10000) {  //Year intervals
+//			fmt = (wxT("%Y"));
+//		}
+//		else if (interval > 3600 * 24 * 730)
+//			fmt = "%Y";
+//		else if (interval > 3600 * 24 * 300)
+//			fmt = "%b-%Y";
+//		else if (interval > 3600 * 24 * 60)
+//			fmt = "%b-%Y";
+//		else //if (interval > 3600 * 24 * 14)
+//			fmt = (wxT("%d %b %Y"));
+//			//DrawDayGridTicksAndLabel(dc, w, orgy, 5);
+//		//else
+//			//DrawDayGridTicksAndLabel(dc, w, orgy);
+//	}
+//	else if ((m_labelType == mpX_TIME) && (end / 60 < 2)) {	// Include milliseconds if within the first two minutes.
+//		fmt = (wxT("%02.0f:%02.3f"));
+//	}
+//	else if (m_labelType == mpX_TIMEOFDAY) {
+//		if (view_delta_x < 2) {		// Include milliseconds if the view is narrower than 2 seconds.
+//			fmt = (wxT("%02.0f:%02.0f:%02.3f"));
+//		}
+//		else {
+//			fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+//		}
+//	}
+//	else {
+//		fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+//	}
+//
+//	double n = 0;
+//	wxCoord minYpx = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+//	wxCoord maxYpx = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+//
+//	int labelH = 0; // Control labels heigth to decide where to put axis name (below labels or on top of axis)
+//	int maxExtent = 0;
+//
+//	// Actually draw labels, taking care of not overlapping them, and distributing them regularly
+//	double labelStep = ceil((maxExtent + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()*step))*step;
+//	//for (n = n0; n < end; n += labelStep) {
+//
+//	wxDateTime xTime((wxLongLong)(n * 1000));
+//	wxDateTime endTime((wxLongLong)(end * 1000));
+//	while (xTime < end){
+//		const int p = (int)((n - w.GetPosX()) * w.GetScaleX());
+//
+//		if ((p >= startPx) && (p <= endPx)) {	// Write ticks labels in s string
+//			if (m_labelType == mpX_DATETIME || m_labelType == mpX_DATE) {
+//				s.Printf("%s", xTime.Format(fmt));
+//
+//			}
+//			else if (m_labelType == mpX_TIMEOFDAY) {
+//				time_t when = (time_t)(n >= 0 ? n : 0);
+//				struct tm tm = *localtime(&when);
+//				// Get fractional seconds.
+//				double seconds = (double)tm.tm_sec + (n - (int64_t)n);
+//				s.Printf(fmt, (double)tm.tm_hour, (double)tm.tm_min, seconds);
+//			}
+//			else if ((m_labelType == mpX_TIME) || (m_labelType == mpX_HOURS)) {
+//				double modulus = fabs(n);
+//				double sign = n / modulus;
+//				double hh = floor(modulus / 3600);
+//				double mm = floor((modulus - hh * 3600) / 60);
+//				double ss = modulus - hh * 3600 - mm * 60;
+//				if (fmt.Len() == 20) // Format with hours has 11 chars
+//					s.Printf(fmt, sign*hh, mm, floor(ss));
+//				else
+//					s.Printf(fmt, sign*mm, ss);
+//			}
+//			//wxLogMessage(s);
+//			dc.GetTextExtent(s, &tx, &ty);
+//			if ((m_flags == mpALIGN_BORDER_BOTTOM) || (m_flags == mpALIGN_TOP)) {
+//				dc.DrawText(s, p - tx / 2, orgy - 4 - ty);
+//			}
+//			else {
+//				dc.DrawText(s, p - tx / 2, orgy + 4);
+//			}
+//		}
+//		n = xTime.GetTicks();  //n + labelStep;
+//	}
+//	return labelH;
+//}
+
+int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoord endPx) {
+	wxCoord tx, ty;
+	wxString fmt = "", s;
+	long long int n0 = floor(w.GetPosX());
+	long long int end = w.GetPosX() + (double)w.GetScrX() / w.GetScaleX();
+	wxCoord minYpx = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+	wxCoord maxYpx = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+
+	wxDateTime current((wxLongLong)n0*1000);
+	if (current == wxInvalidDateTime) return 0;
+	if (n0 < -pow(2, 37)) return 0;
+	if (end > (pow(2, 63) - 2)) return 0;
+	current.SetDay(1);
+	current.SetMonth(wxDateTime::Month(0));
+
+	wxDateTime whenEnd((wxLongLong)end*1000);
+
+	wxDateSpan step = 0;
+	if (m_labelType == mpX_DATETIME) {
+		fmt = (wxT("%Y-%m-%dT%H:%M:%S"));	//(wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
+    dc.GetTextExtent("9999", &tx, &ty);
+    double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()* 3600*24));
+    step.SetDays(labelStep);
+	}
+	else if (m_labelType == mpX_DATE) {
+		long long int interval = end - n0;
+		if (interval > 3600 * 24 * 8000) {  //Year intervals
+			fmt = (wxT("%Y"));
+			dc.GetTextExtent("9999", &tx, &ty);
+			double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()* 3600 * 24 * 365));
+			step.SetYears(labelStep);
+		}
+		else if (interval > 3600 * 24 * 1000) {
+			fmt = "%Y";
+			step.SetYears(1);
+		}
+		else if (interval > 3600 * 24 * 300) {
+			fmt = "%b-%Y";
+      dc.GetTextExtent("aaa-99", &tx, &ty);
+      double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()* 3600 * 24 * 30));
+			step.SetMonths(labelStep);
+		}
+		else if (interval > 3600 * 24 * 80) {
+			fmt = "%b-%Y";
+			step.SetMonths(1);
+		}
+		else {
+			fmt = (wxT("%d %b %Y"));
+      dc.GetTextExtent("99 mmm 99", &tx, &ty);
+      double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()* 3600 * 24));
+			step.SetDays(labelStep);
+		}
+	}
+	else if ((m_labelType == mpX_TIME) && (end / 60 < 2)) {	// Include milliseconds if within the first two minutes.
+		fmt = (wxT("%02.0f:%02.3f"));
+	}
+	//else if (m_labelType == mpX_TIMEOFDAY) {
+	//	if (view_delta_x < 2) {		// Include milliseconds if the view is narrower than 2 seconds.
+	//		fmt = (wxT("%02.0f:%02.0f:%02.3f"));
+	//	}
+	//	else {
+	//		fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+	//	}
+	//}
+	else {
+		fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+	}
+
+	while (current < whenEnd) {
+		current.Add(step);
+		if (current == wxInvalidDateTime) break;
+		const int p = (long long int)((current.GetValue().GetValue() / 1000 - w.GetPosX()) * w.GetScaleX());
+
+		s.Printf("%s", current.Format(fmt));//"%04d", current.GetYear()); //
+		dc.GetTextExtent(s, &tx, &ty);
+		if ((p >= startPx) && (p <= endPx)) {
+			//m_pen.SetColour(w.m_axColour);
+			dc.DrawText(s, p - tx / 2, orgy + 4);
+
+			if (m_grid)
+			{ // draw grid dotted lines
+				wxPen gridPen(w.GetGridColour(), 1, wxPENSTYLE_DOT);
+				dc.SetPen(gridPen);
+				if ((m_flags == mpALIGN_BOTTOM) && !m_drawOutsideMargins) {
+					dc.DrawLine(p, orgy, p, minYpx);
+				}
+				else {
+					if ((m_flags == mpALIGN_TOP) && !m_drawOutsideMargins) {
+						dc.DrawLine(p, orgy - 4, p, maxYpx);
+					}
+					else {
+						dc.DrawLine(p, 0/*-w.GetScrY()*/, p, w.GetScrY());
+					}
+				}
+				dc.SetPen(m_pen);
+			}
+			if (m_ticks){ // draw axis ticks
+				wxPen tickPen(w.GetAxesColour(), 1, wxPENSTYLE_SOLID);
+				dc.SetPen(tickPen);
+				if (m_flags == mpALIGN_BORDER_BOTTOM)
+					dc.DrawLine(p, orgy, p, orgy - 4);
+				else
+					dc.DrawLine(p, orgy, p, orgy + 4);
+			}
+		}
+	}
+
+	dc.GetTextExtent(s, &tx, &ty);
+	int labelH = ty;//(labelH <= ty) ? ty : labelH;
+	return labelH;
+}
+
 
 mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
 {
@@ -1085,6 +1205,7 @@ mpScaleY::mpScaleY(wxString name, int flags, bool ticks)
     SetPen( (wxPen&) *wxGREY_PEN);
     m_flags = flags;
     m_ticks = ticks;
+    m_grid = !ticks;
     m_type = mpLAYER_AXIS;
     m_labelFormat = wxT("");
 }
@@ -1116,7 +1237,6 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
         if (m_flags == mpALIGN_BORDER_LEFT )
             orgx = 1; //-dc.LogicalToDeviceX(0);
 
-
         // Draw line
         dc.DrawLine( orgx, 0, orgx, extend);
 
@@ -1139,21 +1259,12 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
         double endscale = (maxScaleAbs > minScaleAbs) ? maxScaleAbs : minScaleAbs;
         if (m_labelFormat.IsEmpty()) {
             if ((endscale < 1e4) && (endscale > 1e-3))
-                fmt = wxT("%.2f");
+                fmt = wxT("%.2f"); //????????????
             else
                 fmt = wxT("%.1e");
         } else {
             fmt = m_labelFormat;
         }
-    /*    if (tmp>=1)
-        {*/
-        //    fmt = wxT("%7.5g");
-    //     }
-    //     else
-    //     {
-    //         tmp=8-tmp;
-    //         fmt.Printf(wxT("%%.%dg"), (tmp >= -1) ? 2 : -tmp);
-    //     }
 
         double n = floor( (w.GetPosY() - (double)(extend - w.GetMarginTop() - w.GetMarginBottom())/ w.GetScaleY()) / step ) * step ;
 
@@ -1164,51 +1275,54 @@ void mpScaleY::Plot(wxDC & dc, mpWindow & w)
 
         tmp=65536;
         int labelW = 0;
-        // Before staring cycle, calculate label height
+        // Before starting loop, calculate label height
         int labelHeigth = 0;
         s.Printf(fmt,n);
         dc.GetTextExtent(s, &tx, &labelHeigth);
         for (;n < end; n += step) {
             const int p = (int)((w.GetPosY() - n) * w.GetScaleY());
-        if ((p >= minYpx) && (p <= maxYpx)) {
-            if (m_ticks) { // Draw axis ticks
-                if (m_flags == mpALIGN_BORDER_LEFT) {
-                    dc.DrawLine( orgx, p, orgx+4, p);
-                } else {
-                    dc.DrawLine( orgx-4, p, orgx, p); //( orgx, p, orgx+4, p);
-                }
-            } else {
-            	wxPen gridPen(w.GetGridColour(), 2, wxPENSTYLE_DOT);
-				dc.SetPen(gridPen);
-                if ((m_flags == mpALIGN_LEFT) && !m_drawOutsideMargins) {
-                    dc.DrawLine( orgx-4, p, endPx, p);
-                } else {
-                    if ((m_flags == mpALIGN_RIGHT) && !m_drawOutsideMargins) {
-                    dc.DrawLine( minYpx, p, orgx+4, p);
-                                } else {
-                    dc.DrawLine( 0/*-w.GetScrX()*/, p, w.GetScrX(), p);
-                        }
-                }
-                dc.SetPen( m_pen);
-            }
-            // Print ticks labels
-            s.Printf(fmt, n);
-            dc.GetTextExtent(s, &tx, &ty);
-#ifdef MATHPLOT_DO_LOGGING
-            if (ty != labelHeigth) wxLogMessage(wxT("mpScaleY::Plot: ty(%f) and labelHeigth(%f) differ!"), ty, labelHeigth);
-#endif
-            labelW = (labelW <= tx) ? tx : labelW;
-            if ((tmp-p+labelHeigth/2) > mpMIN_Y_AXIS_LABEL_SEPARATION) {
-                if ((m_flags == mpALIGN_BORDER_LEFT) || (m_flags == mpALIGN_RIGHT))
-                    dc.DrawText( s, orgx+4, p-ty/2);
-                else
-                    dc.DrawText( s, orgx-4-tx, p-ty/2); //( s, orgx+4, p-ty/2);
-                tmp=p-labelHeigth/2;
-            }
+			if ((p >= minYpx) && (p <= maxYpx)) {
+				if (m_grid) { //Draw grid lines
+            		wxPen gridPen(w.GetGridColour(), 1, wxPENSTYLE_DOT);
+					dc.SetPen(gridPen);
+					if ((m_flags == mpALIGN_LEFT) && !m_drawOutsideMargins) {
+						dc.DrawLine( orgx-4, p, endPx, p);
+					} else {
+						if ((m_flags == mpALIGN_RIGHT) && !m_drawOutsideMargins) {
+						dc.DrawLine( minYpx, p, orgx+4, p);
+									} else {
+						dc.DrawLine( 0/*-w.GetScrX()*/, p, w.GetScrX(), p);
+							}
+
+					}
+					dc.SetPen( m_pen);
+				}
+				if (m_ticks) {// Draw axis ticks
+  				if (m_flags == mpALIGN_BORDER_LEFT) {
+  					dc.DrawLine(orgx, p, orgx + 4, p);
+  				}
+  				else {
+  					dc.DrawLine(orgx - 4, p, orgx+1, p); //( orgx, p, orgx+4, p);
+  				}
         }
+
+				// Print ticks labels
+				s.Printf(fmt, n);
+				dc.GetTextExtent(s, &tx, &ty);
+	#ifdef MATHPLOT_DO_LOGGING
+				if (ty != labelHeigth) wxLogMessage(wxT("mpScaleY::Plot: ty(%f) and labelHeigth(%f) differ!"), ty, labelHeigth);
+	#endif
+				labelW = (labelW <= tx) ? tx : labelW;
+				if ((tmp-p+labelHeigth/2) > mpMIN_Y_AXIS_LABEL_SEPARATION) {
+					if ((m_flags == mpALIGN_BORDER_LEFT) || (m_flags == mpALIGN_RIGHT))
+						dc.DrawText( s, orgx+4, p-ty/2);
+					else
+						dc.DrawText( s, orgx-4-tx, p-ty/2); //( s, orgx+4, p-ty/2);
+					tmp=p-labelHeigth/2;
+				}
+			}
         }
         // Draw axis name
-
         dc.GetTextExtent(m_name, &tx, &ty);
         switch (m_flags) {
             case mpALIGN_BORDER_LEFT:
@@ -1322,6 +1436,8 @@ mpWindow::mpWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     SetBackgroundColour( *wxWHITE );
      m_bgColour = *wxWHITE;
      m_fgColour = *wxBLACK;
+     m_axColour = *wxBLACK;
+     m_grColour = wxColour(200, 200, 200);
 
     m_enableScrollBars = false;
     SetSizeHints(128, 128);
@@ -3004,7 +3120,7 @@ bool mpPrintout::OnPrintPage(int page)
                         &m_prnX,
                         &m_prnY );
 
-        // Get the colours of the plotWindow to restore them ath the end
+        // Get the colours of the plotWindow to restore them at the end
         wxColour oldBgColour = plotWindow->GetBackgroundColour();
         wxColour oldFgColour = plotWindow->GetForegroundColour();
         wxColour oldAxColour = plotWindow->GetAxesColour();

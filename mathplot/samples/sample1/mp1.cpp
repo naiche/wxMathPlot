@@ -109,6 +109,7 @@ public:
     void OnFit( wxCommandEvent &event );
     void OnAlignXAxis( wxCommandEvent &event );
     void OnAlignYAxis( wxCommandEvent &event );
+    void OnToggleTicks( wxCommandEvent &event );
     void OnToggleGrid( wxCommandEvent &event );
     void OnToggleScrollbars(wxCommandEvent& event);
     void OnToggleInfoLayer(wxCommandEvent& event);
@@ -150,6 +151,7 @@ enum {
     ID_PRINT_PREVIEW,
     ID_ALIGN_X_AXIS,
     ID_ALIGN_Y_AXIS,
+    ID_TOGGLE_TICKS,
     ID_TOGGLE_GRID,
     ID_TOGGLE_SCROLLBARS,
     ID_TOGGLE_INFO,
@@ -171,6 +173,7 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(mpID_FIT, MyFrame::OnFit)
   EVT_MENU(ID_ALIGN_X_AXIS, MyFrame::OnAlignXAxis)
   EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
+  EVT_MENU(ID_TOGGLE_TICKS, MyFrame::OnToggleTicks)
   EVT_MENU(ID_TOGGLE_GRID, MyFrame::OnToggleGrid)
   EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
   EVT_MENU(ID_TOGGLE_INFO, MyFrame::OnToggleInfoLayer)
@@ -202,7 +205,9 @@ MyFrame::MyFrame()
     view_menu->AppendSeparator();
     view_menu->Append( ID_ALIGN_X_AXIS, wxT("Switch &X axis align"));
     view_menu->Append( ID_ALIGN_Y_AXIS, wxT("Switch &Y axis align"));
-    view_menu->AppendCheckItem( ID_TOGGLE_GRID, wxT("Show grid/ticks"));
+    view_menu->AppendCheckItem( ID_TOGGLE_TICKS, wxT("Show ticks"));    
+    view_menu->Check(ID_TOGGLE_TICKS, false);
+    view_menu->AppendCheckItem( ID_TOGGLE_GRID, wxT("Show grid"));    
     view_menu->Check(ID_TOGGLE_GRID, true);
     view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
     view_menu->AppendCheckItem( ID_TOGGLE_INFO, wxT("Show overlay info box"));
@@ -247,7 +252,7 @@ MyFrame::MyFrame()
 
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    mpScaleX* xaxis = new mpScaleX(wxT("X value"), mpALIGN_BOTTOM, false, mpX_NORMAL);
+    mpScaleX* xaxis = new mpScaleX(wxT("X value"), mpALIGN_BOTTOM, false, mpX_DATE);//
     mpScaleY* yaxis = new mpScaleY(wxT("Y value"), mpALIGN_LEFT, false);
     xaxis->SetFont(graphFont);
     yaxis->SetFont(graphFont);
@@ -414,10 +419,17 @@ void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
     m_plot->UpdateAll();
 }
 
+void MyFrame::OnToggleTicks( wxCommandEvent& event) //&WXUNUSED(event) )
+{
+    ((mpScaleX*)(m_plot->GetLayer(0)))->SetTicks(event.IsChecked());
+    ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(event.IsChecked());
+    m_plot->UpdateAll();
+}
+
 void MyFrame::OnToggleGrid( wxCommandEvent& event) //&WXUNUSED(event) )
 {
-    ((mpScaleX*)(m_plot->GetLayer(0)))->SetTicks(!event.IsChecked());
-    ((mpScaleY*)(m_plot->GetLayer(1)))->SetTicks(!event.IsChecked());
+    ((mpScaleX*)(m_plot->GetLayer(0)))->SetGrid(event.IsChecked());
+    ((mpScaleY*)(m_plot->GetLayer(1)))->SetGrid(event.IsChecked());
     m_plot->UpdateAll();
 }
 
