@@ -252,7 +252,7 @@ MyFrame::MyFrame()
 
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    mpScaleX* xaxis = new mpScaleX(wxT("X value"), mpALIGN_BOTTOM, false, mpX_DATE);//
+    mpScaleX* xaxis = new mpScaleX(wxT("X value"), mpALIGN_BOTTOM, false, mpX_NORMAL);//
     mpScaleY* yaxis = new mpScaleY(wxT("Y value"), mpALIGN_LEFT, false);
     xaxis->SetFont(graphFont);
     yaxis->SetFont(graphFont);
