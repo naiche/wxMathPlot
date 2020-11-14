@@ -1004,7 +1004,7 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
   bool isTimeStep = false;
   wxTimeSpan timeStep = 0;
 	wxDateSpan dateStep = 0;
-
+  bool isMiliSec = false;
 
 	long long int interval = end - n0;
 	if (interval > 3600 * 24 * 8000) {  //Year intervals
@@ -1039,7 +1039,7 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
 	}
   else if (m_labelType == mpX_DATETIME) {
     isTimeStep = true;
-    fmt = (wxT("%Y-%m-%dT%H:%M:%S"));	//(wxT("%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%02.0f"));
+    fmt = (wxT("%Y-%m-%dT%H:%M:%S"));
     dc.GetTextExtent("9999-19-99T99:99", &tx, &ty);
     if (interval > 3600 * 3) {
       double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()*3600));
@@ -1049,9 +1049,15 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
       double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()*60));
       timeStep = wxTimeSpan(0,labelStep,0,0);//   .Set(labelStep);
     }
-    else {
+    else if (interval > 4) {
       double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()));
       timeStep = wxTimeSpan(0,0,labelStep,0);//   .Set(labelStep);
+    }
+    else {
+      dc.GetTextExtent("9999-19-99T99:99.9", &tx, &ty);
+      double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()/1000));
+      timeStep = wxTimeSpan(0, 0, 0, labelStep);//   .Set(labelStep);
+      isMiliSec = true;
     }
   }
 
@@ -1081,10 +1087,14 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
       current.Add(dateStep);
 
     if (current == wxInvalidDateTime) break;
-		const int p = (long long int)((current.GetValue().GetValue() / 1000 - w.GetPosX()) * w.GetScaleX());
+		const double p = (((double)current.GetValue().GetValue()/1000 - w.GetPosX()) * w.GetScaleX());
+      wxLogMessage(wxT("ScaleX: %f, PosX %f, P: %f, %ld"), w.GetScaleX(), w.GetPosX(), p, current.GetValue().GetValue());
+    if (isMiliSec)
+		  s.Printf("%s.%03d", current.Format(fmt), current.GetMillisecond());
+    else
+      s.Printf("%s", current.Format(fmt));
 
-		s.Printf("%s", current.Format(fmt));//"%04d", current.GetYear()); //
-		dc.GetTextExtent(s, &tx, &ty);
+    dc.GetTextExtent(s, &tx, &ty);
 		if ((p >= startPx) && (p <= endPx)) {
 			//m_pen.SetColour(w.m_axColour);
 			dc.DrawText(s, p - tx / 2, orgy + 4);
