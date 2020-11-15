@@ -1007,6 +1007,35 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
   bool isMiliSec = false;
 
 	long long int interval = end - n0;
+
+  // if ((m_labelType == mpX_TIME) {
+  //   fmt = (wxT("%Y-%m-%dT%H:%M:%S"));
+  //   // else if (interval > 4) {
+  //   //   double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()));
+  //   //   timeStep = wxTimeSpan(0,0,labelStep,0);//   .Set(labelStep);
+  //   // }
+  //   // else {
+  //   //   dc.GetTextExtent("9999-19-99T99:99.9", &tx, &ty);
+  //   //   double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()/1000));
+  //   //   timeStep = wxTimeSpan(0, 0, 0, labelStep);//   .Set(labelStep);
+  //   //   isMiliSec = true;
+  //   // }
+  //   fmt = (wxT("%02.0f:%02.3f"));
+  // }
+  //
+  // else if (m_labelType == mpX_TIMEOFDAY) {
+  // 	if (view_delta_x < 2) {		// Include milliseconds if the view is narrower than 2 seconds.
+  // 		fmt = (wxT("%02.0f:%02.0f:%02.3f"));
+  // 	}
+  // 	else {
+  // 		fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+  // 	}
+  // }
+  // else {
+  // 	fmt = (wxT("%02.0f:%02.0f:%02.0f"));
+  // }
+
+
 	if (interval > 3600 * 24 * 8000) {  //Year intervals
 		fmt = (wxT("%Y"));
 		dc.GetTextExtent("9999", &tx, &ty);
@@ -1037,7 +1066,7 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
     fmt = (wxT("%d %b %Y"));
     dateStep.SetDays(1);
 	}
-  else if (m_labelType == mpX_DATETIME) {
+  else if (m_labelType == mpX_DATETIME || m_labelType == mpX_HOURS) {
     isTimeStep = true;
     fmt = (wxT("%Y-%m-%dT%H:%M:%S"));
     dc.GetTextExtent("9999-19-99T99:99", &tx, &ty);
@@ -1061,20 +1090,6 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
     }
   }
 
-	// else if ((m_labelType == mpX_TIME) && (end / 60 < 2)) {	// Include milliseconds if within the first two minutes.
-	// 	fmt = (wxT("%02.0f:%02.3f"));
-	// }
-	// //else if (m_labelType == mpX_TIMEOFDAY) {
-	// //	if (view_delta_x < 2) {		// Include milliseconds if the view is narrower than 2 seconds.
-	// //		fmt = (wxT("%02.0f:%02.0f:%02.3f"));
-	// //	}
-	// //	else {
-	// //		fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-	// //	}
-	// //}
-	// else {
-	// 	fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-	// }
   if(!isTimeStep){
     current.SetDay(1);
     current.SetMonth(wxDateTime::Month(0));
@@ -1088,8 +1103,18 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
 
     if (current == wxInvalidDateTime) break;
 		const double p = (((double)current.GetValue().GetValue()/1000 - w.GetPosX()) * w.GetScaleX());
-      wxLogMessage(wxT("ScaleX: %f, PosX %f, P: %f, %ld"), w.GetScaleX(), w.GetPosX(), p, current.GetValue().GetValue());
-    if (isMiliSec)
+      //wxLogMessage(wxT("ScaleX: %f, PosX %f, P: %f, %ld"), w.GetScaleX(), w.GetPosX(), p, current.GetValue().GetValue());
+
+    if (m_labelType == mpX_HOURS) {
+      long hour = (long)current.GetValue().GetValue()/1000/3600;
+      int remainder = abs((long)(current.GetValue().GetValue()/1000) % 3600);
+      if (hour == 0 && current.GetTicks() < 0) {
+        s.Printf(wxT("-%02ld:%02d:%02d"), hour, remainder/60, remainder % 60);
+      }else{
+        s.Printf(wxT("%02ld:%02d:%02d"), hour, remainder/60, remainder % 60);
+      }
+    }
+    else if (isMiliSec)
 		  s.Printf("%s.%03d", current.Format(fmt), current.GetMillisecond());
     else
       s.Printf("%s", current.Format(fmt));
