@@ -1066,9 +1066,12 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
     fmt = (wxT("%d %b %Y"));
     dateStep.SetDays(1);
 	}
-  else if (m_labelType == mpX_DATETIME || m_labelType == mpX_HOURS) {
+  else {//if (m_labelType == mpX_DATETIME || m_labelType == mpX_HOURS || m_labelType == mpX_TIME || m_labelType == mpX_TIMEOFDAY) {
     isTimeStep = true;
-    fmt = (wxT("%Y-%m-%dT%H:%M:%S"));
+    if ((m_labelType == mpX_TIME) || (m_labelType == mpX_TIMEOFDAY))
+       fmt = (wxT("%H:%M:%S"));
+    else
+       fmt = (wxT("%Y-%m-%dT%H:%M:%S"));
     dc.GetTextExtent("9999-19-99T99:99", &tx, &ty);
     if (interval > 3600 * 3) {
       double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()*3600));
@@ -1115,9 +1118,15 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
       }
     }
     else if (isMiliSec)
-		  s.Printf("%s.%03d", current.Format(fmt), current.GetMillisecond());
+      if (m_labelType == mpX_TIMEOFDAY)
+		    s.Printf("%s.%03d", current.Format(fmt), current.GetMillisecond());
+      else
+        s.Printf("%s.%03d", current.Format(fmt, wxDateTime::GMT0), current.GetMillisecond());
     else
-      s.Printf("%s", current.Format(fmt));
+      if (m_labelType == mpX_TIMEOFDAY)
+        s.Printf("%s", current.Format(fmt));
+      else
+        s.Printf("%s", current.Format(fmt, wxDateTime::GMT0));
 
     dc.GetTextExtent(s, &tx, &ty);
 		if ((p >= startPx) && (p <= endPx)) {
@@ -1653,11 +1662,11 @@ mpWindow::~mpWindow()
             wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));//(time_t)ticks);
             switch(scaleX->GetLabelMode()){
               case mpX_DATE:
-                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y"));
+                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
                 break;
               case mpX_DATETIME:
                 //wxLogMessage(_("x: %ld"), ticks);
-                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S"));
+                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
                 //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
                 break;
               case mpX_TIMEOFDAY:
