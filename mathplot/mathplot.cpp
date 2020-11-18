@@ -3,7 +3,7 @@
 // Purpose:         Framework for plotting in wxWindows
 // Original Author: David Schalig
 // Maintainer:      Davide Rondini
-// Contributors:    Jose Luis Blanco, Val Greene, R1kk3r
+// Contributors:    Jose Luis Blanco, Val Greene, R1kk3r, Naiche Barcelos
 // Created:         21/07/2003
 // Last edit:       26/11/2014
 // Copyright:       (c) David Schalig, Davide Rondini
@@ -820,14 +820,14 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
         dc.SetPen( m_pen);
         dc.SetFont( m_font);
         int orgy=0;
-		wxCoord tx, ty;
-		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-		wxCoord endPx = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-		int labelH = 0; // Control labels heigth to decide where to put axis name (below labels or on top of axis)
+    		wxCoord tx, ty;
+    		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+    		wxCoord endPx = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+    		int labelH = 0; // Control labels heigth to decide where to put axis name (below labels or on top of axis)
 
         const int extend = w.GetScrX(); //  /2;
         if (m_flags == mpALIGN_CENTER)
-          orgy   = w.y2p(0); //(int)(w.GetPosY() * w.GetScaleY());
+            orgy   = w.y2p(0); //(int)(w.GetPosY() * w.GetScaleY());
         if (m_flags == mpALIGN_TOP) {
             if (m_drawOutsideMargins)
                 orgy = X_BORDER_SEPARATION;
@@ -867,17 +867,17 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 
 			wxString s, fmt;
 
-            int tmp = (int)dig;
-            if (!m_labelFormat.IsEmpty()) {
-                fmt = m_labelFormat;
-            } else {
-                if (tmp>=1) {
-                    fmt = wxT("%.f");
-                } else {
-                    tmp=8-tmp;
-                    fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
-                }
-            }
+      int tmp = (int)dig;
+      if (!m_labelFormat.IsEmpty()) {
+          fmt = m_labelFormat;
+      } else {
+          if (tmp>=1) {
+              fmt = wxT("%.f");
+          } else {
+              tmp=8-tmp;
+              fmt.Printf(wxT("%%.%df"), tmp >= -1 ? 2 : -tmp);
+          }
+      }
 			double n = 0;
 
 			wxCoord minYpx = m_drawOutsideMargins ? 0 : w.GetMarginTop();
@@ -947,39 +947,38 @@ void mpScaleX::Plot(wxDC & dc, mpWindow & w)
 					}
 				}
 			}
-        }
-
-
-        // Draw axis name
-        dc.GetTextExtent(m_name, &tx, &ty);
-        switch (m_flags) {
-            case mpALIGN_BORDER_BOTTOM:
-                dc.DrawText( m_name, extend - tx - 4, orgy - 8 - ty - labelH);
-            break;
-            case mpALIGN_BOTTOM: {
-                if ((!m_drawOutsideMargins) && (w.GetMarginBottom() > (ty + labelH + 8))) {
-                    dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy + 6 + labelH);
-                } else {
-                    dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
-                }
-            } break;
-            case mpALIGN_CENTER:
-                dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
-            break;
-            case mpALIGN_TOP: {
-                if ((!m_drawOutsideMargins) && (w.GetMarginTop() > (ty + labelH + 8))) {
-                    dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy - 6 - ty - labelH);
-                } else {
-                    dc.DrawText( m_name, extend - tx - 4, orgy + 4);
-                }
-            } break;
-            case mpALIGN_BORDER_TOP:
-                dc.DrawText( m_name, extend - tx - 4, orgy + 6 + labelH);
-            break;
-            default:
-            break;
-        }
     }
+
+    // Draw axis name
+    dc.GetTextExtent(m_name, &tx, &ty);
+    switch (m_flags) {
+        case mpALIGN_BORDER_BOTTOM:
+            dc.DrawText( m_name, extend - tx - 4, orgy - 8 - ty - labelH);
+        break;
+        case mpALIGN_BOTTOM: {
+            if ((!m_drawOutsideMargins) && (w.GetMarginBottom() > (ty + labelH + 8))) {
+                dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy + 6 + labelH);
+            } else {
+                dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
+            }
+        } break;
+        case mpALIGN_CENTER:
+            dc.DrawText( m_name, extend - tx - 4, orgy - 4 - ty);
+        break;
+        case mpALIGN_TOP: {
+            if ((!m_drawOutsideMargins) && (w.GetMarginTop() > (ty + labelH + 8))) {
+                dc.DrawText( m_name, (endPx - startPx - tx)>>1, orgy - 6 - ty - labelH);
+            } else {
+                dc.DrawText( m_name, extend - tx - 4, orgy + 4);
+            }
+        } break;
+        case mpALIGN_BORDER_TOP:
+            dc.DrawText( m_name, extend - tx - 4, orgy + 6 + labelH);
+        break;
+        default:
+        break;
+    }
+  }
 }
 //#pragma endregion
 
@@ -1007,34 +1006,6 @@ int mpScaleX::DatePlot(wxDC & dc, mpWindow & w, int orgy, wxCoord startPx, wxCoo
   bool isMiliSec = false;
 
 	long long int interval = end - n0;
-
-  // if ((m_labelType == mpX_TIME) {
-  //   fmt = (wxT("%Y-%m-%dT%H:%M:%S"));
-  //   // else if (interval > 4) {
-  //   //   double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()));
-  //   //   timeStep = wxTimeSpan(0,0,labelStep,0);//   .Set(labelStep);
-  //   // }
-  //   // else {
-  //   //   dc.GetTextExtent("9999-19-99T99:99.9", &tx, &ty);
-  //   //   double labelStep = ceil((tx + mpMIN_X_AXIS_LABEL_SEPARATION) / (w.GetScaleX()/1000));
-  //   //   timeStep = wxTimeSpan(0, 0, 0, labelStep);//   .Set(labelStep);
-  //   //   isMiliSec = true;
-  //   // }
-  //   fmt = (wxT("%02.0f:%02.3f"));
-  // }
-  //
-  // else if (m_labelType == mpX_TIMEOFDAY) {
-  // 	if (view_delta_x < 2) {		// Include milliseconds if the view is narrower than 2 seconds.
-  // 		fmt = (wxT("%02.0f:%02.0f:%02.3f"));
-  // 	}
-  // 	else {
-  // 		fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-  // 	}
-  // }
-  // else {
-  // 	fmt = (wxT("%02.0f:%02.0f:%02.0f"));
-  // }
-
 
 	if (interval > 3600 * 24 * 8000) {  //Year intervals
 		fmt = (wxT("%Y"));
@@ -1657,9 +1628,7 @@ mpWindow::~mpWindow()
             break;
           }
           default:
-            //time_t ticks = (time_t)pointInfo.second.x;
-            //if (ticks == -1) ticks = (time_t)0; //-1 is wxInvalidDateTime
-            wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));//(time_t)ticks);
+            wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
             switch(scaleX->GetLabelMode()){
               case mpX_DATE:
                 valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));

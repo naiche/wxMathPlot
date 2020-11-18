@@ -1,9 +1,5 @@
 This fork's purpose is to make available any enhancements/fixes made when using this code.
 
-TODO:
-  * Fix error when zooming out or panning too far (mpX_DATE, mpX_DATETIME or mpX_TIME)
-  * Use wxDateTime instead of time_t
-
 DONE:
   * Changeable grid color
         SetColourTheme(backgroundColour, foregroundColour, axesColour, gridColour);
@@ -18,3 +14,5 @@ DONE:
 
   * Displays the coordinates of the nearest datapoint on mpXYVector, mpFX, mpFY and mpFXY layers  (mpTrack)
   * Disappearing zoom rectangle fixed
+  * Using wxDateTime instead of time_t
+  * Fix error when zooming out or panning too far (mpX_DATE, mpX_DATETIME or mpX_TIME)

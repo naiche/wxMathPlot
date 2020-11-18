@@ -3,7 +3,7 @@
 // Purpose:         Framework for plotting in wxWindows
 // Original Author: David Schalig
 // Maintainer:      Davide Rondini
-// Contributors:    Jose Luis Blanco, Val Greene
+// Contributors:    Jose Luis Blanco, Val Greene, Naiche Barcelos
 // Created:         21/07/2003
 // Last edit:       22/02/2009
 // Copyright:       (c) David Schalig, Davide Rondini
