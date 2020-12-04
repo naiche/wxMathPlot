@@ -1236,6 +1236,11 @@ public:
 
     void BindMouseWheel(mpMouseWheel mouseWheel, mpMouseWheelCommand command);
 
+    wxString m_trackbox_y_fmt = "%s: %.4f";
+
+    void SetTrackBoxYvalueFormat(const wxString& format) { m_trackbox_y_fmt = format; };
+
+
 protected:
     mpMouseButtonCommand doubleClickCommand = mpNOACTION;
     mpMouseButtonCommand leftDownCommand = mpNOACTION;
@@ -1283,12 +1288,11 @@ protected:
 
     void ShowPopupMenu(int x, int y);// (wxMouseEvent     &event); //!< Mouse handler, will show context menu
     void PanPlot();
-    void DrawTrackBox();
     //std::pair<wxString, std::pair<double, double>>
     std::pair<wxString, wxRealPoint> GetClosestPoint(double x, double y);
     void ZoomRectEnter(int x, int y);
     void ZoomRectRelease(int x, int y);
-    //void DrawTrackBox();
+    void DrawTrackBox();
 
     void DoScrollCalc    (const int position, const int orientation);
 

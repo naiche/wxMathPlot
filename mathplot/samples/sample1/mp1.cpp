@@ -315,6 +315,8 @@ MyFrame::MyFrame()
 	m_plot->BindMouseWheel(mpSHIFT_WHEEL, mpHORIZONTAL_PAN);
 	m_plot->BindMouseWheel(mpCTRL_WHEEL, mpVERTICAL_PAN);
 
+    m_plot->SetTrackBoxYvalueFormat("%s: %.3f");
+
     m_plot->Fit();
 
 	//double* bbx = new double[4];

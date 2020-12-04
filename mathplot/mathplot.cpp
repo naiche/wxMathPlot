@@ -1645,7 +1645,7 @@ mpWindow::~mpWindow()
         }
       }
       else if ((*li)->IsScaleY()) {
-        valueY.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.y);
+        valueY.Printf(m_trackbox_y_fmt, (*li)->GetName(), pointInfo.second.y);
       }
     }
 
