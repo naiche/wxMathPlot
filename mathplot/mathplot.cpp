@@ -359,7 +359,7 @@ void mpInfoLegend::Plot(wxDC & dc, mpWindow & w)
         dc.SetPen(m_pen);
         dc.SetBrush(m_brush);
         m_dim.width = textX;
-        if (textY != mpLEGEND_MARGIN) { // Don't draw any thing if there are no visible layers
+        if (textY != mpLEGEND_MARGIN) { // Don't draw anything if there are no visible layers
             textY += mpLEGEND_MARGIN;
             m_dim.height = textY;
             dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
@@ -1600,102 +1600,109 @@ mpWindow::~mpWindow()
   }
 
   void mpWindow::DrawTrackBox() {
-    std::pair<wxString, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
+        //std::pair<wxString, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
+        std::pair<mpLayer*, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
 
-    wxString label, valueX, valueY;
-    label.Printf(wxT("%s"), pointInfo.first);
+        wxString label, valueX, valueY;
+        label.Printf(wxT("%s"), pointInfo.first->GetName());
 
-    for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
-    {
-      if ((*li)->IsScaleX()) {
-        mpScaleX *scaleX = (mpScaleX*)(*li);
+        for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+        {
+            if ((*li)->IsScaleX()) {
+                mpScaleX *scaleX = (mpScaleX*)(*li);
 
-        switch(scaleX->GetLabelMode()){
-          case mpX_NORMAL:
-            valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
-            break;
-          case mpX_HOURS:
-          case mpX_TIME:
-          {
-            int remainder = abs((long)pointInfo.second.x % 3600);
-            int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
-            long hour = (long)pointInfo.second.x/3600;
-            if (hour == 0 && pointInfo.second.x < 0) {
-              valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
-            }else{
-              valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+                switch(scaleX->GetLabelMode()){
+                    case mpX_NORMAL:
+                    valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+                    break;
+                    case mpX_HOURS:
+                    case mpX_TIME:
+                    {
+                    int remainder = abs((long)pointInfo.second.x % 3600);
+                    int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
+                    long hour = (long)pointInfo.second.x/3600;
+                    if (hour == 0 && pointInfo.second.x < 0) {
+                        valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+                    }else{
+                        valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+                    }
+                    break;
+                    }
+                    default:
+                    wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
+                    switch(scaleX->GetLabelMode()) {
+                        case mpX_DATE:
+                        valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
+                        break;
+                        case mpX_DATETIME:
+                        //wxLogMessage(_("x: %ld"), ticks);
+                        valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
+                        //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
+                        break;
+                        case mpX_TIMEOFDAY:
+                        valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+                        break;
+                    }
+                }
             }
-            break;
-          }
-          default:
-            wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
-            switch(scaleX->GetLabelMode()){
-              case mpX_DATE:
-                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
-                break;
-              case mpX_DATETIME:
-                //wxLogMessage(_("x: %ld"), ticks);
-                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
-                //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
-                break;
-              case mpX_TIMEOFDAY:
-                valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
-                break;
+            else if ((*li)->IsScaleY()) {
+                //valueY.Printf(m_trackbox_y_fmt, (*li)->GetName(), pointInfo.second.y);
+                if (pointInfo.first->GetTrackBoxYvalueFormat().length() >0)
+                    valueY.Printf(pointInfo.first->GetTrackBoxYvalueFormat(), (*li)->GetName(), pointInfo.second.y);
+                else
+                    valueY.Printf(GetTrackBoxYvalueFormat(), (*li)->GetName(), pointInfo.second.y);
             }
         }
-      }
-      else if ((*li)->IsScaleY()) {
-        valueY.Printf(m_trackbox_y_fmt, (*li)->GetName(), pointInfo.second.y);
-      }
+
+        wxClientDC dc(this);
+        wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
+        dc.SetPen(pen);
+        dc.SetBrush(m_bgColour);//SetBrush(*wxTRANSPARENT_BRUSH);
+
+        int textX, textY;
+        dc.GetTextExtent(valueX, &textX, &textY);
+        if (dc.GetTextExtent(label).GetX() > textX)
+            textX = dc.GetTextExtent(label).GetX();
+        if (dc.GetTextExtent(valueY).GetX() > textX)
+            textX = dc.GetTextExtent(valueY).GetX();
+
+        wxRect m_dim;
+        #ifdef __linux__
+            m_dim.width = textX + 37;
+            m_dim.height = 3 * textY + 29;
+        #else
+            m_dim.width = textX + 35;
+            m_dim.height = 3 * textY + 33;
+        #endif
+
+        if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
+            m_dim.x = x2p(pointInfo.second.x);
+        else
+            m_dim.x = x2p(pointInfo.second.x) - m_dim.width;
+
+        if (y2p(pointInfo.second.y) < GetScreenRect().height - m_dim.height)
+            m_dim.y = y2p(pointInfo.second.y);
+        else
+            m_dim.y = y2p(pointInfo.second.y) - m_dim.height;
+
+        int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
+        int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
+        int valueMargin = (m_dim.width - dc.GetTextExtent(valueY).GetX()) / 2.1;
+
+        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+        dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
+        dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
+        dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 56);
     }
 
-    wxClientDC dc(this);
-    wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
-    dc.SetPen(pen);
-    dc.SetBrush(m_bgColour);//SetBrush(*wxTRANSPARENT_BRUSH);
-
-    int textX, textY;
-    dc.GetTextExtent(valueX, &textX, &textY);
-    if (dc.GetTextExtent(label).GetX() > textX)
-      textX = dc.GetTextExtent(label).GetX();
-    if (dc.GetTextExtent(valueY).GetX() > textX)
-        textX = dc.GetTextExtent(valueY).GetX();
-
-    wxRect m_dim;
-    #ifdef __linux__
-      m_dim.width = textX + 37;
-      m_dim.height = 3 * textY + 29;
-    #else
-      m_dim.width = textX + 35;
-      m_dim.height = 3 * textY + 33;
-    #endif
-
-    if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
-    	m_dim.x = x2p(pointInfo.second.x);
-    else
-    	m_dim.x = x2p(pointInfo.second.x) - m_dim.width;
-
-    if (y2p(pointInfo.second.y) < GetScreenRect().height - m_dim.height)
-    	m_dim.y = y2p(pointInfo.second.y);
-    else
-    	m_dim.y = y2p(pointInfo.second.y) - m_dim.height;
-
-    int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
-    int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
-    int valueMargin = (m_dim.width - dc.GetTextExtent(valueY).GetX()) / 2.1;
-
-    dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-    dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
-    dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
-    dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 56);
-}
-
-std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
-	wxString LayerName;
+//std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
+std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
+	//wxString LayerName;
+    mpLayer* layer;
 	double pointX, pointY;
 	double previousDelta = 999999999999;
 
-	for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+	for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
 	{
 		if ((*li)->IsVector()) {
 			mpFXYVector *vect = (mpFXYVector*)(*li);
@@ -1710,49 +1717,54 @@ std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
 			}
 			double delta = sqrt(pow((x - vect->m_xs[closestI])*GetScaleX(), 2) + pow((y - vect->m_ys[closestI])*GetScaleY(), 2));
 			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-				LayerName = vect->GetName();
+				//LayerName = vect->GetName();
+                layer = *li;
 				previousDelta = delta;
 				pointX = vect->m_xs[closestI];
 				pointY = vect->m_ys[closestI];
 			}
 		}
-    else if ((*li)->IsFX()) {
-      mpFX *fx = (mpFX*)(*li);
+        else if ((*li)->IsFX()) {
+            mpFX *fx = (mpFX*)(*li);
 
-		  double delta = abs((y - fx->GetY(x))*GetScaleY());
-			if (delta < previousDelta) {
-				LayerName = fx->GetName();
-				previousDelta = delta;
-				pointX = x;
-			  pointY = fx->GetY(x);
-      }
-    }
-    else if ((*li)->IsFY()) {
-      mpFY *fy = (mpFY*)(*li);
+	        double delta = abs((y - fx->GetY(x))*GetScaleY());
+	        if (delta < previousDelta) {
+		        //LayerName = fx->GetName();
+                layer = *li;
+		        previousDelta = delta;
+		        pointX = x;
+		        pointY = fx->GetY(x);
+            }
+        }
+        else if ((*li)->IsFY()) {
+            mpFY *fy = (mpFY*)(*li);
 
-      double delta = abs((x - fy->GetX(y))*GetScaleX());
-      if (delta < previousDelta) {
-        LayerName = fy->GetName();
-        previousDelta = delta;
-        pointX = fy->GetX(y);
-        pointY = y;
-      }
-    }
-    else if ((*li)->IsFXY()) {
-      mpFXY *fxy = (mpFXY*)(*li);
+            double delta = abs((x - fy->GetX(y))*GetScaleX());
+            if (delta < previousDelta) {
+                //LayerName = fy->GetName();
+                layer = *li;
+                previousDelta = delta;
+                pointX = fy->GetX(y);
+                pointY = y;
+            }
+        } 
+        else if ((*li)->IsFXY()) {
+            mpFXY *fxy = (mpFXY*)(*li);
 
-      wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
-      double thisFunctionDelta = sqrt(pow((x - closestPoint.x)*GetScaleX(), 2) + pow((y - closestPoint.y)*GetScaleY(), 2));
+            wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
+            double thisFunctionDelta = sqrt(pow((x - closestPoint.x)*GetScaleX(), 2) + pow((y - closestPoint.y)*GetScaleY(), 2));
 
-      if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-        LayerName = fxy->GetName();
-        previousDelta = thisFunctionDelta;
-        pointX = closestPoint.x;
-        pointY = closestPoint.y;
-      }
-    }
+            if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
+                //LayerName = fxy->GetName();
+                layer = *li;
+                previousDelta = thisFunctionDelta;
+                pointX = closestPoint.x;
+                pointY = closestPoint.y;
+            }
+        }
 	}
-  return std::make_pair(LayerName, wxRealPoint(pointX, pointY));
+    //return std::make_pair(LayerName, wxRealPoint(pointX, pointY));
+    return std::make_pair(layer, wxRealPoint(pointX, pointY));
 }
 
 void mpWindow::ShowPopupMenu(int x, int y)//(wxMouseEvent &event)

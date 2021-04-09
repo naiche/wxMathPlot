@@ -13,6 +13,7 @@ DONE:
                 ** -> function can be mpZOOM, mpHORIZONTAL_PAN or mpVERTICAL_PAN.
 
   * Displays the coordinates of the nearest datapoint on mpXYVector, mpFX, mpFY and mpFXY layers  (mpTrack)
+  * The format of Y value in the TrackBox can be set individually ( mpLayer::SetTrackBoxYvalueFormat(wxString); ) or collectively ( mpWindow::SetTrackBoxYvalueFormat(wxString); )
   * Disappearing zoom rectangle fixed
   * Using wxDateTime instead of time_t
   * Fix error when zooming out or panning too far (mpX_DATE, mpX_DATETIME or mpX_TIME)

@@ -356,7 +356,14 @@ public:
         @param brush brush, will be copied to internal class member    */
     void SetBrush(wxBrush brush) { m_brush = brush; };
 
+    void SetTrackBoxYvalueFormat(const wxString& format) { m_TrackBoxYvalueFormat = format; };
+
+    /** Get Y axis Label format (used for mpX_NORMAL draw mode).
+    @return The format string */
+    const wxString& GetTrackBoxYvalueFormat() { return m_TrackBoxYvalueFormat; };
+
 protected:
+    wxString m_TrackBoxYvalueFormat; //!< Format string used to print TrackBox
     wxFont   m_font;    //!< Layer's font
     wxPen    m_pen;     //!< Layer's pen
     wxBrush  m_brush;   //!< Layer's brush
@@ -1236,12 +1243,12 @@ public:
 
     void BindMouseWheel(mpMouseWheel mouseWheel, mpMouseWheelCommand command);
 
-    wxString m_trackbox_y_fmt = "%s: %.4f";
-
     void SetTrackBoxYvalueFormat(const wxString& format) { m_trackbox_y_fmt = format; };
 
+    wxString GetTrackBoxYvalueFormat() { return m_trackbox_y_fmt; };
 
 protected:
+    wxString m_trackbox_y_fmt = "%s: %.4f";
     mpMouseButtonCommand doubleClickCommand = mpNOACTION;
     mpMouseButtonCommand leftDownCommand = mpNOACTION;
     mpMouseButtonCommand leftUpCommand = mpNOACTION;
@@ -1288,8 +1295,8 @@ protected:
 
     void ShowPopupMenu(int x, int y);// (wxMouseEvent     &event); //!< Mouse handler, will show context menu
     void PanPlot();
-    //std::pair<wxString, std::pair<double, double>>
-    std::pair<wxString, wxRealPoint> GetClosestPoint(double x, double y);
+    //std::pair<wxString, wxRealPoint> GetClosestPoint(double x, double y);
+    std::pair<mpLayer*, wxRealPoint> GetClosestPoint(double x, double y);
     void ZoomRectEnter(int x, int y);
     void ZoomRectRelease(int x, int y);
     void DrawTrackBox();
