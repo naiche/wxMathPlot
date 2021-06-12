@@ -442,7 +442,6 @@ public:
 protected:
     wxRect m_dim;           //!< The bounding rectangle of the box. It may be resized dynamically by the Plot method.
     wxPoint m_reference;    //!< Holds the reference point for movements
-    wxBrush m_brush;        //!< The brush to be used for the background
     int m_winX, m_winY;     //!< Holds the mpWindow size. Used to rescale position when window is resized.
 
     DECLARE_DYNAMIC_CLASS(mpInfoLayer)

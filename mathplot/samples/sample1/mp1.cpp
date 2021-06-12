@@ -279,6 +279,7 @@ MyFrame::MyFrame()
     wxBrush hatch2(wxColour(163,208,212), wxBRUSHSTYLE_SOLID);
     mpInfoLegend* leg;
     m_plot->AddLayer( leg = new mpInfoLegend(wxRect(300,20,40,40), wxTRANSPARENT_BRUSH)); //&hatch2));
+    leg->SetName("legend");
     leg->SetVisible(true);
     
     // m_plot->EnableCoordTooltip(true);
@@ -465,10 +466,15 @@ void MyFrame::OnBlackTheme(wxCommandEvent& event)
     	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
         //      SetColourTheme(background, foreground, axes, grids)	   
         m_plot->SetColourTheme(wxColour(25,25,25), *wxWHITE, grey, wxColour(45,45,45));
+        
+        if (m_plot->GetLayerByName("legend") != nullptr)
+            m_plot->GetLayerByName("legend")->SetBrush(wxBrush(wxColour(25,25,25), wxBRUSHSTYLE_SOLID));
     }
     else
     {
         m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
+        if (m_plot->GetLayerByName("legend") != nullptr)
+            m_plot->GetLayerByName("legend")->SetBrush(wxBrush(*wxWHITE, wxBRUSHSTYLE_SOLID));
     }
 	m_plot->UpdateAll();
 }
