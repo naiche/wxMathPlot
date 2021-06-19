@@ -276,6 +276,7 @@ MyFrame::MyFrame()
     //m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
     m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(130,20,100,10), &hatch));    //wxRED_BRUSH));
     nfo->SetVisible(true);
+    nfo->SetName("coord");
     wxBrush hatch2(wxColour(163,208,212), wxBRUSHSTYLE_SOLID);
     mpInfoLegend* leg;
     m_plot->AddLayer( leg = new mpInfoLegend(wxRect(300,20,40,40), wxTRANSPARENT_BRUSH)); //&hatch2));
@@ -469,12 +470,16 @@ void MyFrame::OnBlackTheme(wxCommandEvent& event)
         
         if (m_plot->GetLayerByName("legend") != nullptr)
             m_plot->GetLayerByName("legend")->SetBrush(wxBrush(wxColour(25,25,25), wxBRUSHSTYLE_SOLID));
+        if (m_plot->GetLayerByName("coord") != nullptr)
+            m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(65,65,65), wxBRUSHSTYLE_SOLID));
     }
     else
     {
         m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
         if (m_plot->GetLayerByName("legend") != nullptr)
             m_plot->GetLayerByName("legend")->SetBrush(wxBrush(*wxWHITE, wxBRUSHSTYLE_SOLID));
+        if (m_plot->GetLayerByName("coord") != nullptr)
+            m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(185,185,185), wxBRUSHSTYLE_SOLID));
     }
 	m_plot->UpdateAll();
 }
