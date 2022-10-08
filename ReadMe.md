@@ -1,4 +1,4 @@
-This fork's purpose is to make available any enhancements/fixes made when using this code.
+This project is based on the version of wxMathPlot found at MachMotionOpenSource/wxMathPlot and this repository's purpose is to make available any enhancements/fixes made when using this code.
 
 DONE:
   
@@ -36,3 +36,10 @@ DONE:
   * Using wxDateTime instead of time_t
   * Fixed error when zooming out or panning too far (mpX_DATE, mpX_DATETIME or mpX_TIME)
   * Fixed bug where mpInfoLayer->SetBrush()  didn’t apply changes to wxBrush. 
+  
+  
+  
+TO DO:
+  
+  - Set X value format on the TrackBox (SetTrackBoxXvalueFormat(wxString);)
+  - Implement Bar Chart functionality
