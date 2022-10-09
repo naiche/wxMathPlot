@@ -24,6 +24,13 @@ DONE:
 		
   	 <img src="/mathplot/images/Dark.png" alt="DarkThemed" width="75%" height="75%" align="middle">
  
+  
+
+ * Format of X value in the TrackBox can be set when X axis is mpX_USERDEFINED or mpX_USERDEFINEDDATE
+  	
+		mpWindow::SetTrackBoxXvalueFormat(wxString);
+		
+ 
  * Format of Y value in the TrackBox can be set individually 
   	
 		mpLayer::SetTrackBoxYvalueFormat(wxString);
@@ -41,5 +48,4 @@ DONE:
   
 TO DO:
   
-  - Set X value format on the TrackBox (SetTrackBoxXvalueFormat(wxString);)
   - Implement Bar Chart functionality

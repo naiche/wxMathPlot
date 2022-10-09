@@ -356,14 +356,16 @@ public:
         @param brush brush, will be copied to internal class member    */
     void SetBrush(wxBrush brush) { m_brush = brush; };
 
+   
     void SetTrackBoxYvalueFormat(const wxString& format) { m_TrackBoxYvalueFormat = format; };
 
     /** Get Y axis Label format (used for mpX_NORMAL draw mode).
     @return The format string */
     const wxString& GetTrackBoxYvalueFormat() { return m_TrackBoxYvalueFormat; };
 
+
 protected:
-    wxString m_TrackBoxYvalueFormat; //!< Format string used to print TrackBox
+    wxString m_TrackBoxYvalueFormat; //!< Format string used to print TrackBox for this layer
     wxFont   m_font;    //!< Layer's font
     wxPen    m_pen;     //!< Layer's pen
     wxBrush  m_brush;   //!< Layer's brush
@@ -537,6 +539,10 @@ protected:
 #define mpX_DATETIME 0x04
 /** Set label for X axis in time-of-day mode: the value is always represented as hh:mm:ss(.mmm)? using local time (data is assumed to be in GMT, milliseconds are optionally displayed depending on the view width). */
 #define mpX_TIMEOFDAY 0x05
+/** Set label for X axis in an user defined DateTime format (SetTrackBoxYvalueFormat())*/
+#define mpX_USERDEFINEDDATE 0x06
+/** Set label for X axis in an user defined numeric format (SetTrackBoxYvalueFormat())*/
+#define mpX_USERDEFINED 0x07
 /** Aligns Y axis to left border. For mpScaleY */
 #define mpALIGN_BORDER_LEFT mpALIGN_BORDER_BOTTOM
 /** Aligns Y axis to right border. For mpScaleY */
@@ -1242,11 +1248,17 @@ public:
 
     void BindMouseWheel(mpMouseWheel mouseWheel, mpMouseWheelCommand command);
 
+    void SetTrackBoxXvalueFormat(const wxString& format) { m_trackbox_x_fmt = format; };
+
+    wxString GetTrackBoxXvalueFormat() { return m_trackbox_x_fmt; };
+
     void SetTrackBoxYvalueFormat(const wxString& format) { m_trackbox_y_fmt = format; };
 
     wxString GetTrackBoxYvalueFormat() { return m_trackbox_y_fmt; };
+    
 
 protected:
+	wxString m_trackbox_x_fmt = "";
     wxString m_trackbox_y_fmt = "%s: %.4f";
     mpMouseButtonCommand doubleClickCommand = mpNOACTION;
     mpMouseButtonCommand leftDownCommand = mpNOACTION;

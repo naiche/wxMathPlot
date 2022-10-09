@@ -1612,36 +1612,42 @@ mpWindow::~mpWindow()
 
                 switch(scaleX->GetLabelMode()){
                     case mpX_NORMAL:
-                    valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
-                    break;
+                        valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+                        break;
                     case mpX_HOURS:
                     case mpX_TIME:
                     {
-                    int remainder = abs((long)pointInfo.second.x % 3600);
-                    int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
-                    long hour = (long)pointInfo.second.x/3600;
-                    if (hour == 0 && pointInfo.second.x < 0) {
-                        valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
-                    }else{
-                        valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+                        int remainder = abs((long)pointInfo.second.x % 3600);
+                        int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
+                        long hour = (long)pointInfo.second.x/3600;
+                        if (hour == 0 && pointInfo.second.x < 0) {
+                            valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+                        }else{
+                            valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+                        }
+                        break;
                     }
-                    break;
-                    }
+                    case mpX_USERDEFINED:
+                        valueX.Printf(GetTrackBoxXvalueFormat(), (*li)->GetName(), pointInfo.second.x);
+                        break;
                     default:
-                    wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
-                    switch(scaleX->GetLabelMode()) {
-                        case mpX_DATE:
-                        valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
-                        break;
-                        case mpX_DATETIME:
-                        //wxLogMessage(_("x: %ld"), ticks);
-                        valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
-                        //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
-                        break;
-                        case mpX_TIMEOFDAY:
-                        valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
-                        break;
-                    }
+                        wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
+                        switch(scaleX->GetLabelMode()) {
+                            case mpX_DATE:
+                                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
+                                break;
+                            case mpX_DATETIME:
+                                //wxLogMessage(_("x: %ld"), ticks);
+                                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
+                                //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
+                                break;
+                            case mpX_TIMEOFDAY:
+                                valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+                                break;
+                            case mpX_USERDEFINEDDATE:
+                                valueX.Printf("%s: %s", scaleX->GetName(), xTime.Format(GetTrackBoxXvalueFormat()), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+                                break;
+                        }
                 }
             }
             else if ((*li)->IsScaleY()) {
