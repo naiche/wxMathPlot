@@ -9,7 +9,7 @@
 #include <wx/wx.h>
 #endif
 
-#include <mathplot.h>
+#include "../../mathplot.h"
 
 #include <wx/image.h>
 #include <wx/listctrl.h>
@@ -156,11 +156,11 @@ MyFrame::MyFrame()
 
     mpPolygon *lCar;
     m_plot->AddLayer( lCar= new mpPolygon( wxT("car") ) );
-    lCar->SetPen( wxPen(*wxBLACK, 3, wxSOLID) );
+    lCar->SetPen( wxPen(*wxBLACK, 3, wxPENSTYLE_SOLID) );
     lCar->setPoints( car_xs,car_ys, true );
 
-    m_plot->GetLayerByName(wxT("Cov1"))->SetPen( wxPen(*wxRED, 2, wxSOLID) );
-    m_plot->GetLayerByName(wxT("Cov2"))->SetPen( wxPen(*wxBLUE, 2, wxSOLID) );
+    m_plot->GetLayerByName(wxT("Cov1"))->SetPen( wxPen(*wxRED, 2, wxPENSTYLE_SOLID) );
+    m_plot->GetLayerByName(wxT("Cov2"))->SetPen( wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID) );
 
     mpMovableObject *obj;
     obj = (mpMovableObject*)m_plot->GetLayerByName(wxT("Cov2"));
