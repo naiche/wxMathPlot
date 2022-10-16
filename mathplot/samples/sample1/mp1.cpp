@@ -348,10 +348,10 @@ void MyFrame::OnAlignXAxis( wxCommandEvent &WXUNUSED(event) )
 {
     axesPos[0] = (int) (axesPos[0]+1)%5;
     wxString temp;
-    temp.sprintf(wxT("axesPos = %d\n"), axesPos);
+    temp.sprintf(wxT("XaxesPos = %d\n"), axesPos[0]);
     m_log->AppendText(temp);
-	mpScaleX* xaxis = ((mpScaleX*)(m_plot->GetLayer(0)));
-	mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
+	mpScaleX* xaxis = (mpScaleX*)(m_plot->GetLayer(0));
+	mpScaleY* yaxis = (mpScaleY*)(m_plot->GetLayer(1));
 	if (axesPos[0] == 0) {
             xaxis->SetAlign(mpALIGN_BORDER_BOTTOM);
             m_plot->SetMarginTop(0);
@@ -388,7 +388,7 @@ void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
 {
     axesPos[1] = (int) (axesPos[1]+1)%5;
     wxString temp;
-    temp.sprintf(wxT("axesPos = %d\n"), axesPos);
+    temp.sprintf(wxT("YaxesPos = %d\n"), axesPos[1]);
     m_log->AppendText(temp);
 	mpScaleX* xaxis = ((mpScaleX*)(m_plot->GetLayer(0)));
 	mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));

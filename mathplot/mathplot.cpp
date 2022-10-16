@@ -3035,29 +3035,15 @@ void mpBAR::Plot(wxDC & dc, mpWindow & w)
 
         if (!m_continuous)
         {
-            // for some reason DrawPoint does not use the current pen,
-            // so we use DrawLine for fat pens
-        /*    if (m_pen.GetWidth() <= 1) {
-                while (GetNextXY(x, y)) {
-                    ix = w.x2p(x);
-                    iy = w.y2p(y);
-                    if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-                        dc.DrawPoint(ix, iy);
-                        UpdateViewBoundary(ix, iy);
-                    };
+           	while (GetNextXY(x, y)) {
+                ix = w.x2p(x);
+                iy = w.y2p(y);
+                if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
+                    dc.DrawLine(ix, iy, ix, w.y2p(0));
+                    UpdateViewBoundary(ix, iy);
                 }
+//                dc.DrawLine(cx, cy, cx, cy);
             }
-            else {*/
-                while (GetNextXY(x, y)) {
-                    ix = w.x2p(x);
-                    iy = w.y2p(y);
-                    if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-                        dc.DrawLine(ix, iy, ix, w.y2p(0));
-                        UpdateViewBoundary(ix, iy);
-                    }
-    //                dc.DrawLine(cx, cy, cx, cy);
-                }
-    //        }
         }
         else
         {
