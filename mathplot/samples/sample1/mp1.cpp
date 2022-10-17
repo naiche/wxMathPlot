@@ -258,7 +258,7 @@ MyFrame::MyFrame()
 
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    //m_plot->SetColourTheme(*wxWHITE, *wxBLACK, wxColour(96, 96, 96), wxColour(220,220,220));
+    m_plot->SetColourTheme(*wxWHITE, *wxBLACK, wxColour(96, 96, 96), wxColour(220,220,220));
     mpScaleX* xaxis = new mpScaleX(wxT("X value"), mpALIGN_BOTTOM, false, mpX_NORMAL);//mpX_HOURS
     mpScaleY* yaxis = new mpScaleY(wxT("Y value"), mpALIGN_LEFT, false);
     xaxis->SetFont(graphFont);

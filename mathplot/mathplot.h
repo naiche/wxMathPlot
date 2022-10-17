@@ -1307,8 +1307,8 @@ protected:
 
     void ShowPopupMenu(int x, int y);// (wxMouseEvent     &event); //!< Mouse handler, will show context menu
     void PanPlot();
-    //std::pair<wxString, wxRealPoint> GetClosestPoint(double x, double y);
-    std::pair<mpLayer*, wxRealPoint> GetClosestPoint(double x, double y);
+
+    std::pair<mpLayer*, wxRealPoint> GetClosestPoint(double x, double y, mpWindow * w);
     void ZoomRectEnter(int x, int y);
     void ZoomRectRelease(int x, int y);
     void DrawTrackBox();

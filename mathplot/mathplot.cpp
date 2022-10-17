@@ -1599,11 +1599,12 @@ mpWindow::~mpWindow()
   }
 
   void mpWindow::DrawTrackBox() {
-        //std::pair<wxString, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
-        std::pair<mpLayer*, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()));
+  		wxCoord maxXpx  = GetScrX(); //m_drawOutsideMargins ? GetScrX() : GetScrX() - GetMarginRight();
+		wxCoord maxYpx  = GetScrY(); //m_drawOutsideMargins ? GetScrY() : GetScrY() - GetMarginBottom();
+		std::pair<mpLayer*, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()), this);
 
-        wxString label, valueX, valueY;
-        label.Printf(wxT("%s"), pointInfo.first->GetName());
+		wxString label, valueX, valueY;
+		label.Printf(wxT("%s"), pointInfo.first->GetName());
 
         for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
         {
@@ -1701,7 +1702,7 @@ mpWindow::~mpWindow()
     }
 
 //std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
-std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
+std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, mpWindow * w) {
 	//wxString LayerName;
     mpLayer* layer;
 	double pointX, pointY;
@@ -1743,15 +1744,40 @@ std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
         }
         else if ((*li)->IsFY()) {
             mpFY *fy = (mpFY*)(*li);
+			
+			wxCoord minYpx = fy->GetDrawOutsideMargins() ? 0 : w->GetMarginTop();
+			wxCoord maxYpx = fy->GetDrawOutsideMargins() ? w->GetScrY() : w->GetScrY() - w->GetMarginBottom();
 
-            double delta = abs((x - fy->GetX(y))*GetScaleX());
+			wxCoord currY = 0; //minYpx;
+			double yDouble = w->p2y(currY);
+			double closestY = yDouble;
+			double delta = sqrt(pow((x - fy->GetX(yDouble))*GetScaleX(), 2) + pow((y - yDouble)*GetScaleY(), 2));
+			currY++;
+			for (currY; currY < maxYpx; ++currY)			//runs through function looking for the closest point
+			{
+				yDouble = w->p2y(currY);
+				double currDelta = sqrt(pow((x - fy->GetX(yDouble))*GetScaleX(), 2) + pow((y - yDouble)*GetScaleY(), 2));
+				if (currDelta < delta) {
+					delta = currDelta;
+					closestY = yDouble;
+				}
+            }
+           // wxLogMessage(_("Delta: %f,      x: %f,       y: %f,      closeX: %f     closeY: %f  %f %d"), delta, x , y , fy->GetX(closestY), closestY, w->p2y(minYpx), maxYpx);
+			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
+                layer = *li;
+				previousDelta = delta;
+				pointX = fy->GetX(closestY);
+				pointY = closestY;
+			}
+
+/*            double delta = abs((x - fy->GetX(y))*GetScaleX());
             if (delta < previousDelta) {
                 //LayerName = fy->GetName();
                 layer = *li;
                 previousDelta = delta;
                 pointX = fy->GetX(y);
                 pointY = y;
-            }
+            }*/
         } 
         else if ((*li)->IsFXY()) {
             mpFXY *fxy = (mpFXY*)(*li);
@@ -1768,7 +1794,6 @@ std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
             }
         }
 	}
-    //return std::make_pair(LayerName, wxRealPoint(pointX, pointY));
     return std::make_pair(layer, wxRealPoint(pointX, pointY));
 }
 
@@ -2370,60 +2395,6 @@ bool mpWindow::UpdateBBox()
 #endif // MATHPLOT_DO_LOGGING
     return FoundBBoxLayer;
 }
-
-// void mpWindow::UpdateAll()
-// {
-    // GetClientSize( &m_scrX,&m_scrY);
-/*    if (m_enableScrollBars) {
-        // The "virtual size" of the scrolled window:
-        const int sx = (int)((m_maxX - m_minX) * GetScaleX());
-        const int sy = (int)((m_maxY - m_minY) * GetScaleY());
-    SetVirtualSize(sx, sy);
-    SetScrollRate(1, 1);*/
-//         const int px = (int)((GetPosX() - m_minX) * GetScaleX());// - m_scrX); //(cx>>1));
-
-        // J.L.Blanco, Aug 2007: Formula fixed:
-//         const int py = (int)((m_maxY - GetPosY()) * GetScaleY());// - m_scrY); //(cy>>1));
-//         int px, py;
-//         GetViewStart(&px0, &py0);
-//     px = (int)((m_posX - m_minX)*m_scaleX);
-//     py = (int)((m_maxY - m_posY)*m_scaleY);
-
-//         SetScrollbars( 1, 1, sx - m_scrX, sy - m_scrY, px, py, TRUE);
-//     }
-
-// Working code
-//     UpdateBBox();
-//    Refresh( FALSE );
-// end working code
-
-// Old version
-/*   bool box = UpdateBBox();
-    if (box)
-{
-        int cx, cy;
-        GetClientSize( &cx, &cy);
-
-        // The "virtual size" of the scrolled window:
-        const int sx = (int)((m_maxX - m_minX) * GetScaleX());
-        const int sy = (int)((m_maxY - m_minY) * GetScaleY());
-
-        const int px = (int)((GetPosX() - m_minX) * GetScaleX() - (cx>>1));
-
-        // J.L.Blanco, Aug 2007: Formula fixed:
-        const int py = (int)((m_maxY - GetPosY()) * GetScaleY() - (cy>>1));
-
-        SetScrollbars( 1, 1, sx, sy, px, py, TRUE);
-
-#ifdef MATHPLOT_DO_LOGGING
-        wxLogMessage(_("[mpWindow::UpdateAll] Size:%ix%i ScrollBars:%i,%i"),sx,sy,px,py);
-#endif
-}
-
-    FitInside();
-    Refresh( FALSE );
-*/
-// }
 
 void mpWindow::UpdateAll()
 {
