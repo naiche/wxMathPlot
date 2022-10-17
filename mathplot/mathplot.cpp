@@ -2343,7 +2343,7 @@ void mpWindow::SetMPScrollbars(bool status)
 
 bool mpWindow::UpdateBBox()
 {
-    bool first = TRUE;
+    bool FoundBBoxLayer = FALSE;
 
     for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
     {
@@ -2351,9 +2351,9 @@ bool mpWindow::UpdateBBox()
 
         if (f->HasBBox())
         {
-            if (first)
+            if (!FoundBBoxLayer)
             {
-                first = FALSE;
+                FoundBBoxLayer = TRUE;
                 m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
                 m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
             }
@@ -2368,7 +2368,7 @@ bool mpWindow::UpdateBBox()
 #ifdef MATHPLOT_DO_LOGGING
     wxLogDebug(wxT("[mpWindow::UpdateBBox] Bounding box: Xmin = %f, Xmax = %f, Ymin = %f, YMax = %f"), m_minX, m_maxX, m_minY, m_maxY);
 #endif // MATHPLOT_DO_LOGGING
-    return first == FALSE;
+    return FoundBBoxLayer;
 }
 
 // void mpWindow::UpdateAll()
@@ -2968,7 +2968,7 @@ void mpBAR::Clear()
     m_ys.clear();
 }
 
-void mpBAR::SetData( const std::vector<double> &xs,const std::vector<double> &ys)
+void mpBAR::SetData(const std::vector<double> &xs,const std::vector<double> &ys)
 {
     // Check if the data vectora are of the same size
     if (xs.size() != ys.size()) {

@@ -403,7 +403,7 @@ public:
     /** Destructor */
     virtual ~mpInfoLayer();
 
-    /** mpInfoLayer has not bounding box. @sa mpLayer::HasBBox
+    /** mpInfoLayer has no bounding box. @sa mpLayer::HasBBox
         @return always \a FALSE */
     virtual bool HasBBox() { return false; };
 
@@ -1529,12 +1529,19 @@ protected:
 
     // Returns the actual minimum X data (loaded in SetData).
     double GetMinX() { return m_minX; }
+    
+    // Returns the actual minimum Y data (loaded in SetData).
+    double GetMinY() { return m_minY; }
 
     // Returns the actual minimum Y data (loaded in SetData).
     double GetMinHeight() { return m_minY; }
 
     // Returns the actual maximum X data (loaded in SetData).
     double GetMaxX() { return m_maxX; }
+    
+        /** Returns the actual maximum Y data (loaded in SetData).
+      */
+    double GetMaxY() { return m_maxY; }
 
     // Returns the actual maximum Y data (loaded in SetData).
     double GetMaxHeight() { return m_maxY; }

@@ -107,11 +107,13 @@ public:
     void OnPrintPreview( wxCommandEvent &event);
     void OnPrint( wxCommandEvent &event );
     void OnFit( wxCommandEvent &event );
+    void OnZoomIn( wxCommandEvent &event );
+    void OnZoomOut( wxCommandEvent &event );
     void OnAlignXAxis( wxCommandEvent &event );
     void OnAlignYAxis( wxCommandEvent &event );
     void OnToggleTicks( wxCommandEvent &event );
     void OnToggleGrid( wxCommandEvent &event );
-    void OnToggleScrollbars(wxCommandEvent& event);
+    //void OnToggleScrollbars(wxCommandEvent& event);
     void OnToggleInfoLayer(wxCommandEvent& event);
     void OnSaveScreenshot(wxCommandEvent& event);
 	void OnToggleLissajoux(wxCommandEvent& event);
@@ -171,11 +173,13 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
   EVT_MENU(ID_PRINT_PREVIEW, MyFrame::OnPrintPreview)
   EVT_MENU(ID_PRINT, MyFrame::OnPrint)
   EVT_MENU(mpID_FIT, MyFrame::OnFit)
+  EVT_MENU(mpID_ZOOM_IN, MyFrame::OnZoomIn)
+  EVT_MENU(mpID_ZOOM_OUT, MyFrame::OnZoomOut)
   EVT_MENU(ID_ALIGN_X_AXIS, MyFrame::OnAlignXAxis)
   EVT_MENU(ID_ALIGN_Y_AXIS, MyFrame::OnAlignYAxis)
   EVT_MENU(ID_TOGGLE_TICKS, MyFrame::OnToggleTicks)
   EVT_MENU(ID_TOGGLE_GRID, MyFrame::OnToggleGrid)
-  EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
+  //EVT_MENU(ID_TOGGLE_SCROLLBARS, MyFrame::OnToggleScrollbars)
   EVT_MENU(ID_TOGGLE_INFO, MyFrame::OnToggleInfoLayer)
   EVT_MENU(ID_SAVE_SCREENSHOT, MyFrame::OnSaveScreenshot)
   EVT_MENU(ID_BLACK_THEME, MyFrame::OnBlackTheme)
@@ -209,8 +213,9 @@ MyFrame::MyFrame()
     view_menu->Check(ID_TOGGLE_TICKS, false);
     view_menu->AppendCheckItem( ID_TOGGLE_GRID, wxT("Show grid"));    
     view_menu->Check(ID_TOGGLE_GRID, true);
-    view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
+    //view_menu->AppendCheckItem( ID_TOGGLE_SCROLLBARS, wxT("Show Scroll Bars"));
     view_menu->AppendCheckItem( ID_TOGGLE_INFO, wxT("Show overlay info box"));
+    view_menu->Check(ID_TOGGLE_INFO, true);
 	view_menu->AppendCheckItem( ID_BLACK_THEME, wxT("Switch to black background theme"));
     view_menu->AppendCheckItem( ID_SCIENTIFIC_NOTATION, wxT("Show Y axis label as scientific notation"));
 	
@@ -253,7 +258,7 @@ MyFrame::MyFrame()
 
 	wxFont graphFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
-    m_plot->SetColourTheme(*wxWHITE, *wxBLACK, wxColour(96, 96, 96), wxColour(220,220,220));
+    //m_plot->SetColourTheme(*wxWHITE, *wxBLACK, wxColour(96, 96, 96), wxColour(220,220,220));
     mpScaleX* xaxis = new mpScaleX(wxT("X value"), mpALIGN_BOTTOM, false, mpX_NORMAL);//mpX_HOURS
     mpScaleY* yaxis = new mpScaleY(wxT("Y value"), mpALIGN_LEFT, false);
     xaxis->SetFont(graphFont);
@@ -338,6 +343,17 @@ void MyFrame::OnFit( wxCommandEvent &WXUNUSED(event) )
 {
     m_plot->Fit();
 }
+
+void MyFrame::OnZoomIn( wxCommandEvent &WXUNUSED(event) )
+{
+    m_plot->ZoomIn();
+}
+
+void MyFrame::OnZoomOut( wxCommandEvent &WXUNUSED(event) )
+{
+    m_plot->ZoomOut();
+}
+
 
 void MyFrame::OnAbout( wxCommandEvent &WXUNUSED(event) )
 {
@@ -439,14 +455,14 @@ void MyFrame::OnToggleGrid( wxCommandEvent& event) //&WXUNUSED(event) )
     m_plot->UpdateAll();
 }
 
-void MyFrame::OnToggleScrollbars(wxCommandEvent& event)
+/*void MyFrame::OnToggleScrollbars(wxCommandEvent& event)
 {
    if (event.IsChecked())
         m_plot->SetMPScrollbars(true);
     else
         m_plot->SetMPScrollbars(false);
     event.Skip();
-}
+}*/
 
 void MyFrame::OnToggleInfoLayer(wxCommandEvent& event)
 {
