@@ -1599,8 +1599,6 @@ mpWindow::~mpWindow()
   }
 
   void mpWindow::DrawTrackBox() {
-  		wxCoord maxXpx  = GetScrX(); //m_drawOutsideMargins ? GetScrX() : GetScrX() - GetMarginRight();
-		wxCoord maxYpx  = GetScrY(); //m_drawOutsideMargins ? GetScrY() : GetScrY() - GetMarginBottom();
 		std::pair<mpLayer*, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()), this);
 
 		wxString label, valueX, valueY;
@@ -1701,10 +1699,8 @@ mpWindow::~mpWindow()
         dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 56);
     }
 
-//std::pair<wxString, wxRealPoint> mpWindow::GetClosestPoint(double x, double y) {
 std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, mpWindow * w) {
-	//wxString LayerName;
-    mpLayer* layer;
+	mpLayer* layer;
 	double pointX, pointY;
 	double previousDelta = 999999999999;
 
@@ -1723,28 +1719,26 @@ std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, m
 			}
 			double delta = sqrt(pow((x - vect->m_xs[closestI])*GetScaleX(), 2) + pow((y - vect->m_ys[closestI])*GetScaleY(), 2));
 			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-				//LayerName = vect->GetName();
-                layer = *li;
+				layer = *li;
 				previousDelta = delta;
 				pointX = vect->m_xs[closestI];
 				pointY = vect->m_ys[closestI];
 			}
 		}
-        else if ((*li)->IsFX()) {
-            mpFX *fx = (mpFX*)(*li);
+		else if ((*li)->IsFX()) {
+			mpFX *fx = (mpFX*)(*li);
 
-	        double delta = abs((y - fx->GetY(x))*GetScaleY());
-	        if (delta < previousDelta) {
-		        //LayerName = fx->GetName();
-                layer = *li;
-		        previousDelta = delta;
-		        pointX = x;
-		        pointY = fx->GetY(x);
-            }
-        }
-        else if ((*li)->IsFY()) {
+			double delta = abs((y - fx->GetY(x))*GetScaleY());
+			if (delta < previousDelta) {
+				layer = *li;
+				previousDelta = delta;
+				pointX = x;
+				pointY = fx->GetY(x);
+			}
+		}
+		else if ((*li)->IsFY()) {
             mpFY *fy = (mpFY*)(*li);
-			
+            
 			wxCoord minYpx = fy->GetDrawOutsideMargins() ? 0 : w->GetMarginTop();
 			wxCoord maxYpx = fy->GetDrawOutsideMargins() ? w->GetScrY() : w->GetScrY() - w->GetMarginBottom();
 
@@ -1761,15 +1755,15 @@ std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, m
 					delta = currDelta;
 					closestY = yDouble;
 				}
-            }
-           // wxLogMessage(_("Delta: %f,      x: %f,       y: %f,      closeX: %f     closeY: %f  %f %d"), delta, x , y , fy->GetX(closestY), closestY, w->p2y(minYpx), maxYpx);
+			}
 			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-                layer = *li;
+				layer = *li;
 				previousDelta = delta;
 				pointX = fy->GetX(closestY);
 				pointY = closestY;
 			}
-
+			
+ // wxLogMessage(_("Delta: %f,      x: %f,       y: %f,      closeX: %f     closeY: %f  %f %d"), delta, x , y , fy->GetX(closestY), closestY, w->p2y(minYpx), maxYpx);
 /*            double delta = abs((x - fy->GetX(y))*GetScaleX());
             if (delta < previousDelta) {
                 //LayerName = fy->GetName();
