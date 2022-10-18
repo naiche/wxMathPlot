@@ -1569,265 +1569,283 @@ mpWindow::~mpWindow()
 		ExecuteMouseCommand(rightUpCommand);
 	}
 
-  void mpWindow::ExecuteMouseCommand(mpMouseButtonCommand cmd) {
-  	switch (cmd) {
-  	case mpFIT:
-  		Fit();
-  		break;
-  	case mpCONTEXT_MENU:
-  		ShowPopupMenu(GetMouseX(), GetMouseY());//event.GetX(), event.GetY());
-  		break;
-  	case mpPAN:
-  		PanPlot();
-  		break;
-  	case mpZOOM_RECTANGLE:
-  		ZoomRectEnter(GetMouseX(),GetMouseY());
-  		break;
-  	case mpTRACK:
-      m_trackDown = true;
-  		DrawTrackBox();
-  		break;
-  	}
-  }
+	void mpWindow::ExecuteMouseCommand(mpMouseButtonCommand cmd) {
+		switch (cmd) {
+		case mpFIT:
+			Fit();
+			break;
+		case mpCONTEXT_MENU:
+			ShowPopupMenu(GetMouseX(), GetMouseY());//event.GetX(), event.GetY());
+			break;
+		case mpPAN:
+			PanPlot();
+			break;
+		case mpZOOM_RECTANGLE:
+			ZoomRectEnter(GetMouseX(),GetMouseY());
+			break;
+		case mpTRACK:
+			m_trackDown = true;
+			DrawTrackBox();
+			break;
+		}
+	}
 
-  void mpWindow::PanPlot()
-  {
-    m_panDown = true;
-    m_mouseMovedAfterRightClick = FALSE;
-    m_mouseRClick_X = GetMouseX();//event.GetX();
-    m_mouseRClick_Y = GetMouseY();//event.GetY();
-  }
+	void mpWindow::PanPlot()
+	{
+		m_panDown = true;
+		m_mouseMovedAfterRightClick = FALSE;
+		m_mouseRClick_X = GetMouseX();//event.GetX();
+		m_mouseRClick_Y = GetMouseY();//event.GetY();
+	}
 
-  void mpWindow::DrawTrackBox() {
+  	void mpWindow::DrawTrackBox() {
 		std::pair<mpLayer*, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()), this);
 
 		wxString label, valueX, valueY;
 		label.Printf(wxT("%s"), pointInfo.first->GetName());
 
-        for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
-        {
-            if ((*li)->IsScaleX()) {
-                mpScaleX *scaleX = (mpScaleX*)(*li);
+		for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+		{
+			if ((*li)->IsScaleX()) {
+				mpScaleX *scaleX = (mpScaleX*)(*li);
 
-                switch(scaleX->GetLabelMode()){
-                    case mpX_NORMAL:
-                        valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
-                        break;
-                    case mpX_HOURS:
-                    case mpX_TIME:
-                    {
-                        int remainder = abs((long)pointInfo.second.x % 3600);
-                        int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
-                        long hour = (long)pointInfo.second.x/3600;
-                        if (hour == 0 && pointInfo.second.x < 0) {
-                            valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
-                        }else{
-                            valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
-                        }
-                        break;
-                    }
-                    case mpX_USERDEFINED:
-                        valueX.Printf(GetTrackBoxXvalueFormat(), (*li)->GetName(), pointInfo.second.x);
-                        break;
-                    default:
-                        wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
-                        switch(scaleX->GetLabelMode()) {
-                            case mpX_DATE:
-                                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
-                                break;
-                            case mpX_DATETIME:
-                                //wxLogMessage(_("x: %ld"), ticks);
-                                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
-                                //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
-                                break;
-                            case mpX_TIMEOFDAY:
-                                valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
-                                break;
-                            case mpX_USERDEFINEDDATE:
-                                valueX.Printf("%s: %s", scaleX->GetName(), xTime.Format(GetTrackBoxXvalueFormat()), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
-                                break;
-                        }
-                }
-            }
-            else if ((*li)->IsScaleY()) {
-                //valueY.Printf(m_trackbox_y_fmt, (*li)->GetName(), pointInfo.second.y);
-                if (pointInfo.first->GetTrackBoxYvalueFormat().length() >0)
-                    valueY.Printf(pointInfo.first->GetTrackBoxYvalueFormat(), (*li)->GetName(), pointInfo.second.y);
-                else
-                    valueY.Printf(GetTrackBoxYvalueFormat(), (*li)->GetName(), pointInfo.second.y);
-            }
-        }
-
-        wxClientDC dc(this);
-        wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
-        dc.SetPen(pen);
-        dc.SetBrush(m_bgColour);//SetBrush(*wxTRANSPARENT_BRUSH);
-
-        int textX, textY;
-        dc.GetTextExtent(valueX, &textX, &textY);
-        if (dc.GetTextExtent(label).GetX() > textX)
-            textX = dc.GetTextExtent(label).GetX();
-        if (dc.GetTextExtent(valueY).GetX() > textX)
-            textX = dc.GetTextExtent(valueY).GetX();
-
-        wxRect m_dim;
-        #ifdef __linux__
-            m_dim.width = textX + 37;
-            m_dim.height = 3 * textY + 29;
-        #else
-            m_dim.width = textX + 35;
-            m_dim.height = 3 * textY + 33;
-        #endif
-
-        if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
-            m_dim.x = x2p(pointInfo.second.x);
-        else
-            m_dim.x = x2p(pointInfo.second.x) - m_dim.width;
-
-        if (y2p(pointInfo.second.y) < GetScreenRect().height - m_dim.height)
-            m_dim.y = y2p(pointInfo.second.y);
-        else
-            m_dim.y = y2p(pointInfo.second.y) - m_dim.height;
-
-        int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
-        int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
-        int valueMargin = (m_dim.width - dc.GetTextExtent(valueY).GetX()) / 2.1;
-
-        dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
-        dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
-        dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
-        dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 56);
-    }
-
-std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, mpWindow * w) {
-	mpLayer* layer;
-	double pointX, pointY;
-	double previousDelta = 999999999999;
-
-	for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
-	{
-		if (!(*li)->IsVisible()) continue;
-		if ((*li)->IsVector()) {
-			mpFXYVector *vect = (mpFXYVector*)(*li);
-
-			int distX, closestI=0;
-			distX = x - vect->m_xs[0];             //runs through vector looking for the closest X value
-			for (int i = 1; i < vect->m_ys.size(); i++) {
-				if (abs(x - vect->m_xs[i]) < distX) {
-					distX = x - vect->m_xs[i];
-					closestI = i;
+				switch(scaleX->GetLabelMode()){
+					case mpX_NORMAL:
+				        valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+				        break;
+				    case mpX_HOURS:
+				    case mpX_TIME:
+				    {
+						int remainder = abs((long)pointInfo.second.x % 3600);
+						int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
+						long hour = (long)pointInfo.second.x/3600;
+						if (hour == 0 && pointInfo.second.x < 0) {
+							valueX.Printf(wxT("%s: -%02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+						}else{
+							valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
+						}
+				        break;
+				    }
+				    case mpX_USERDEFINED:
+				        valueX.Printf(GetTrackBoxXvalueFormat(), (*li)->GetName(), pointInfo.second.x);
+				        break;
+				    default:
+				        wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
+				        switch(scaleX->GetLabelMode()) {
+				            case mpX_DATE:
+				                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
+				                break;
+				            case mpX_DATETIME:
+				                //wxLogMessage(_("x: %ld"), ticks);
+				                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
+				                //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
+				                break;
+				            case mpX_TIMEOFDAY:
+				                valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+				                break;
+				            case mpX_USERDEFINEDDATE:
+				                valueX.Printf("%s: %s", scaleX->GetName(), xTime.Format(GetTrackBoxXvalueFormat()), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+				                break;
+				        }
 				}
 			}
-			double delta = sqrt(pow((x - vect->m_xs[closestI])*GetScaleX(), 2) + pow((y - vect->m_ys[closestI])*GetScaleY(), 2));
-			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-				layer = *li;
-				previousDelta = delta;
-				pointX = vect->m_xs[closestI];
-				pointY = vect->m_ys[closestI];
+			else if ((*li)->IsScaleY()) {
+				//valueY.Printf(m_trackbox_y_fmt, (*li)->GetName(), pointInfo.second.y);
+				if (pointInfo.first->GetTrackBoxYvalueFormat().length() >0)
+					valueY.Printf(pointInfo.first->GetTrackBoxYvalueFormat(), (*li)->GetName(), pointInfo.second.y);
+				else
+					valueY.Printf(GetTrackBoxYvalueFormat(), (*li)->GetName(), pointInfo.second.y);
 			}
 		}
-		else if ((*li)->IsFX()) {
-			mpFX *fx = (mpFX*)(*li);
 
-			double delta = abs((y - fx->GetY(x))*GetScaleY());
-			if (delta < previousDelta) {
-				layer = *li;
-				previousDelta = delta;
-				pointX = x;
-				pointY = fx->GetY(x);
-			}
-		}
-		else if ((*li)->IsFY()) {
-			mpFY *fy = (mpFY*)(*li);
+		wxClientDC dc(this);
+		wxPen pen(m_fgColour, 1, wxPENSTYLE_SOLID);		//wxDOT);    *wxBLACK
+		dc.SetPen(pen);
+		dc.SetBrush(m_bgColour);//SetBrush(*wxTRANSPARENT_BRUSH);
 
-			wxCoord minYpx = fy->GetDrawOutsideMargins() ? 0 : w->GetMarginTop();
-			wxCoord maxYpx = fy->GetDrawOutsideMargins() ? w->GetScrY() : w->GetScrY() - w->GetMarginBottom();
+		int textX, textY;
+		dc.GetTextExtent(valueX, &textX, &textY);
+		if (dc.GetTextExtent(label).GetX() > textX)
+			textX = dc.GetTextExtent(label).GetX();
+		if (dc.GetTextExtent(valueY).GetX() > textX)
+			textX = dc.GetTextExtent(valueY).GetX();
 
-			wxCoord currY = 0; //minYpx;
-			double yDouble = w->p2y(currY);
-			double closestY = yDouble;
-			double delta = sqrt(pow((x - fy->GetX(yDouble))*GetScaleX(), 2) + pow((y - yDouble)*GetScaleY(), 2));
-			currY++;
-			for (currY; currY < maxYpx; ++currY)			//runs through function looking for the closest point
-			{
-				yDouble = w->p2y(currY);
-				double currDelta = sqrt(pow((x - fy->GetX(yDouble))*GetScaleX(), 2) + pow((y - yDouble)*GetScaleY(), 2));
-				if (currDelta < delta) {
-					delta = currDelta;
-					closestY = yDouble;
+		wxRect m_dim;
+		#ifdef __linux__
+			m_dim.width = textX + 37;
+			m_dim.height = 3 * textY + 29;
+		#else
+			m_dim.width = textX + 35;
+			m_dim.height = 3 * textY + 33;
+		#endif
+
+		if(x2p(pointInfo.second.x) < GetScreenRect().width-m_dim.width)
+			m_dim.x = x2p(pointInfo.second.x);
+		else
+			m_dim.x = x2p(pointInfo.second.x) - m_dim.width;
+
+		if (y2p(pointInfo.second.y) < GetScreenRect().height - m_dim.height)
+			m_dim.y = y2p(pointInfo.second.y);
+		else
+			m_dim.y = y2p(pointInfo.second.y) - m_dim.height;
+
+		int labelMargin = (m_dim.width - dc.GetTextExtent(label).GetX()) / 2.2;
+		int dateMargin = (m_dim.width - dc.GetTextExtent(valueX).GetX()) / 2.1;
+		int valueMargin = (m_dim.width - dc.GetTextExtent(valueY).GetX()) / 2.1;
+
+		dc.DrawRectangle(m_dim.x, m_dim.y, m_dim.width, m_dim.height);
+		dc.DrawText(label, m_dim.x + labelMargin, m_dim.y + 7);
+		dc.DrawText(valueX, m_dim.x + dateMargin, m_dim.y + 32);
+		dc.DrawText(valueY, m_dim.x + valueMargin, m_dim.y + 56);
+	}
+
+	std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, mpWindow * w) {
+		mpLayer* layer;
+		double pointX, pointY;
+		double previousDelta = 999999999999;
+
+		for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
+		{
+			if (!(*li)->IsVisible()) continue;
+			if ((*li)->IsVector()) {
+				mpFXYVector *vect = (mpFXYVector*)(*li);
+
+				int closestI=0;     				//runs through vector looking for the closest X value
+				double delta = sqrt(pow((x - vect->m_xs[0])*GetScaleX(), 2) + pow((y - vect->m_ys[0])*GetScaleY(), 2));
+				for (int i = 1; i < vect->m_ys.size(); i++) {
+					double currDelta = sqrt(pow((x - vect->m_xs[i])*GetScaleX(), 2) + pow((y - vect->m_ys[i])*GetScaleY(), 2));
+					if (currDelta < delta) {
+						delta = currDelta;
+						closestI = i;
+					}
+				}
+				if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
+					layer = *li;
+					previousDelta = delta;
+					pointX = vect->m_xs[closestI];
+					pointY = vect->m_ys[closestI];
 				}
 			}
-			if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-				layer = *li;
-				previousDelta = delta;
-				pointX = fy->GetX(closestY);
-				pointY = closestY;
-			}			
-        } 
-		else if ((*li)->IsFXY()) {
-			mpFXY *fxy = (mpFXY*)(*li);
+			else if ((*li)->IsFX()) {
+				mpFX *fx = (mpFX*)(*li);
+				
+				
+				wxCoord minXpx = fx->GetDrawOutsideMargins() ? 0 : w->GetMarginLeft();
+				wxCoord maxXpx = fx->GetDrawOutsideMargins() ? w->GetScrX() : w->GetScrX() - w->GetMarginRight();
 
-			wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
-			double thisFunctionDelta = sqrt(pow((x - closestPoint.x)*GetScaleX(), 2) + pow((y - closestPoint.y)*GetScaleY(), 2));
+				wxCoord currX = minXpx; 
+				double xDouble = w->p2x(currX);
+				double closestX = xDouble;
+				double delta = sqrt(pow((y - fx->GetY(xDouble))*GetScaleY(), 2) + pow((x - xDouble)*GetScaleX(), 2));
+				currX++;
+				for (currX; currX < maxXpx; ++currX)			//runs through function looking for the closest point
+				{
+					xDouble = w->p2x(currX);
+					double currDelta = sqrt(pow((y - fx->GetY(xDouble))*GetScaleY(), 2) + pow((x - xDouble)*GetScaleX(), 2));
+					if (currDelta < delta) {
+						delta = currDelta;
+						closestX = xDouble;
+					}
+				}
+				if (delta < previousDelta) {		//compares delta of this function to previous ones, to determine the nearest point
+					layer = *li;
+					previousDelta = delta;
+					pointX = closestX;
+					pointY = fx->GetY(closestX);
+				}
+			}
+			else if ((*li)->IsFY()) {
+				mpFY *fy = (mpFY*)(*li);
 
-			if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
-				//LayerName = fxy->GetName();
-				layer = *li;
-				previousDelta = thisFunctionDelta;
-				pointX = closestPoint.x;
-				pointY = closestPoint.y;
+				wxCoord minYpx = fy->GetDrawOutsideMargins() ? 0 : w->GetMarginTop();
+				wxCoord maxYpx = fy->GetDrawOutsideMargins() ? w->GetScrY() : w->GetScrY() - w->GetMarginBottom();
+
+				wxCoord currY = minYpx;
+				double yDouble = w->p2y(currY);
+				double closestY = yDouble;
+				double delta = sqrt(pow((x - fy->GetX(yDouble))*GetScaleX(), 2) + pow((y - yDouble)*GetScaleY(), 2));
+				currY++;
+				for (currY; currY < maxYpx; ++currY)			//runs through function looking for the closest point
+				{
+					yDouble = w->p2y(currY);
+					double currDelta = sqrt(pow((x - fy->GetX(yDouble))*GetScaleX(), 2) + pow((y - yDouble)*GetScaleY(), 2));
+					if (currDelta < delta) {
+						delta = currDelta;
+						closestY = yDouble;
+					}
+				}
+				if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
+					layer = *li;
+					previousDelta = delta;
+					pointX = fy->GetX(closestY);
+					pointY = closestY;
+				}			
+		    } 
+			else if ((*li)->IsFXY()) {
+				mpFXY *fxy = (mpFXY*)(*li);
+
+				wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
+				double thisFunctionDelta = sqrt(pow((x - closestPoint.x)*GetScaleX(), 2) + pow((y - closestPoint.y)*GetScaleY(), 2));
+
+				if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
+					//LayerName = fxy->GetName();
+					layer = *li;
+					previousDelta = thisFunctionDelta;
+					pointX = closestPoint.x;
+					pointY = closestPoint.y;
+				}
+			}
+		}
+		return std::make_pair(layer, wxRealPoint(pointX, pointY));
+	}
+
+	void mpWindow::ShowPopupMenu(int x, int y)//(wxMouseEvent &event)
+	{
+		// Only display menu if the user has not "dragged" the figure
+		if (m_enableMouseNavigation)
+		{
+			SetCursor(*wxSTANDARD_CURSOR);
+		}
+
+		if (!m_mouseMovedAfterRightClick)   // JLB
+		{
+			m_clickedX = x;//event.GetX();
+			m_clickedY = y;//event.GetY();
+			PopupMenu(&m_popmenu, x, y);//event.GetX(), event.GetY());
+		}
+	}
+
+	void mpWindow::ZoomRectEnter(int x, int y) {
+	  m_zoomRectDown = true;
+	  m_mouseLClick_X = x;
+		m_mouseLClick_Y = y;
+	#ifdef MATHPLOT_DO_LOGGING
+		wxLogMessage(_("mpWindow::OnMouseLeftDown() X = %d , Y = %d"), event.GetX(), event.GetY());/*m_mouseLClick_X, m_mouseLClick_Y);*/
+	#endif
+		wxPoint pointClicked = wxPoint(x, y);//event.GetPosition();
+		m_movingInfoLayer = IsInsideInfoLayer(pointClicked);
+		if (m_movingInfoLayer != NULL) {
+	#ifdef MATHPLOT_DO_LOGGING
+			wxLogMessage(_("mpWindow::OnMouseLeftDown() started moving layer %lx"), (long int)m_movingInfoLayer);/*m_mouseLClick_X, m_mouseLClick_Y);*/
+	#endif
+		}
+	}
+	
+	void mpWindow::ZoomRectRelease(int x, int y) {
+	  m_zoomRectDown = false;
+		wxPoint release(x, y);
+		wxPoint press(m_mouseLClick_X, m_mouseLClick_Y);
+		if (m_movingInfoLayer != NULL) {
+			m_movingInfoLayer->UpdateReference();
+			m_movingInfoLayer = NULL;
+		}
+		else {
+			if (release != press) {
+		  if(abs(m_mouseLClick_X - x)>10)   //Avoids accidentally zooming when double clicking
+				   ZoomRect(press, release);
 			}
 		}
 	}
-	return std::make_pair(layer, wxRealPoint(pointX, pointY));
-}
-
-void mpWindow::ShowPopupMenu(int x, int y)//(wxMouseEvent &event)
-{
-	// Only display menu if the user has not "dragged" the figure
-	if (m_enableMouseNavigation)
-	{
-		SetCursor(*wxSTANDARD_CURSOR);
-	}
-
-	if (!m_mouseMovedAfterRightClick)   // JLB
-	{
-		m_clickedX = x;//event.GetX();
-		m_clickedY = y;//event.GetY();
-		PopupMenu(&m_popmenu, x, y);//event.GetX(), event.GetY());
-	}
-}
-
-void mpWindow::ZoomRectEnter(int x, int y) {
-  m_zoomRectDown = true;
-  m_mouseLClick_X = x;
-	m_mouseLClick_Y = y;
-#ifdef MATHPLOT_DO_LOGGING
-	wxLogMessage(_("mpWindow::OnMouseLeftDown() X = %d , Y = %d"), event.GetX(), event.GetY());/*m_mouseLClick_X, m_mouseLClick_Y);*/
-#endif
-	wxPoint pointClicked = wxPoint(x, y);//event.GetPosition();
-	m_movingInfoLayer = IsInsideInfoLayer(pointClicked);
-	if (m_movingInfoLayer != NULL) {
-#ifdef MATHPLOT_DO_LOGGING
-		wxLogMessage(_("mpWindow::OnMouseLeftDown() started moving layer %lx"), (long int)m_movingInfoLayer);/*m_mouseLClick_X, m_mouseLClick_Y);*/
-#endif
-	}
-}
-void mpWindow::ZoomRectRelease(int x, int y) {
-  m_zoomRectDown = false;
-	wxPoint release(x, y);
-	wxPoint press(m_mouseLClick_X, m_mouseLClick_Y);
-	if (m_movingInfoLayer != NULL) {
-		m_movingInfoLayer->UpdateReference();
-		m_movingInfoLayer = NULL;
-	}
-	else {
-		if (release != press) {
-      if(abs(m_mouseLClick_X - x)>10)   //Avoids accidentally zooming when double clicking
-			   ZoomRect(press, release);
-		}
-	}
-}
 //#pragma endregion
 
 void mpWindow::Fit()
