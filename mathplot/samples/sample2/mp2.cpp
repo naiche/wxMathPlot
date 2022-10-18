@@ -108,6 +108,9 @@ public:
     void OnAbout( wxCommandEvent &event );
     void OnQuit( wxCommandEvent &event );
     void OnFit( wxCommandEvent &event );
+    void OnZoomIn( wxCommandEvent &event );
+    void OnZoomOut( wxCommandEvent &event );
+    void OnBlackTheme(wxCommandEvent& event);
 
     mpWindow        *m_plot;
     wxTextCtrl      *m_log;
@@ -134,18 +137,21 @@ IMPLEMENT_APP(MyApp)
 enum {
     ID_QUIT  = 108,
     ID_ABOUT,
+    ID_BLACK_THEME,
 };
 
 IMPLEMENT_DYNAMIC_CLASS( MyFrame, wxFrame )
 
 BEGIN_EVENT_TABLE(MyFrame,wxFrame)
-  EVT_MENU(ID_ABOUT, MyFrame::OnAbout)
-  EVT_MENU(ID_QUIT,  MyFrame::OnQuit)
-  EVT_MENU(mpID_FIT, MyFrame::OnFit)
+	EVT_MENU(ID_ABOUT, MyFrame::OnAbout)
+	EVT_MENU(ID_QUIT,  MyFrame::OnQuit)
+	EVT_MENU(mpID_FIT, MyFrame::OnFit)
+	EVT_MENU(mpID_ZOOM_IN, MyFrame::OnZoomIn)
+	EVT_MENU(mpID_ZOOM_OUT, MyFrame::OnZoomOut)
+	EVT_MENU(ID_BLACK_THEME, MyFrame::OnBlackTheme)
 END_EVENT_TABLE()
 
-MyFrame::MyFrame()
-       : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample - Comparison of Integer Coding Algorithms"))
+MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample - Comparison of Integer Coding Algorithms"), wxDefaultPosition, wxSize(1000, 800))
 {
     wxMenu *file_menu = new wxMenu();
     wxMenu *view_menu = new wxMenu();
@@ -156,6 +162,7 @@ MyFrame::MyFrame()
     view_menu->Append( mpID_FIT,      wxT("&Fit bounding box"), wxT("Set plot view to show all items"));
     view_menu->Append( mpID_ZOOM_IN,  wxT("Zoom in"),           wxT("Zoom in plot view."));
     view_menu->Append( mpID_ZOOM_OUT, wxT("Zoom out"),          wxT("Zoom out plot view."));
+    view_menu->AppendCheckItem( ID_BLACK_THEME, wxT("Switch to black background theme"));
 
     wxMenuBar *menu_bar = new wxMenuBar();
     menu_bar->Append(file_menu, wxT("&File"));
@@ -168,6 +175,7 @@ MyFrame::MyFrame()
     m_plot = new mpWindow( this, -1, wxPoint(0,0), wxSize(100,100), wxSUNKEN_BORDER );
     m_plot->AddLayer(     new mpScaleX( wxT("Ganzzahl N")));
     m_plot->AddLayer(     new mpScaleY( wxT("Kosten K(N) in Bits")));
+    
     m_plot->AddLayer(     new FixedBitwidth(32) );
     m_plot->AddLayer(     new Optimum() );
     m_plot->AddLayer( e = new Elias() );
@@ -180,16 +188,66 @@ MyFrame::MyFrame()
     topsizer->Add( m_plot, 1, wxEXPAND );
     SetAutoLayout( TRUE );
     SetSizer( topsizer );
+    
+	m_plot->BindMouseButton(mpDOUBLE_CLICK, mpFIT);
+	m_plot->BindMouseButton(mpMIDDLE_DOWN, mpPAN);
+	//m_plot->BindMouseButton(mpRIGHT_DOWN, mpCONTEXT_MENU);
+	m_plot->BindMouseButton(mpRIGHT_DOWN, mpTRACK);
+	m_plot->BindMouseButton(mpLEFT_DOWN, mpZOOM_RECTANGLE);
+	
+	m_plot->BindMouseWheel(mpWHEEL, mpZOOM);
+	m_plot->BindMouseWheel(mpSHIFT_WHEEL, mpHORIZONTAL_PAN);
+	m_plot->BindMouseWheel(mpCTRL_WHEEL, mpVERTICAL_PAN);
+
+	wxColour grey(96, 96, 96);
+	m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
+	m_plot->Fit(-1, 15, -1, 16);        
 }
 
 void MyFrame::OnQuit( wxCommandEvent &WXUNUSED(event) )
 {
-    Close( TRUE );
+	Close( TRUE );
 }
 
 void MyFrame::OnFit( wxCommandEvent &WXUNUSED(event) )
 {
-    m_plot->Fit();
+	m_plot->Fit(-1, 15, -1, 16);
+}
+
+void MyFrame::OnZoomIn( wxCommandEvent &WXUNUSED(event) )
+{
+	m_plot->ZoomIn();
+}
+
+void MyFrame::OnZoomOut( wxCommandEvent &WXUNUSED(event) )
+{
+	m_plot->ZoomOut();
+}
+
+void MyFrame::OnBlackTheme(wxCommandEvent& event)
+{
+	//wxColor black(0,0,0);
+	//wxColor white(255,255,255);
+	wxColour grey(96, 96, 96);
+	if (event.IsChecked()){	
+		//wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH);
+		//SetColourTheme(background, foreground, axes, grids)	   
+		m_plot->SetColourTheme(wxColour(25,25,25), *wxWHITE, grey, wxColour(45,45,45));
+
+		if (m_plot->GetLayerByName("legend") != nullptr)
+			m_plot->GetLayerByName("legend")->SetBrush(wxBrush(wxColour(25,25,25), wxBRUSHSTYLE_SOLID));
+		if (m_plot->GetLayerByName("coord") != nullptr)
+			m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(65,65,65), wxBRUSHSTYLE_SOLID));
+	}
+	else
+	{
+		m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
+		if (m_plot->GetLayerByName("legend") != nullptr)
+			m_plot->GetLayerByName("legend")->SetBrush(wxBrush(*wxWHITE, wxBRUSHSTYLE_SOLID));
+		if (m_plot->GetLayerByName("coord") != nullptr)
+			m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(185,185,185), wxBRUSHSTYLE_SOLID));
+	}
+	m_plot->UpdateAll();
 }
 
 void MyFrame::OnAbout( wxCommandEvent &WXUNUSED(event) )

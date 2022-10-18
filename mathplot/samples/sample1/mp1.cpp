@@ -476,27 +476,27 @@ void MyFrame::OnToggleInfoLayer(wxCommandEvent& event)
 
 void MyFrame::OnBlackTheme(wxCommandEvent& event)
 {
-    //wxColor black(0,0,0);
-    //wxColor white(255,255,255);
-    wxColour grey(96, 96, 96);
-    if (event.IsChecked()){	
-    	/*wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH)*/;
-        //      SetColourTheme(background, foreground, axes, grids)	   
-        m_plot->SetColourTheme(wxColour(25,25,25), *wxWHITE, grey, wxColour(45,45,45));
-        
-        if (m_plot->GetLayerByName("legend") != nullptr)
-            m_plot->GetLayerByName("legend")->SetBrush(wxBrush(wxColour(25,25,25), wxBRUSHSTYLE_SOLID));
-        if (m_plot->GetLayerByName("coord") != nullptr)
-            m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(65,65,65), wxBRUSHSTYLE_SOLID));
-    }
-    else
-    {
-        m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
-        if (m_plot->GetLayerByName("legend") != nullptr)
-            m_plot->GetLayerByName("legend")->SetBrush(wxBrush(*wxWHITE, wxBRUSHSTYLE_SOLID));
-        if (m_plot->GetLayerByName("coord") != nullptr)
-            m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(185,185,185), wxBRUSHSTYLE_SOLID));
-    }
+	//wxColor black(0,0,0);
+	//wxColor white(255,255,255);
+	wxColour grey(96, 96, 96);
+	if (event.IsChecked()){	
+		//wxBrush* brush = new wxBrush(*wxTRANSPARENT_BRUSH);
+		//SetColourTheme(background, foreground, axes, grids)	   
+		m_plot->SetColourTheme(wxColour(25,25,25), *wxWHITE, grey, wxColour(45,45,45));
+
+		if (m_plot->GetLayerByName("legend") != nullptr)
+			m_plot->GetLayerByName("legend")->SetBrush(wxBrush(wxColour(25,25,25), wxBRUSHSTYLE_SOLID));
+		if (m_plot->GetLayerByName("coord") != nullptr)
+			m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(65,65,65), wxBRUSHSTYLE_SOLID));
+	}
+	else
+	{
+		m_plot->SetColourTheme(*wxWHITE, *wxBLACK, grey, wxColour(220,220,220));
+		if (m_plot->GetLayerByName("legend") != nullptr)
+			m_plot->GetLayerByName("legend")->SetBrush(wxBrush(*wxWHITE, wxBRUSHSTYLE_SOLID));
+		if (m_plot->GetLayerByName("coord") != nullptr)
+			m_plot->GetLayerByName("coord")->SetBrush(wxBrush(wxColour(185,185,185), wxBRUSHSTYLE_SOLID));
+	}
 	m_plot->UpdateAll();
 }
 
