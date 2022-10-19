@@ -639,54 +639,54 @@ protected:
 class WXDLLIMPEXP_MATHPLOT mpFXY : public mpLayer
 {
 public:
-    /** @param name  Label
-        @param flags Label alignment, pass one of #mpALIGN_NE, #mpALIGN_NW, #mpALIGN_SW, #mpALIGN_SE.
-    */
-    mpFXY(wxString name = wxEmptyString, int flags = mpALIGN_NE);
+	/** @param name  Label
+		@param flags Label alignment, pass one of #mpALIGN_NE, #mpALIGN_NW, #mpALIGN_SW, #mpALIGN_SE.
+	*/
+	mpFXY(wxString name = wxEmptyString, int flags = mpALIGN_NE);
 
-    /** Rewind value enumeration with mpFXY::GetNextXY.
-        Override this function in your implementation.
-    */
-    virtual void Rewind() = 0;
+	/** Rewind value enumeration with mpFXY::GetNextXY.
+		Override this function in your implementation.
+	*/
+	virtual void Rewind() = 0;
 
-    /** Get locus value for next N.
-        Override this function in your implementation.
-        @param x Returns X value
-        @param y Returns Y value
-    */
-    virtual bool GetNextXY(double & x, double & y) = 0;
+	/** Get locus value for next N.
+		Override this function in your implementation.
+		@param x Returns X value
+		@param y Returns Y value
+	*/
+	virtual bool GetNextXY(double & x, double & y) = 0;
 
-    wxRealPoint GetClosestXY(double x, double y);
+	wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
 
-    /** Layer plot handler.
-        This implementation will plot the locus in the visible area and
-        put a label according to the alignment specified.
-    */
-    virtual void Plot(wxDC & dc, mpWindow & w);
+	/** Layer plot handler.
+		This implementation will plot the locus in the visible area and
+		put a label according to the alignment specified.
+	*/
+	virtual void Plot(wxDC & dc, mpWindow & w);
 
-    bool IsFXY() { return TRUE; }
+	bool IsFXY() { return TRUE; }
 
 protected:
-    int m_flags; //!< Holds label alignment
+	int m_flags; //!< Holds label alignment
 
-    // Data to calculate label positioning
-    wxCoord maxDrawX, minDrawX, maxDrawY, minDrawY;
-    //int drawnPoints;
+	// Data to calculate label positioning
+	wxCoord maxDrawX, minDrawX, maxDrawY, minDrawY;
+	//int drawnPoints;
 
-    /** Update label positioning data
-        @param xnew New x coordinate
-        @param ynew New y coordinate
-    */
-    void UpdateViewBoundary(wxCoord xnew, wxCoord ynew);
+	/** Update label positioning data
+		@param xnew New x coordinate
+		@param ynew New y coordinate
+	*/
+	void UpdateViewBoundary(wxCoord xnew, wxCoord ynew);
 
-    DECLARE_DYNAMIC_CLASS(mpFXY)
+	DECLARE_DYNAMIC_CLASS(mpFXY)
 };
 
 /** Abstract base class providing plot and labeling functionality for functions F:Y->X.
-    Override mpProfile::GetX to implement a function.
-    This class is similar to mpFY, but the Plot method is different. The plot is in fact represented by lines instead of points, which gives best rendering of rapidly-varying functions, and in general, data which are not so close one to another.
-    Optionally implement a constructor and pass a name (label) and a label alignment
-    to the constructor mpProfile::mpProfile. If the layer name is empty, no label will be plotted.
+	Override mpProfile::GetX to implement a function.
+	This class is similar to mpFY, but the Plot method is different. The plot is in fact represented by lines instead of points, which gives best rendering of rapidly-varying functions, and in general, data which are not so close one to another.
+	Optionally implement a constructor and pass a name (label) and a label alignment
+	to the constructor mpProfile::mpProfile. If the layer name is empty, no label will be plotted.
 */
 class WXDLLIMPEXP_MATHPLOT mpProfile : public mpLayer
 {

@@ -529,17 +529,17 @@ void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
 	//drawnPoints++;
 }
 
-wxRealPoint mpFXY::GetClosestXY(double x, double y){
+wxRealPoint mpFXY::GetClosestXY(double x, double y, double scaleX, double scaleY){
 	double delta, closestX, closestY;
 	double xValue, yValue;
 	Rewind();
 	GetNextXY(xValue, yValue);
-	delta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
+	delta = sqrt(pow((x - xValue)*scaleX, 2) + pow((y - yValue)*scaleY, 2));
 	closestX = xValue;
 	closestY = yValue;
 
 	while(GetNextXY(xValue, yValue)) {            //runs through function looking for the closest X and Y value
-		double thisPointDelta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
+		double thisPointDelta = sqrt(pow((x - xValue)*scaleX, 2) + pow((y - yValue)*scaleY, 2));
 		if (thisPointDelta < delta) {
 			closestX = xValue;
 			closestY = yValue;
@@ -1601,10 +1601,10 @@ mpWindow::~mpWindow()
 
 				switch(scaleX->GetLabelMode()){
 					case mpX_NORMAL:
-				        valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
-				        break;
-				    case mpX_HOURS:
-				    case mpX_TIME:
+						valueX.Printf(wxT("%s: %.4f"), (*li)->GetName(), pointInfo.second.x);
+						break;
+					case mpX_HOURS:
+					case mpX_TIME:
 				    {
 						int remainder = abs((long)pointInfo.second.x % 3600);
 						int miliseconds = abs((long)(pointInfo.second.x*1000) % 1000);
@@ -1614,29 +1614,29 @@ mpWindow::~mpWindow()
 						}else{
 							valueX.Printf(wxT("%s: %02ld:%02d:%02d.%03d"), scaleX->GetName(), hour, remainder/60, remainder % 60, miliseconds);
 						}
-				        break;
-				    }
-				    case mpX_USERDEFINED:
-				        valueX.Printf(GetTrackBoxXvalueFormat(), (*li)->GetName(), pointInfo.second.x);
-				        break;
-				    default:
-				        wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
-				        switch(scaleX->GetLabelMode()) {
-				            case mpX_DATE:
-				                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
-				                break;
-				            case mpX_DATETIME:
-				                //wxLogMessage(_("x: %ld"), ticks);
-				                valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
-				                //%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
-				                break;
-				            case mpX_TIMEOFDAY:
-				                valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
-				                break;
-				            case mpX_USERDEFINEDDATE:
-				                valueX.Printf("%s: %s", scaleX->GetName(), xTime.Format(GetTrackBoxXvalueFormat()), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
-				                break;
-				        }
+						break;
+					}
+					case mpX_USERDEFINED:
+						valueX.Printf(GetTrackBoxXvalueFormat(), (*li)->GetName(), pointInfo.second.x);
+						break;
+					default:
+						wxDateTime xTime((wxLongLong)(pointInfo.second.x * 1000));
+						switch(scaleX->GetLabelMode()) {
+							case mpX_DATE:
+								valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y", wxDateTime::GMT0));
+								break;
+							case mpX_DATETIME:
+								//wxLogMessage(_("x: %ld"), ticks);
+								valueX.Printf(wxT("%s: %s"), scaleX->GetName(), xTime.Format("%d %b %Y - %H:%M:%S", wxDateTime::GMT0));
+								//%2.d %s %d - %02d:%02d:%02d"), scaleX->GetName(), xTime.GetDay(), wxDateTime::GetMonthName(xTime.GetMonth(), wxDateTime::Name_Abbr), xTime.GetYear(), xTime.GetHour(), xTime.GetMinute(), xTime.GetSecond());
+								break;
+							case mpX_TIMEOFDAY:
+								valueX.Printf(wxT("%s: %s.%003d"), scaleX->GetName(), xTime.Format("%H:%M:%S"), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+								break;
+							case mpX_USERDEFINEDDATE:
+								valueX.Printf("%s: %s", scaleX->GetName(), xTime.Format(GetTrackBoxXvalueFormat()), abs((int)(pointInfo.second.x*1000) % 1000));//wxDateTime::GMT0));
+								break;
+						}
 				}
 			}
 			else if ((*li)->IsScaleY()) {
@@ -1709,6 +1709,7 @@ mpWindow::~mpWindow()
 						closestI = i;
 					}
 				}
+
 				if (delta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
 					layer = *li;
 					previousDelta = delta;
@@ -1773,7 +1774,7 @@ mpWindow::~mpWindow()
 			else if ((*li)->IsFXY()) {
 				mpFXY *fxy = (mpFXY*)(*li);
 
-				wxRealPoint closestPoint = fxy->GetClosestXY(x, y);
+				wxRealPoint closestPoint = fxy->GetClosestXY(x, y, GetScaleX(), GetScaleY());
 				double thisFunctionDelta = sqrt(pow((x - closestPoint.x)*GetScaleX(), 2) + pow((y - closestPoint.y)*GetScaleY(), 2));
 
 				if (thisFunctionDelta < previousDelta) {   //compares delta of this function to previous ones, to determine the nearest point
