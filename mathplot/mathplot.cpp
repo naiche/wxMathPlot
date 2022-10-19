@@ -471,72 +471,62 @@ mpFY::mpFY(wxString name, int flags)
 void mpFY::Plot(wxDC & dc, mpWindow & w)
 {
     if (m_visible) {
-        dc.SetPen( m_pen);
+		dc.SetPen( m_pen);
 
-        wxCoord i, ix;
+		wxCoord i, ix;
 
-        wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-        wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-        wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-        wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-        if (m_pen.GetWidth() <= 1)
-        {
-            for (i = minYpx; i < maxYpx; ++i)
-            {
-                ix = w.x2p(GetX(w.p2y(i)));
-                if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx)))
-                    dc.DrawPoint(ix, i);
-            }
-        }
-        else
-        {
-            for (i=0;i< w.GetScrY(); ++i)
-            {
-                ix = w.x2p(GetX(w.p2y(i)));
-                if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx)))
-                    dc.DrawLine(ix, i, ix, i);
-    //             wxCoord c =  w.x2p(GetX(w.p2y(i))); //(wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX());
-    //             dc.DrawLine(c, i, c, i);
-            }
-        }
+		for (i = minYpx; i < maxYpx; ++i)
+		{
+			ix = w.x2p(GetX(w.p2y(i)));
+			if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx))) {
+				if (m_pen.GetWidth() <= 1)
+					dc.DrawPoint(ix, i);
+				else
+					dc.DrawLine(ix, i, ix, i);
+			}
+		}
 
-        if (!m_name.IsEmpty() && m_showName)
-        {
-            dc.SetFont(m_font);
+		if (!m_name.IsEmpty() && m_showName)
+		{
+			dc.SetFont(m_font);
 
-            wxCoord tx, ty;
-            dc.GetTextExtent(m_name, &tx, &ty);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-            if ((m_flags & mpALIGNMASK) == mpALIGN_TOP)
-                ty = w.GetMarginTop() + 8;
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-                ty = ((w.GetScrY() - w.GetMarginTop() - w.GetMarginBottom() - ty) / 2) + w.GetMarginTop();
-            else
-                ty = w.GetScrY() - 8 - ty - w.GetMarginBottom();
+			if ((m_flags & mpALIGNMASK) == mpALIGN_TOP)
+				ty = w.GetMarginTop() + 8;
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
+				ty = ((w.GetScrY() - w.GetMarginTop() - w.GetMarginBottom() - ty) / 2) + w.GetMarginTop();
+			else
+				ty = w.GetScrY() - 8 - ty - w.GetMarginBottom();
 
-            dc.DrawText( m_name, w.x2p(GetX(w.p2y(ty))), ty ); // (wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -ty);
-        }
-    }
+			dc.DrawText( m_name, w.x2p(GetX(w.p2y(ty))), ty ); // (wxCoord) ((GetX( (double)i / w.GetScaleY() + w.GetPosY()) - w.GetPosX()) * w.GetScaleX()), -ty);
+		}
+	}
 }
 
 IMPLEMENT_ABSTRACT_CLASS(mpFXY, mpLayer)
 
 mpFXY::mpFXY(wxString name, int flags)
 {
-    SetName(name);
-    m_flags = flags;
-    m_type = mpLAYER_PLOT;
+	SetName(name);
+	m_flags = flags;
+	m_type = mpLAYER_PLOT;
 }
 
 void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
 {
-    // Keep track of how many points have been drawn and the bouding box
-    maxDrawX = (xnew > maxDrawX) ? xnew : maxDrawX;
-    minDrawX = (xnew < minDrawX) ? xnew : minDrawX;
-    maxDrawY = (maxDrawY > ynew) ? maxDrawY : ynew;
-    minDrawY = (minDrawY < ynew) ? minDrawY : ynew;
-    //drawnPoints++;
+	// Keep track of how many points have been drawn and the bouding box
+	maxDrawX = (xnew > maxDrawX) ? xnew : maxDrawX;
+	minDrawX = (xnew < minDrawX) ? xnew : minDrawX;
+	maxDrawY = (maxDrawY > ynew) ? maxDrawY : ynew;
+	minDrawY = (minDrawY < ynew) ? minDrawY : ynew;
+	//drawnPoints++;
 }
 
 wxRealPoint mpFXY::GetClosestXY(double x, double y){
@@ -660,7 +650,7 @@ void mpFXY::Plot(wxDC & dc, mpWindow & w)
                             }
                             if (c1 > maxYpx) {
                                 xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                //wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
+//wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
                                 //x1 = newX1;
                                 cclip = maxYpx;
                                 clip_to = true;
@@ -802,15 +792,15 @@ IMPLEMENT_DYNAMIC_CLASS(mpScaleX, mpLayer)
 
 mpScaleX::mpScaleX(wxString name, int flags, bool ticks, unsigned int type)
 {
-    SetName(name);
-    SetFont( (wxFont&) *wxSMALL_FONT);
-    SetPen( (wxPen&) *wxGREY_PEN);
-    m_flags = flags;
-    m_ticks = ticks;
-    m_grid = !ticks;
-    m_labelType = type;
-    m_type = mpLAYER_AXIS;
-    m_labelFormat = wxT("");
+	SetName(name);
+	SetFont( (wxFont&) *wxSMALL_FONT);
+	SetPen( (wxPen&) *wxGREY_PEN);
+	m_flags = flags;
+	m_ticks = ticks;
+	m_grid = !ticks;
+	m_labelType = type;
+	m_type = mpLAYER_AXIS;
+	m_labelFormat = wxT("");
 }
 
 void mpScaleX::Plot(wxDC & dc, mpWindow & w)
@@ -1728,7 +1718,6 @@ mpWindow::~mpWindow()
 			}
 			else if ((*li)->IsFX()) {
 				mpFX *fx = (mpFX*)(*li);
-				
 				
 				wxCoord minXpx = fx->GetDrawOutsideMargins() ? 0 : w->GetMarginLeft();
 				wxCoord maxXpx = fx->GetDrawOutsideMargins() ? w->GetScrX() : w->GetScrX() - w->GetMarginRight();
