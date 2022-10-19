@@ -470,7 +470,7 @@ mpFY::mpFY(wxString name, int flags)
 
 void mpFY::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_visible) {
+	if (m_visible) {
 		dc.SetPen( m_pen);
 
 		wxCoord i, ix;
@@ -530,23 +530,23 @@ void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
 }
 
 wxRealPoint mpFXY::GetClosestXY(double x, double y){
-    double delta, closestX, closestY;
-    double xValue, yValue;
-    Rewind();
-    GetNextXY(xValue, yValue);
-    delta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
-    closestX = xValue;
-    closestY = yValue;
+	double delta, closestX, closestY;
+	double xValue, yValue;
+	Rewind();
+	GetNextXY(xValue, yValue);
+	delta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
+	closestX = xValue;
+	closestY = yValue;
 
-    while(GetNextXY(xValue, yValue)) {            //runs through function looking for the closest X and Y value
-      double thisPointDelta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
-      if (thisPointDelta < delta) {
-        closestX = xValue;
-        closestY = yValue;
-        delta = thisPointDelta;
-      }
-    }
-    return wxRealPoint(closestX, closestY);
+	while(GetNextXY(xValue, yValue)) {            //runs through function looking for the closest X and Y value
+		double thisPointDelta = sqrt(pow((x - xValue), 2) + pow((y - yValue), 2));
+		if (thisPointDelta < delta) {
+			closestX = xValue;
+			closestY = yValue;
+			delta = thisPointDelta;
+		}
+	}
+	return wxRealPoint(closestX, closestY);
 }
 
 void mpFXY::Plot(wxDC & dc, mpWindow & w)
