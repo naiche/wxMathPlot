@@ -201,6 +201,7 @@ public:
         @sa mpInfoLayer::IsInfo */
     virtual bool IsInfo() { return false; };
     virtual bool IsVector() { return false; }
+    virtual bool IsBarChart() { return false; }
     virtual bool IsFX() { return false; }
     virtual bool IsFY() { return false; }
     virtual bool IsFXY() { return false; }
@@ -1546,7 +1547,7 @@ protected:
     // Returns the actual maximum Y data (loaded in SetData).
     double GetMaxHeight() { return m_maxY; }
 
-    //bool IsVector() { return TRUE; }
+    bool IsBarChart() { return TRUE; }
 
     int     m_flags;  //!< Holds label alignment
 

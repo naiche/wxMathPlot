@@ -404,70 +404,59 @@ mpFX::mpFX(wxString name, int flags)
 
 void mpFX::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_visible) {
-        dc.SetPen( m_pen);
+	if (m_visible) {
+		dc.SetPen( m_pen);
 
-        wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-        wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-        wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-        wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+		wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+		wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+		wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+		wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-        wxCoord iy = 0;
-        if (m_pen.GetWidth() <= 1)
-        {
-            for (wxCoord i = startPx; i < endPx; ++i)
-            {
-                iy = w.y2p( GetY(w.p2x(i)));
-                // Draw the point only if you can draw outside margins or if the point is inside margins
-                if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx)))
-                    dc.DrawPoint(i, iy );// (wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY()));
-            }
-        }
-        else
-        {
-            for (wxCoord i = startPx; i < endPx; ++i)
-            {
-                iy = w.y2p( GetY(w.p2x(i)));
-                // Draw the point only if you can draw outside margins or if the point is inside margins
-                if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx)))
-                    dc.DrawLine( i, iy, i, iy);
-    //             wxCoord c = w.y2p( GetY(w.p2x(i)) ); //(wxCoord) ((w.GetPosY() - GetY( (double)i / w.GetScaleX() + w.GetPosX()) ) * w.GetScaleY());
+		wxCoord iy = 0;
+	
+		for (wxCoord i = startPx; i < endPx; ++i)
+		{
+			iy = w.y2p( GetY(w.p2x(i)));
+			if (m_drawOutsideMargins || ((iy >= minYpx) && (iy <= maxYpx))) {   // Draw the point only if you can draw outside margins or if the point is inside margins
+				if (m_pen.GetWidth() <= 1)
+					dc.DrawPoint(i, iy);
+				else
+					dc.DrawLine(i, iy, i, iy);
+			}
+		}
 
-            }
-        }
+		if (!m_name.IsEmpty() && m_showName)
+		{
+			dc.SetFont(m_font);
 
-        if (!m_name.IsEmpty() && m_showName)
-        {
-            dc.SetFont(m_font);
+			wxCoord tx, ty;
+			dc.GetTextExtent(m_name, &tx, &ty);
 
-            wxCoord tx, ty;
-            dc.GetTextExtent(m_name, &tx, &ty);
-
-            /*if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
-                tx = (w.GetScrX()>>1) - tx - 8;
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-                tx = -tx/2;
-            else
-                tx = -(w.GetScrX()>>1) + 8;
-            */
-            if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
-                tx = (w.GetScrX() - tx) - w.GetMarginRight() - 8;
-            else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
-                tx = ((w.GetScrX() - w.GetMarginRight() - w.GetMarginLeft() - tx) / 2) + w.GetMarginLeft();
-            else
-                tx = w.GetMarginLeft() + 8;
-            dc.DrawText( m_name, tx, w.y2p(GetY(w.p2x(tx))) ); // (wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
-        }
-    }
+			/*if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
+				tx = (w.GetScrX()>>1) - tx - 8;
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
+				tx = -tx/2;
+			else
+				tx = -(w.GetScrX()>>1) + 8;
+			*/
+			if ((m_flags & mpALIGNMASK) == mpALIGN_RIGHT)
+				tx = (w.GetScrX() - tx) - w.GetMarginRight() - 8;
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_CENTER)
+				tx = ((w.GetScrX() - w.GetMarginRight() - w.GetMarginLeft() - tx) / 2) + w.GetMarginLeft();
+			else
+				tx = w.GetMarginLeft() + 8;
+			dc.DrawText( m_name, tx, w.y2p(GetY(w.p2x(tx))) ); // (wxCoord) ((w.GetPosY() - GetY( (double)tx / w.GetScaleX() + w.GetPosX())) * w.GetScaleY()) );
+		}
+	}
 }
 
 IMPLEMENT_ABSTRACT_CLASS(mpFY, mpLayer)
 
 mpFY::mpFY(wxString name, int flags)
 {
-    SetName(name);
-    m_flags = flags;
-    m_type = mpLAYER_PLOT;
+	SetName(name);
+	m_flags = flags;
+	m_type = mpLAYER_PLOT;
 }
 
 void mpFY::Plot(wxDC & dc, mpWindow & w)
@@ -553,178 +542,164 @@ wxRealPoint mpFXY::GetClosestXY(double x, double y, double scaleX, double scaleY
 
 void mpFXY::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_visible) {
-        dc.SetPen( m_pen);
+	if (!m_visible) return;
 
-        double x, y;
-        // Do this to reset the counters to evaluate bounding box for label positioning
-        Rewind(); GetNextXY(x, y);
-        maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
-        //drawnPoints = 0;
-        Rewind();
+	dc.SetPen( m_pen);
 
-        wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-        wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-        wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-        wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+	double x, y;
+	// Do this to reset the counters to evaluate bounding box for label positioning
+	Rewind(); GetNextXY(x, y);
+	maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
+	//drawnPoints = 0;
+	Rewind();
 
-        wxCoord ix = 0, iy = 0;
+	wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+	wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+	wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+	wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-        if (!m_continuous)
-        {
-            // for some reason DrawPoint does not use the current pen,
-            // so we use DrawLine for fat pens
-            if (m_pen.GetWidth() <= 1)
-            {
-                while (GetNextXY(x, y))
-                {
-                    ix = w.x2p(x);
-                    iy = w.y2p(y);
-                    if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-                        dc.DrawPoint(ix, iy);
-                        UpdateViewBoundary(ix, iy);
-                    };
-                }
-            }
-            else
-            {
-                while (GetNextXY(x, y))
-                {
-                    ix = w.x2p(x);
-                    iy = w.y2p(y);
-                    if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-                        dc.DrawLine(ix, iy, ix, iy);
-                        UpdateViewBoundary(ix, iy);
-                    }
-    //                dc.DrawLine(cx, cy, cx, cy);
-                }
-            }
-        }
-        else
-        {
-            // Old code
-            wxCoord x0=0,c0=0;
-            bool    first = TRUE;
-            while (GetNextXY(x, y))
-            {
-                wxCoord x1 = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
-                wxCoord c1 = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
-                if (first)
-                {
-                    first=FALSE;
-                    x0=x1;c0=c1;
-                }
-                bool outUp, outDown;
-                // These coordinates are used when part of the line is
-                //   outside the view space and will be clipped.
-                wxCoord xclip=-1,cclip=-1;
-                bool clip_from=false, clip_to=false;
-                // if the current and next points are in the x-view space
-                if((x1 >= startPx)&&(x0 <= endPx)) {
-                    // both current and next are above the y-view space
-                    outDown = (c0 > maxYpx) && (c1 > maxYpx);
-                    // both current and next are below the y-view space
-                    outUp = (c0 < minYpx) && (c1 < minYpx);
-                    // if at least one point is visible in the y-view space
-                    if (!outUp && !outDown) {
-                        // Do any recalculation due to clipping.
-                        // Don't alter (x0,c0) or (x1,c1). We need these
-                        //   to properly handle clipping.
-                        if (c1 != c0) {
-                            // current point is below view
-                            if (c0 < minYpx) {
-                                xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                cclip = minYpx;
-                                clip_from = true;
-                            }
-                            // current point is above view
-                            if (c0 > maxYpx) {
-                                xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                //wxLogDebug(wxT("old x0 = %d, new x0 = %d"), x0, newX0);
-                                //x0 = newX0;
-                                cclip = maxYpx;
-                                clip_from = true;
-                            }
-                            if (c1 < minYpx) {
-                                xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                cclip = minYpx;
-                                clip_to = true;
-                            }
-                            if (c1 > maxYpx) {
-                                xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-//wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
-                                //x1 = newX1;
-                                cclip = maxYpx;
-                                clip_to = true;
-                            }
-                        }
-                        if (x1 != x0) {
-                            if (x0 < startPx) {
-                                cclip = (int)(((float)(startPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
-                                xclip = startPx;
-                                clip_from = true;
-                            }
-                            if (x1 > endPx) {
-                                cclip = (int)(((float)(endPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
-                                xclip = endPx;
-                                clip_to = true;
-                            }
-                        }
-                        if (clip_from)
-                            dc.DrawLine(xclip, cclip, x1, c1);
-                        else if (clip_to)
-                            dc.DrawLine(x0, c0, xclip, cclip);
-                        else
-                            dc.DrawLine(x0, c0, x1, c1);
-                        if (m_contpoints) {
-                            // Don't draw the point if it's outside the view space.
-                            if (!(clip_from || clip_to))
-                                dc.DrawCircle(x1,c1,m_pen.GetWidth()*1.1);
-                        }
-                        UpdateViewBoundary(x1, c1);
-                    }
-                }
-                x0=x1; c0=c1;
-            }
-        }
+	wxCoord ix = 0, iy = 0;
 
-        if (!m_name.IsEmpty() && m_showName)
-        {
-            dc.SetFont(m_font);
+	if (!m_continuous)
+	{
+	    while (GetNextXY(x, y))
+	    {
+	        ix = w.x2p(x);
+	        iy = w.y2p(y);
+	        if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
+	            // for some reason DrawPoint does not use the current pen, so we use DrawLine for fat pens
+	            if (m_pen.GetWidth() <= 1)
+	            	dc.DrawPoint(ix, iy);
+	            else
+	            	dc.DrawLine(ix, iy, ix, iy);
+	            UpdateViewBoundary(ix, iy);
+	        };
+	    }
+	}
+	else
+	{
+		// Old code
+		wxCoord x0=0,c0=0;
+		bool    first = TRUE;
+		while (GetNextXY(x, y))
+		{
+			wxCoord x1 = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
+			wxCoord c1 = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
+			if (first)
+			{
+				first = FALSE;
+				x0=x1; c0=c1;
+			}
+			bool outUp, outDown;
+			// These coordinates are used when part of the line is
+			//   outside the view space and will be clipped.
+			wxCoord xclip=-1,cclip=-1;
+			bool clip_from=false, clip_to=false;
+			// if the current and next points are in the x-view space
+			if((x1 >= startPx)&&(x0 <= endPx)) {
+				// both current and next are above the y-view space
+				outDown = (c0 > maxYpx) && (c1 > maxYpx);
+				// both current and next are below the y-view space
+				outUp = (c0 < minYpx) && (c1 < minYpx);
+				// if at least one point is visible in the y-view space
+				if (!outUp && !outDown) {
+					// Do any recalculation due to clipping.
+					// Don't alter (x0,c0) or (x1,c1). We need these
+					//   to properly handle clipping.
+					if (c1 != c0) {
+					// current point is below view
+						if (c0 < minYpx) {
+							xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+							cclip = minYpx;
+							clip_from = true;
+						}
+						// current point is above view
+						if (c0 > maxYpx) {
+							xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+	//wxLogDebug(wxT("old x0 = %d, new x0 = %d"), x0, newX0);
+							//x0 = newX0;
+							cclip = maxYpx;
+							clip_from = true;
+						}
+						if (c1 < minYpx) {
+							xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+							cclip = minYpx;
+							clip_to = true;
+						}
+						if (c1 > maxYpx) {
+							xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
+	//wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
+							//x1 = newX1;
+							cclip = maxYpx;
+							clip_to = true;
+						}
+					}
+					if (x1 != x0) {
+						if (x0 < startPx) {
+							cclip = (int)(((float)(startPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
+							xclip = startPx;
+							clip_from = true;
+						}
+						if (x1 > endPx) {
+							cclip = (int)(((float)(endPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
+							xclip = endPx;
+							clip_to = true;
+						}
+					}
+					if (clip_from)
+						dc.DrawLine(xclip, cclip, x1, c1);
+					else if (clip_to)
+						dc.DrawLine(x0, c0, xclip, cclip);
+					else
+						dc.DrawLine(x0, c0, x1, c1);
+					if (m_contpoints) {
+						// Don't draw the point if it's outside the view space.
+						if (!(clip_from || clip_to))
+							dc.DrawCircle(x1,c1,m_pen.GetWidth()*1.1);
+					}
+					UpdateViewBoundary(x1, c1);
+				}
+			}
+			x0=x1; c0=c1;
+		}
+	}
 
-            wxCoord tx, ty;
-            dc.GetTextExtent(m_name, &tx, &ty);
+	if (!m_name.IsEmpty() && m_showName)
+	{
+		dc.SetFont(m_font);
 
-            // xxx implement else ... if (!HasBBox())
-            {
-                // const int sx = w.GetScrX();
-                // const int sy = w.GetScrY();
+		wxCoord tx, ty;
+		dc.GetTextExtent(m_name, &tx, &ty);
 
-                if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
-                {
-                    tx = minDrawX + 8;
-                    ty = maxDrawY + 8;
-                }
-                else if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
-                {
-                    tx = maxDrawX - tx - 8;
-                    ty = maxDrawY + 8;
-                }
-                else if ((m_flags & mpALIGNMASK) == mpALIGN_SE)
-                {
-                    tx = maxDrawX - tx - 8;
-                    ty = minDrawY - ty - 8;
-                }
-                else
-                { // mpALIGN_SW
-                    tx = minDrawX + 8;
-                    ty = minDrawY - ty - 8;
-                }
-            }
+		// xxx implement else ... if (!HasBBox())
+		{
+			// const int sx = w.GetScrX();
+			// const int sy = w.GetScrY();
 
-            dc.DrawText( m_name, tx, ty);
-        }
-    }
+			if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+			{
+				tx = minDrawX + 8;
+				ty = maxDrawY + 8;
+			}
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+			{
+				tx = maxDrawX - tx - 8;
+				ty = maxDrawY + 8;
+			}
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_SE)
+			{
+				tx = maxDrawX - tx - 8;
+				ty = minDrawY - ty - 8;
+			}
+			else
+			{ // mpALIGN_SW
+				tx = minDrawX + 8;
+				ty = minDrawY - ty - 8;
+			}
+		}
+
+		dc.DrawText( m_name, tx, ty);
+	}
 }
 //#pragma endregion
 
@@ -2982,158 +2957,72 @@ void mpBAR::SetData(const std::vector<double> &xs,const std::vector<double> &ys)
 
 void mpBAR::Plot(wxDC & dc, mpWindow & w)
 {
-    if (m_visible) {
-        dc.SetPen( m_pen);
+	if (!m_visible) return;
 
-        double x, y;
-        // Do this to reset the counters to evaluate bounding box for label positioning
-        Rewind(); GetNextXY(x, y);
-        maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
-        //drawnPoints = 0;
-        Rewind();
+	dc.SetPen( m_pen);
 
-        wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-        wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-        wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-        wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
+    double x, y;
+    // Do this to reset the counters to evaluate bounding box for label positioning
+    Rewind(); GetNextXY(x, y);
+	maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
+	//drawnPoints = 0;
+	Rewind();
 
-        wxCoord ix = 0, iy = 0;
+	wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
+	wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
+	wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
+	wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
 
-        if (!m_continuous)
-        {
-           	while (GetNextXY(x, y)) {
-                ix = w.x2p(x);
-                iy = w.y2p(y);
-                if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-                    dc.DrawLine(ix, iy, ix, w.y2p(0));
-                    UpdateViewBoundary(ix, iy);
-                }
-//                dc.DrawLine(cx, cy, cx, cy);
-            }
-        }
-        else
-        {
-            // Old code
-            wxCoord x0=0,c0=0;
-            bool    first = TRUE;
-            while (GetNextXY(x, y))
-            {
-                wxCoord x1 = w.x2p(x); // (wxCoord) ((x - w.GetPosX()) * w.GetScaleX());
-                wxCoord c1 = w.y2p(y); // (wxCoord) ((w.GetPosY() - y) * w.GetScaleY());
-                if (first) {
-                    first=FALSE;
-                    x0=x1;c0=c1;
-                }
-                bool outUp, outDown;
-                // These coordinates are used when part of the line is
-                //   outside the view space and will be clipped.
-                wxCoord xclip=-1,cclip=-1;
-                bool clip_from=false, clip_to=false;
-                // if the current and next points are in the x-view space
-                if((x1 >= startPx)&&(x0 <= endPx)) {
-                    // both current and next are above the y-view space
-                    outDown = (c0 > maxYpx) && (c1 > maxYpx);
-                    // both current and next are below the y-view space
-                    outUp = (c0 < minYpx) && (c1 < minYpx);
-                    // if at least one point is visible in the y-view space
-                    if (!outUp && !outDown) {
-                        // Do any recalculation due to clipping.
-                        // Don't alter (x0,c0) or (x1,c1). We need these
-                        //   to properly handle clipping.
-                        if (c1 != c0) {
-                            // current point is below view
-                            if (c0 < minYpx) {
-                                xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                cclip = minYpx;
-                                clip_from = true;
-                            }
-                            // current point is above view
-                            if (c0 > maxYpx) {
-                                xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                //wxLogDebug(wxT("old x0 = %d, new x0 = %d"), x0, newX0);
-                                //x0 = newX0;
-                                cclip = maxYpx;
-                                clip_from = true;
-                            }
-                            if (c1 < minYpx) {
-                                xclip = (int)(((float)(minYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                cclip = minYpx;
-                                clip_to = true;
-                            }
-                            if (c1 > maxYpx) {
-                                xclip = (int)(((float)(maxYpx - c0))/((float)(c1 - c0))*(x1-x0)) + x0;
-                                //wxLogDebug(wxT("old x0 = %d, old x1 = %d, new x1 = %d, c0 = %d, c1 = %d, maxYpx = %d"), x0, x1, newX1, c0, c1, maxYpx);
-                                //x1 = newX1;
-                                cclip = maxYpx;
-                                clip_to = true;
-                            }
-                        }
-                        if (x1 != x0) {
-                            if (x0 < startPx) {
-                                cclip = (int)(((float)(startPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
-                                xclip = startPx;
-                                clip_from = true;
-                            }
-                            if (x1 > endPx) {
-                                cclip = (int)(((float)(endPx - x0))/((float)(x1 -x0))*(c1 -c0)) + c0;
-                                xclip = endPx;
-                                clip_to = true;
-                            }
-                        }
-                        if (clip_from)
-                            dc.DrawLine(xclip, cclip, x1, c1);
-                        else if (clip_to)
-                            dc.DrawLine(x0, c0, xclip, cclip);
-                        else
-                            dc.DrawLine(x0, c0, x1, c1);
-                        if (m_contpoints) {
-                            // Don't draw the point if it's outside the view space.
-                            if (!(clip_from || clip_to))
-                                dc.DrawCircle(x1,c1,m_pen.GetWidth()*1.1);
-                        }
-                        UpdateViewBoundary(x1, c1);
-                    }
-                }
-                x0=x1; c0=c1;
-            }
-        }
+	wxCoord ix = 0, iy = 0;
 
-        if (!m_name.IsEmpty() && m_showName) {
-            dc.SetFont(m_font);
+   	while (GetNextXY(x, y)) {
+   		//for (wxLayerList::iterator li = w.m_layers.begin(); li != w.m_layers.end(); li++){
+   			//if (!(*li)->IsVisible()) continue;
+			//if ((*li)->IsBarChart() ) wxMessageBox ("Achou"); // && li != this
+   		//}
+		ix = w.x2p(x);
+		iy = w.y2p(y);
+		if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
+			dc.DrawLine(ix, iy, ix, w.y2p(0));
+			UpdateViewBoundary(ix, iy);
+		}
+	}
 
-            wxCoord tx, ty;
-            dc.GetTextExtent(m_name, &tx, &ty);
+	if (!m_name.IsEmpty() && m_showName) {
+		dc.SetFont(m_font);
 
-            // xxx implement else ... if (!HasBBox())
-            {
-                // const int sx = w.GetScrX();
-                // const int sy = w.GetScrY();
+		wxCoord tx, ty;
+		dc.GetTextExtent(m_name, &tx, &ty);
 
-                if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
-                {
-                    tx = minDrawX + 8;
-                    ty = maxDrawY + 8;
-                }
-                else if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
-                {
-                    tx = maxDrawX - tx - 8;
-                    ty = maxDrawY + 8;
-                }
-                else if ((m_flags & mpALIGNMASK) == mpALIGN_SE)
-                {
-                    tx = maxDrawX - tx - 8;
-                    ty = minDrawY - ty - 8;
-                }
-                else
-                { // mpALIGN_SW
-                    tx = minDrawX + 8;
-                    ty = minDrawY - ty - 8;
-                }
-            }
+		// xxx implement else ... if (!HasBBox())
+		{
+			// const int sx = w.GetScrX();
+			// const int sy = w.GetScrY();
 
-            dc.DrawText( m_name, tx, ty);
-        }
-    }
+			if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
+			{
+				tx = minDrawX + 8;
+				ty = maxDrawY + 8;
+			}
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
+			{
+				tx = maxDrawX - tx - 8;
+				ty = maxDrawY + 8;
+			}
+			else if ((m_flags & mpALIGNMASK) == mpALIGN_SE)
+			{
+				tx = maxDrawX - tx - 8;
+				ty = minDrawY - ty - 8;
+			}
+			else
+			{ // mpALIGN_SW
+				tx = minDrawX + 8;
+				ty = minDrawY - ty - 8;
+			}
+		}
+
+		dc.DrawText( m_name, tx, ty);
+	}
 }
 //#pragma endregion
 
