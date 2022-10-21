@@ -167,6 +167,14 @@ typedef enum __mp_Layer_Type {
     mpLAYER_BITMAP //!< Bitmap type layer
 } mpLayerType;
 
+struct ViewBoundary {
+	wxCoord maxDrawX;
+	wxCoord minDrawX;
+	wxCoord maxDrawY;
+	wxCoord minDrawY;
+} ;
+
+
 /** Plot layer, abstract base class.
     Any number of mpLayer implementations can be attached to mpWindow.
     Examples for mpLayer implementations are function graphs, or scale rulers.
@@ -207,7 +215,8 @@ public:
     virtual bool IsFXY() { return false; }
     virtual bool IsScaleX() { return false; }
     virtual bool IsScaleY() { return false; }
-
+	virtual bool IsTrackable() { return false; }
+	
     /** Get inclusive left border of bounding box.
         @return Value
     */
@@ -590,9 +599,14 @@ public:
     virtual void Plot(wxDC & dc, mpWindow & w);
 
     bool IsFX() { return TRUE; }
+    
+    bool IsTrackable() { return m_trackable; }
+    
+    void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
 
 protected:
     int m_flags; //!< Holds label alignment
+    bool m_trackable = true;
 
     DECLARE_DYNAMIC_CLASS(mpFX)
 };
@@ -624,9 +638,14 @@ public:
     virtual void Plot(wxDC & dc, mpWindow & w);
 
     bool IsFY() { return TRUE; }
+    
+    bool IsTrackable() { return m_trackable; }
+    
+    void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
 
 protected:
     int m_flags; //!< Holds label alignment
+    bool m_trackable = true;
 
     DECLARE_DYNAMIC_CLASS(mpFY)
 };
@@ -666,9 +685,16 @@ public:
 	virtual void Plot(wxDC & dc, mpWindow & w);
 
 	bool IsFXY() { return TRUE; }
+	
+	bool IsTrackable() { return m_trackable; }
+	
+	void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
+
+	ViewBoundary UpdateViewBoundary(wxCoord xnew, wxCoord ynew);
 
 protected:
 	int m_flags; //!< Holds label alignment
+	bool m_trackable = true;
 
 	// Data to calculate label positioning
 	wxCoord maxDrawX, minDrawX, maxDrawY, minDrawY;
@@ -678,7 +704,6 @@ protected:
 		@param xnew New x coordinate
 		@param ynew New y coordinate
 	*/
-	void UpdateViewBoundary(wxCoord xnew, wxCoord ynew);
 
 	DECLARE_DYNAMIC_CLASS(mpFXY)
 };
@@ -1509,16 +1534,9 @@ public:
     void Plot(wxDC & dc, mpWindow & w);
 
     // The set of data to draw.
-    std::vector<double>  m_xs,m_ys;
-protected:
-
-    // The internal counter for the "GetNextXY" interface
-    size_t m_index;
-
-    // Loaded at SetData
-    double m_minX,m_maxX,m_minY,m_maxY;
-
-    // Rewind value enumeration with mpFXY::GetNextXY.
+    std::vector<double>  m_xs, m_ys;
+    
+       // Rewind value enumeration with mpFXY::GetNextXY.
     //    Overridden in this implementation.
     void Rewind();
 
@@ -1527,6 +1545,17 @@ protected:
     //    @param x Returns X value
     //    @param y Returns Y value
     bool GetNextXY(double & x, double & y);
+    
+    int GetLabelAlignment() {return m_flags;};
+    
+    bool GetShowName() { return m_showName; };
+protected:
+
+    // The internal counter for the "GetNextXY" interface
+    size_t m_index;
+
+    // Loaded at SetData
+    double m_minX,m_maxX,m_minY,m_maxY;
 
     // Returns the actual minimum X data (loaded in SetData).
     double GetMinX() { return m_minX; }

@@ -248,6 +248,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	vectorLayer3->SetContinuity(false);
 	wxPen s3Pen(wxColour(255,120,0), 5, wxPENSTYLE_SOLID);
 	vectorLayer3->SetPen(s3Pen);
+	vectorLayer3->SetTrackable(false);
 	//vectorLayer->SetDrawOutsideMargins(true);
 	m_plot->AddLayer(vectorLayer3);
 

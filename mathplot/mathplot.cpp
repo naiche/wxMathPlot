@@ -172,7 +172,7 @@ void mpInfoLayer::UpdateReference()
 }
 
 
-void   mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
+void mpInfoLayer::Plot(wxDC & dc, mpWindow & w)
 {
 	if (m_visible) {
 		// Adjust relative position inside the window
@@ -510,7 +510,7 @@ mpFXY::mpFXY(wxString name, int flags)
 	m_type = mpLAYER_PLOT;
 }
 
-void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
+ViewBoundary mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
 {
 	// Keep track of how many points have been drawn and the bouding box
 	maxDrawX = (xnew > maxDrawX) ? xnew : maxDrawX;
@@ -518,6 +518,14 @@ void mpFXY::UpdateViewBoundary(wxCoord xnew, wxCoord ynew)
 	maxDrawY = (maxDrawY > ynew) ? maxDrawY : ynew;
 	minDrawY = (minDrawY < ynew) ? minDrawY : ynew;
 	//drawnPoints++;
+	
+	ViewBoundary vb;
+	vb.maxDrawX = maxDrawX;
+	vb.minDrawX = minDrawX;
+	vb.maxDrawY = maxDrawY;
+	vb.minDrawY = minDrawY;
+	
+	return vb;
 }
 
 wxRealPoint mpFXY::GetClosestXY(double x, double y, double scaleX, double scaleY){
@@ -1673,7 +1681,7 @@ mpWindow::~mpWindow()
 
 		for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
 		{
-			if (!(*li)->IsVisible()) continue;
+			if (!(*li)->IsVisible() || !(*li)->IsTrackable()) continue;
 			if ((*li)->IsVector()) {
 				mpFXYVector *vect = (mpFXYVector*)(*li);
 
@@ -2214,19 +2222,82 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
         (*li)->Plot(*trgDc, *this);
     };
 
+	std::vector<double> baseX, baseY;
+	for (li = m_layers.begin(); li != m_layers.end(); li++) //Plot BarChart
+	{
+		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
+
+		mpBAR *barChart = (mpBAR*)(*li);
+		dc.SetPen(barChart->GetPen());
+
+		double x, y;
+		// Do this to reset the counters to evaluate bounding box for label positioning
+		barChart->Rewind(); barChart->GetNextXY(x, y);
+		///maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
+		//drawnPoints = 0;
+		barChart->Rewind();
+
+		wxCoord startPx = barChart->GetDrawOutsideMargins() ? 0 : GetMarginLeft();
+		wxCoord endPx   = barChart->GetDrawOutsideMargins() ? GetScrX() : GetScrX() - GetMarginRight();
+		wxCoord minYpx  = barChart->GetDrawOutsideMargins() ? 0 : GetMarginTop();
+		wxCoord maxYpx  = barChart->GetDrawOutsideMargins() ? GetScrY() : GetScrY() - GetMarginBottom();
+
+		wxCoord ix = 0, iy = 0;
+
+		ViewBoundary vb;
+	   	while (barChart->GetNextXY(x, y)) {
+	   		//for (wxLayerList::iterator li = w.m_layers.begin(); li != w.m_layers.end(); li++){
+	   			//if (!(*li)->IsVisible()) continue;
+				//if ((*li)->IsBarChart() ) wxMessageBox ("Achou"); // && li != this
+	   		//}
+			ix = x2p(x);
+			iy = y2p(y);
+			if (barChart->GetDrawOutsideMargins() || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
+				dc.DrawLine(ix, iy, ix, y2p(0));
+				vb = barChart->UpdateViewBoundary(ix, iy);
+			}
+		}
+
+		/*if (!barChart->GetName().IsEmpty() && barChart->GetShowName()) {
+			dc.SetFont(barChart->GetFont());//m_font);
+
+			wxCoord tx, ty;
+			dc.GetTextExtent(barChart->GetName(), &tx, &ty);
+			{
+			if ((barChart->GetLabelAlignment() & mpALIGNMASK) == mpALIGN_NW) {
+					tx = vb.minDrawX + 8;
+					ty = vb.maxDrawY + 8;
+				}
+				else if ((barChart->GetLabelAlignment() & mpALIGNMASK) == mpALIGN_NE) {
+					tx = vb.maxDrawX - tx - 8;
+					ty = vb.maxDrawY + 8;
+				}
+				else if ((barChart->GetLabelAlignment() & mpALIGNMASK) == mpALIGN_SE) {
+					tx = vb.maxDrawX - tx - 8;
+					ty = vb.minDrawY - ty - 8;
+				}
+				else { // mpALIGN_SW
+					tx = vb.minDrawX + 8;
+					ty = vb.minDrawY - ty - 8;
+				}
+			}
+			dc.DrawText( barChart->GetName(), tx, ty);
+		}*/
+	}
+
     // If doublebuffer, draw now to the window:
     if (m_enableDoubleBuffer)
     {
-        //trgDc->SetDeviceOrigin(0,0);
-        //dc.SetDeviceOrigin(0,0);  // Origin at the center
-        dc.Blit(0,0,m_scrX,m_scrY,trgDc,0,0);
+		//trgDc->SetDeviceOrigin(0,0);
+		//dc.SetDeviceOrigin(0,0);  // Origin at the center
+		dc.Blit(0,0,m_scrX,m_scrY,trgDc,0,0);
     }
 
 /*    if (m_coordTooltip) {
-        wxString toolTipContent;
-        wxPoint mousePoint =  wxGetMousePosition();
-        toolTipContent.Printf(_("X = %f\nY = %f"), p2x(mousePoint.x), p2y(mousePoint.y));
-        SetToolTip(toolTipContent);
+		wxString toolTipContent;
+		wxPoint mousePoint =  wxGetMousePosition();
+		toolTipContent.Printf(_("X = %f\nY = %f"), p2x(mousePoint.x), p2y(mousePoint.y));
+		SetToolTip(toolTipContent);
     }*/
     // If scrollbars are enabled, refresh them
     if (m_enableScrollBars) {
@@ -2239,14 +2310,14 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 //     int centerY = (m_scrY - m_marginTop - m_marginBottom)/2; // - m_marginTop; // c.y = m_scrY/2;
         /*SetScrollbars(1, 1, (int) ((m_maxX - m_minX)*m_scaleX), (int) ((m_maxY - m_minY)*m_scaleY));*/ //, x2p(m_posX + centerX/m_scaleX), y2p(m_posY - centerY/m_scaleY), true);
     }
-    if (m_zoomRectDown){
-      wxPen pen(m_fgColour, 1, wxPENSTYLE_DOT);		//wxDOT);
-      dc.SetPen(pen);
-      dc.SetBrush(*wxTRANSPARENT_BRUSH);
-      dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, GetMouseX() - m_mouseLClick_X, GetMouseY() - m_mouseLClick_Y);
-    }
-    if (m_trackDown) DrawTrackBox();
-  }
+	if (m_zoomRectDown){
+		wxPen pen(m_fgColour, 1, wxPENSTYLE_DOT);		//wxDOT);
+		dc.SetPen(pen);
+		dc.SetBrush(*wxTRANSPARENT_BRUSH);
+		dc.DrawRectangle(m_mouseLClick_X, m_mouseLClick_Y, GetMouseX() - m_mouseLClick_X, GetMouseY() - m_mouseLClick_Y);
+	}
+	if (m_trackDown) DrawTrackBox();
+}
 
 // void mpWindow::OnScroll2(wxScrollWinEvent &event)
 // {
@@ -2957,72 +3028,7 @@ void mpBAR::SetData(const std::vector<double> &xs,const std::vector<double> &ys)
 
 void mpBAR::Plot(wxDC & dc, mpWindow & w)
 {
-	if (!m_visible) return;
 
-	dc.SetPen( m_pen);
-
-    double x, y;
-    // Do this to reset the counters to evaluate bounding box for label positioning
-    Rewind(); GetNextXY(x, y);
-	maxDrawX = x; minDrawX = x; maxDrawY = y; minDrawY = y;
-	//drawnPoints = 0;
-	Rewind();
-
-	wxCoord startPx = m_drawOutsideMargins ? 0 : w.GetMarginLeft();
-	wxCoord endPx   = m_drawOutsideMargins ? w.GetScrX() : w.GetScrX() - w.GetMarginRight();
-	wxCoord minYpx  = m_drawOutsideMargins ? 0 : w.GetMarginTop();
-	wxCoord maxYpx  = m_drawOutsideMargins ? w.GetScrY() : w.GetScrY() - w.GetMarginBottom();
-
-	wxCoord ix = 0, iy = 0;
-
-   	while (GetNextXY(x, y)) {
-   		//for (wxLayerList::iterator li = w.m_layers.begin(); li != w.m_layers.end(); li++){
-   			//if (!(*li)->IsVisible()) continue;
-			//if ((*li)->IsBarChart() ) wxMessageBox ("Achou"); // && li != this
-   		//}
-		ix = w.x2p(x);
-		iy = w.y2p(y);
-		if (m_drawOutsideMargins || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-			dc.DrawLine(ix, iy, ix, w.y2p(0));
-			UpdateViewBoundary(ix, iy);
-		}
-	}
-
-	if (!m_name.IsEmpty() && m_showName) {
-		dc.SetFont(m_font);
-
-		wxCoord tx, ty;
-		dc.GetTextExtent(m_name, &tx, &ty);
-
-		// xxx implement else ... if (!HasBBox())
-		{
-			// const int sx = w.GetScrX();
-			// const int sy = w.GetScrY();
-
-			if ((m_flags & mpALIGNMASK) == mpALIGN_NW)
-			{
-				tx = minDrawX + 8;
-				ty = maxDrawY + 8;
-			}
-			else if ((m_flags & mpALIGNMASK) == mpALIGN_NE)
-			{
-				tx = maxDrawX - tx - 8;
-				ty = maxDrawY + 8;
-			}
-			else if ((m_flags & mpALIGNMASK) == mpALIGN_SE)
-			{
-				tx = maxDrawX - tx - 8;
-				ty = minDrawY - ty - 8;
-			}
-			else
-			{ // mpALIGN_SW
-				tx = minDrawX + 8;
-				ty = minDrawY - ty - 8;
-			}
-		}
-
-		dc.DrawText( m_name, tx, ty);
-	}
 }
 //#pragma endregion
 
