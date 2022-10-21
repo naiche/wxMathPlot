@@ -58,6 +58,9 @@ public:
 	void OnToggleSeries1(wxCommandEvent& event);
 	void OnToggleSeries2(wxCommandEvent& event);
 	void OnToggleSeries3(wxCommandEvent& event);
+	void OnTrackSeries1(wxCommandEvent& event);
+	void OnTrackSeries2(wxCommandEvent& event);
+	void OnTrackSeries3(wxCommandEvent& event);
 	void OnBlackTheme(wxCommandEvent& event);
 	void OnScientificNotation(wxCommandEvent& event);
 
@@ -98,6 +101,9 @@ enum {
 	ID_TOGGLE_SERIES1,
 	ID_TOGGLE_SERIES2,
 	ID_TOGGLE_SERIES3,
+	ID_TRACK_SERIES1,
+	ID_TRACK_SERIES2,
+	ID_TRACK_SERIES3,
 	ID_BLACK_THEME,
 	ID_SCIENTIFIC_NOTATION
 };
@@ -121,6 +127,9 @@ BEGIN_EVENT_TABLE(MyFrame,wxFrame)
 	EVT_MENU(ID_TOGGLE_SERIES1, MyFrame::OnToggleSeries1)
 	EVT_MENU(ID_TOGGLE_SERIES2, MyFrame::OnToggleSeries2)
 	EVT_MENU(ID_TOGGLE_SERIES3, MyFrame::OnToggleSeries3)
+	EVT_MENU(ID_TRACK_SERIES1, MyFrame::OnTrackSeries1)
+	EVT_MENU(ID_TRACK_SERIES2, MyFrame::OnTrackSeries2)
+	EVT_MENU(ID_TRACK_SERIES3, MyFrame::OnTrackSeries3)
 END_EVENT_TABLE()
 
 MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sample"), wxDefaultPosition, wxSize(1000, 800))
@@ -128,6 +137,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	wxMenu *file_menu = new wxMenu();
 	wxMenu *view_menu = new wxMenu();
 	wxMenu *show_menu = new wxMenu();
+	wxMenu *track_menu = new wxMenu();
 
 	//file_menu->Append( ID_PRINT_PREVIEW, wxT("Print Pre&view..."));
 	//file_menu->Append( ID_PRINT, wxT("&Print..."));
@@ -156,11 +166,20 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	show_menu->Check(ID_TOGGLE_SERIES1, true);
 	show_menu->Check(ID_TOGGLE_SERIES2, true);
 	show_menu->Check(ID_TOGGLE_SERIES3, true);
+	
+	track_menu->AppendCheckItem( ID_TRACK_SERIES1, wxT("Series 1"));
+	track_menu->AppendCheckItem( ID_TRACK_SERIES2, wxT("Series 2"));
+	track_menu->AppendCheckItem( ID_TRACK_SERIES3, wxT("Series 3"));
+	// Start with all plots visible
+	track_menu->Check(ID_TRACK_SERIES1, true);
+	track_menu->Check(ID_TRACK_SERIES2, true);
+	track_menu->Check(ID_TRACK_SERIES3, false);
 
 	wxMenuBar *menu_bar = new wxMenuBar();
 	menu_bar->Append(file_menu, wxT("&File"));
 	menu_bar->Append(view_menu, wxT("&View"));
 	menu_bar->Append(show_menu, wxT("&Show"));
+	menu_bar->Append(track_menu, wxT("&Allow TrackBox"));
 
 	SetMenuBar( menu_bar );
 	CreateStatusBar(1);
@@ -439,6 +458,25 @@ void MyFrame::OnToggleSeries2(wxCommandEvent& event)
 void MyFrame::OnToggleSeries3(wxCommandEvent& event)
 {
 	m_plot->SetLayerVisible(wxT("Series 3"), event.IsChecked());
+}
+
+
+void MyFrame::OnTrackSeries1(wxCommandEvent& event)
+{
+	mpBAR *s1Layer = (mpBAR*)m_plot->GetLayerByName(wxT("Series 1"));
+	s1Layer->SetTrackable(event.IsChecked());
+}
+
+void MyFrame::OnTrackSeries2(wxCommandEvent& event)
+{
+	mpBAR *s2Layer = (mpBAR*)m_plot->GetLayerByName(wxT("Series 2"));
+	s2Layer->SetTrackable(event.IsChecked());
+}
+
+void MyFrame::OnTrackSeries3(wxCommandEvent& event)
+{
+	mpBAR *s3Layer = (mpBAR*)m_plot->GetLayerByName(wxT("Series 3"));
+	s3Layer->SetTrackable(event.IsChecked());
 }
 
 //-----------------------------------------------------------------------------
