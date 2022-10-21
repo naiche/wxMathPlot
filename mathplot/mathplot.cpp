@@ -2228,7 +2228,7 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
 
 		mpBAR *barChart = (mpBAR*)(*li);
-		dc.SetPen(barChart->GetPen());
+		trgDc->SetPen(barChart->GetPen());
 
 		double x, y;
 		// Do this to reset the counters to evaluate bounding box for label positioning
@@ -2253,7 +2253,7 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 			ix = x2p(x);
 			iy = y2p(y);
 			if (barChart->GetDrawOutsideMargins() || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-				dc.DrawLine(ix, iy, ix, y2p(0));
+				trgDc->DrawLine(ix, iy, ix, y2p(0));
 				vb = barChart->UpdateViewBoundary(ix, iy);
 			}
 		}

@@ -284,9 +284,9 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	SetAutoLayout( TRUE );
 	SetSizer( topsizer );
 	axesPos[0] = 0;
-	axesPos[1] = 0;
+	axesPos[1] = 0;*/
 
-	m_plot->EnableDoubleBuffer(true);*/
+	m_plot->EnableDoubleBuffer(true);
 	
 	m_plot->BindMouseButton(mpDOUBLE_CLICK, mpFIT);
 	m_plot->BindMouseButton(mpMIDDLE_DOWN, mpPAN);
