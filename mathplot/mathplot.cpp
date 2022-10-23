@@ -50,6 +50,7 @@
 #include <wx/msgdlg.h>
 #include <wx/image.h>
 #include <wx/tipwin.h>
+#include <math.h>
 
 #include <cmath>
 #include <cstdio> // used only for debug
@@ -2022,71 +2023,71 @@ void mpWindow::ZoomOut(const wxPoint& centerPoint )
 
 void mpWindow::ZoomInX()
 {
-    m_scaleX = m_scaleX * zoomIncrementalFactor;
-    UpdateAll();
+	m_scaleX = m_scaleX * zoomIncrementalFactor;
+	UpdateAll();
 }
 
 void mpWindow::ZoomOutX()
 {
-    m_scaleX = m_scaleX / zoomIncrementalFactor;
-    UpdateAll();
+	m_scaleX = m_scaleX / zoomIncrementalFactor;
+	UpdateAll();
 }
 
 void mpWindow::ZoomInY()
 {
-    m_scaleY = m_scaleY * zoomIncrementalFactor;
-    UpdateAll();
+	m_scaleY = m_scaleY * zoomIncrementalFactor;
+	UpdateAll();
 }
 
 void mpWindow::ZoomOutY()
 {
-    m_scaleY = m_scaleY / zoomIncrementalFactor;
-    UpdateAll();
+	m_scaleY = m_scaleY / zoomIncrementalFactor;
+	UpdateAll();
 }
 
 void mpWindow::ZoomRect(wxPoint p0, wxPoint p1)
 {
-    // Compute the 2 corners in graph coordinates:
-    double p0x = p2x(p0.x);
-    double p0y = p2y(p0.y);
-    double p1x = p2x(p1.x);
-    double p1y = p2y(p1.y);
+	// Compute the 2 corners in graph coordinates:
+	double p0x = p2x(p0.x);
+	double p0y = p2y(p0.y);
+	double p1x = p2x(p1.x);
+	double p1y = p2y(p1.y);
 
-    // Order them:
-    double zoom_x_min = p0x<p1x ? p0x:p1x;
-    double zoom_x_max = p0x>p1x ? p0x:p1x;
-    double zoom_y_min = p0y<p1y ? p0y:p1y;
-    double zoom_y_max = p0y>p1y ? p0y:p1y;
+	// Order them:
+	double zoom_x_min = p0x<p1x ? p0x:p1x;
+	double zoom_x_max = p0x>p1x ? p0x:p1x;
+	double zoom_y_min = p0y<p1y ? p0y:p1y;
+	double zoom_y_max = p0y>p1y ? p0y:p1y;
 
 #ifdef MATHPLOT_DO_LOGGING
-    wxLogMessage(_("Zoom: (%f,%f)-(%f,%f)"),zoom_x_min,zoom_y_min,zoom_x_max,zoom_y_max);
+	wxLogMessage(_("Zoom: (%f,%f)-(%f,%f)"),zoom_x_min,zoom_y_min,zoom_x_max,zoom_y_max);
 #endif
 
-    Fit(zoom_x_min,zoom_x_max,zoom_y_min,zoom_y_max);
+	Fit(zoom_x_min,zoom_x_max,zoom_y_min,zoom_y_max);
 }
 
 void mpWindow::LockAspect(bool enable)
 {
-    m_lockaspect = enable;
-    m_popmenu.Check(mpID_LOCKASPECT, enable);
+	m_lockaspect = enable;
+	m_popmenu.Check(mpID_LOCKASPECT, enable);
 
-    // Try to fit again with the new config:
-    Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
+	// Try to fit again with the new config:
+	Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
 }
 
 void mpWindow::OnLockAspect(wxCommandEvent& WXUNUSED(event))
 {
-    LockAspect( !m_lockaspect );
+	LockAspect( !m_lockaspect );
 }
 
 void mpWindow::OnMouseHelp(wxCommandEvent& WXUNUSED(event))
 {
-    wxMessageBox(_("Supported Mouse commands:\n \
-        - Left button down + Mark area: Rectangular zoom\n \
-        - Right button down + Move: Pan (Move)\n \
-        - Wheel: Vertical scroll\n \
-        - Wheel + SHIFT: Horizontal scroll\n \
-        - Wheel + CTRL: Zoom in/out"),_("wxMathPlot help"),wxOK,this);
+	wxMessageBox(_("Supported Mouse commands:\n \
+		- Left button down + Mark area: Rectangular zoom\n \
+		- Right button down + Move: Pan (Move)\n \
+		- Wheel: Vertical scroll\n \
+		- Wheel + SHIFT: Horizontal scroll\n \
+		- Wheel + CTRL: Zoom in/out"),_("wxMathPlot help"),wxOK,this);
 }
 
 void mpWindow::OnFit(wxCommandEvent& WXUNUSED(event))
@@ -2105,64 +2106,103 @@ void mpWindow::OnCenter(wxCommandEvent& WXUNUSED(event))
 
 void mpWindow::OnZoomIn(wxCommandEvent& WXUNUSED(event))
 {
-    ZoomIn( wxPoint(m_mouseRClick_X,m_mouseRClick_Y) );
+	ZoomIn( wxPoint(m_mouseRClick_X,m_mouseRClick_Y) );
 }
 
 void mpWindow::OnZoomOut(wxCommandEvent& WXUNUSED(event))
 {
-    ZoomOut();
+	ZoomOut();
 }
 
 void mpWindow::OnSize( wxSizeEvent& WXUNUSED(event) )
 {
-    // Try to fit again with the new window size:
-    Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
+	// Try to fit again with the new window size:
+	Fit( m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax );
 #ifdef MATHPLOT_DO_LOGGING
-    wxLogMessage(_("mpWindow::OnSize() m_scrX = %d, m_scrY = %d"), m_scrX, m_scrY);
+	wxLogMessage(_("mpWindow::OnSize() m_scrX = %d, m_scrY = %d"), m_scrX, m_scrY);
 #endif // MATHPLOT_DO_LOGGING
+}
+
+//std::map<double, std::tuple<double, double>> barCoordinates; //<x, <yBase, yTop>
+void mpWindow::UpdateBarChartCoordinates(){
+
+	std::map<double, double> baseMap; 
+	wxLayerList::iterator li;
+	for (li = m_layers.begin(); li != m_layers.end(); li++) //Plot BarChart
+	{
+		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
+
+		mpBAR *barChart = (mpBAR*)(*li);
+		barChart->barCoordinates.clear();
+		
+		std::map<double, double>::iterator base;
+		double x, y, baseY;
+		barChart->Rewind(); 
+		barChart->GetNextXY(x, y);
+		barChart->Rewind();
+		while (barChart->GetNextXY(x, y)) {
+
+			base = baseMap.find(x);
+			if (base != baseMap.end()){ 
+				baseY = base->second;
+				base->second = baseY + y;
+			}
+			else {
+				baseY = 0;
+				baseMap.insert({x,y});
+			}
+
+//wxLogMessage(_("X=%f, Y=%f, y0 = %f, y1 = %f"), x, y, baseY, baseY+y);
+			barChart->barCoordinates.insert({x,{baseY, baseY+y}});
+		}
+	}
 }
 
 bool mpWindow::AddLayer( mpLayer* layer, bool refreshDisplay )
 {
-    if (layer != NULL) {
-    m_layers.push_back( layer );
-        if (refreshDisplay) UpdateAll();
-        return true;
-        };
-    return false;
+	if (layer != NULL) {
+		m_layers.push_back( layer );
+
+		if (layer->IsBarChart())
+			UpdateBarChartCoordinates();
+
+		if (refreshDisplay) UpdateAll();
+			return true;
+	};
+	return false;
 }
 
 bool mpWindow::DelLayer(
-    mpLayer*    layer,
-    bool        alsoDeleteObject,
-    bool        refreshDisplay )
+	mpLayer*    layer,
+	bool        alsoDeleteObject,
+	bool        refreshDisplay )
 {
-    wxLayerList::iterator layIt;
-    for (layIt = m_layers.begin(); layIt != m_layers.end(); layIt++)
-    {
-        if (*layIt == layer)
-    {
-            // Also delete the object?
-            if (alsoDeleteObject)
-            delete *layIt;
-            m_layers.erase(layIt); // this deleted the reference only
-            if (refreshDisplay)
-            UpdateAll();
-            return true;
-    }
-    }
-    return false;
+	wxLayerList::iterator layIt;
+	for (layIt = m_layers.begin(); layIt != m_layers.end(); layIt++)
+	{
+		if (*layIt == layer)
+		{
+			// Also delete the object?
+			if (alsoDeleteObject)
+				delete *layIt;
+			m_layers.erase(layIt); // this deleted the reference only
+			if (refreshDisplay)
+				UpdateAll();
+			return true;
+		}
+	}
+	return false;
 }
 
 void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 {
-    while ( m_layers.size()>0 )
-    {
-        // Also delete the object?
-        if (alsoDeleteObject) delete m_layers[0];
-        m_layers.erase( m_layers.begin() ); // this deleted the reference only
-    }
-    if (refreshDisplay)  UpdateAll();
+	while ( m_layers.size()>0 )
+	{
+		// Also delete the object?
+		if (alsoDeleteObject) delete m_layers[0];
+		m_layers.erase( m_layers.begin() ); // this deleted the reference only
+	}
+	if (refreshDisplay)  UpdateAll();
 }
 
 // void mpWindow::DoPrepareDC(wxDC& dc)
@@ -2172,57 +2212,58 @@ void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 
 void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 {
-    wxPaintDC dc(this);
-    dc.GetSize(&m_scrX, &m_scrY);   // This is the size of the visible area only!
+	wxPaintDC dc(this);
+	dc.GetSize(&m_scrX, &m_scrY);   // This is the size of the visible area only!
 //     DoPrepareDC(dc);
 
 #ifdef MATHPLOT_DO_LOGGING
-    {
-        int px, py;
-        //GetViewStart( &px, &py );
-        px = -1; py = -1;
-        wxLogMessage(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
-    }
+	{
+		int px, py;
+		//GetViewStart( &px, &py );
+		px = -1; py = -1;
+		wxLogMessage(_("[mpWindow::OnPaint] vis.area:%ix%i px=%i py=%i"),m_scrX,m_scrY,px,py);
+	}
 #endif
 
-    // Selects direct or buffered draw:
-    wxDC    *trgDc;
+	// Selects direct or buffered draw:
+	wxDC    *trgDc;
 
-    // J.L.Blanco @ Aug 2007: Added double buffer support
-    if (m_enableDoubleBuffer)
-    {
-        if (m_last_lx!=m_scrX || m_last_ly!=m_scrY)
-        {
-            if (m_buff_bmp) delete m_buff_bmp;
-            m_buff_bmp = new wxBitmap(m_scrX,m_scrY);
-            m_buff_dc.SelectObject(*m_buff_bmp);
-            m_last_lx=m_scrX;
-            m_last_ly=m_scrY;
-        }
-        trgDc = &m_buff_dc;
-    }
-    else
-    {
-        trgDc = &dc;
-    }
+	// J.L.Blanco @ Aug 2007: Added double buffer support
+	if (m_enableDoubleBuffer)
+	{
+		if (m_last_lx!=m_scrX || m_last_ly!=m_scrY)
+		{
+			if (m_buff_bmp) delete m_buff_bmp;
+			m_buff_bmp = new wxBitmap(m_scrX,m_scrY);
+			m_buff_dc.SelectObject(*m_buff_bmp);
+			m_last_lx=m_scrX;
+			m_last_ly=m_scrY;
+		}
+		trgDc = &m_buff_dc;
+	}
+	else
+	{
+		trgDc = &dc;
+	}
 
-    // Draw background:
-    //trgDc->SetDeviceOrigin(0,0);
-    trgDc->SetPen( *wxTRANSPARENT_PEN );
-    wxBrush brush( GetBackgroundColour() );
-    trgDc->SetBrush( brush );
-    trgDc->SetTextForeground(m_fgColour);
-    trgDc->DrawRectangle(0,0,m_scrX,m_scrY);
+	// Draw background:
+	//trgDc->SetDeviceOrigin(0,0);
+	trgDc->SetPen( *wxTRANSPARENT_PEN );
+	wxBrush brush( GetBackgroundColour() );
+	trgDc->SetBrush( brush );
+	trgDc->SetTextForeground(m_fgColour);
+	trgDc->DrawRectangle(0,0,m_scrX,m_scrY);
 
-    // Draw all the layers:
-    //trgDc->SetDeviceOrigin( m_scrX>>1, m_scrY>>1);  // Origin at the center
-    wxLayerList::iterator li;
-    for (li = m_layers.begin(); li != m_layers.end(); li++)
-    {
-        (*li)->Plot(*trgDc, *this);
-    };
+	// Draw all the layers:
+	//trgDc->SetDeviceOrigin( m_scrX>>1, m_scrY>>1);  // Origin at the center
+	wxLayerList::iterator li;
+	for (li = m_layers.begin(); li != m_layers.end(); li++)
+	{
+		(*li)->Plot(*trgDc, *this);
+	};
 
-	std::vector<double> baseX, baseY;
+	//std::vector<double> baseX, baseY;
+	std::map<double, double> baseMap; 
 	for (li = m_layers.begin(); li != m_layers.end(); li++) //Plot BarChart
 	{
 		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
@@ -2242,19 +2283,34 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 		wxCoord minYpx  = barChart->GetDrawOutsideMargins() ? 0 : GetMarginTop();
 		wxCoord maxYpx  = barChart->GetDrawOutsideMargins() ? GetScrY() : GetScrY() - GetMarginBottom();
 
-		wxCoord ix = 0, iy = 0;
+		wxCoord ix = 0, iy = 0, iybase = 0;
 
-		ViewBoundary vb;
-	   	while (barChart->GetNextXY(x, y)) {
-	   		//for (wxLayerList::iterator li = w.m_layers.begin(); li != w.m_layers.end(); li++){
-	   			//if (!(*li)->IsVisible()) continue;
-				//if ((*li)->IsBarChart() ) wxMessageBox ("Achou"); // && li != this
-	   		//}
+		//ViewBoundary vb;
+		std::map<double, std::tuple<double, double>>::iterator barCoords;
+		double baseY;
+		while (barChart->GetNextXY(x, y)) {
+
+			/*base = baseMap.find(x);
+			if (base != baseMap.end()){ 
+				baseY = base->second;
+				base->second = baseY + y;
+			}
+			else {
+				baseY = 0;
+				baseMap.insert({x,y});
+			}*/
+			
+			barCoords = barChart->barCoordinates.find(x);
 			ix = x2p(x);
-			iy = y2p(y);
+			iybase = y2p(std::get<0>(barCoords->second));
+			iy = y2p(std::get<1>(barCoords->second));
+			
+// #ifdef MATHPLOT_DO_LOGGING
+     //wxLogMessage(_("X=%f, Y=%f, ix = %d, iy = %d, iybase = %d  ->  %f  ->  %f"), x, y, ix, iy, iybase, std::get<0>(barCoords->second), std::get<1>(barCoords->second));
+// #endif
 			if (barChart->GetDrawOutsideMargins() || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-				trgDc->DrawLine(ix, iy, ix, y2p(0));
-				vb = barChart->UpdateViewBoundary(ix, iy);
+				trgDc->DrawLine(ix, iy, ix, iybase);
+				//vb = barChart->UpdateViewBoundary(ix, iy);
 			}
 		}
 
@@ -2285,9 +2341,9 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 		}*/
 	}
 
-    // If doublebuffer, draw now to the window:
-    if (m_enableDoubleBuffer)
-    {
+	// If doublebuffer, draw now to the window:
+	if (m_enableDoubleBuffer)
+	{
 		//trgDc->SetDeviceOrigin(0,0);
 		//dc.SetDeviceOrigin(0,0);  // Origin at the center
 		dc.Blit(0,0,m_scrX,m_scrY,trgDc,0,0);
@@ -2409,32 +2465,38 @@ void mpWindow::SetMPScrollbars(bool status)
 
 bool mpWindow::UpdateBBox()
 {
-    bool FoundBBoxLayer = FALSE;
+	bool FoundBBoxLayer = FALSE;
 
-    for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
-    {
-        mpLayer* f = *li;
+	for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
+	{
+		mpLayer* f = *li;
 
-        if (f->HasBBox())
-        {
-            if (!FoundBBoxLayer)
-            {
-                FoundBBoxLayer = TRUE;
-                m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
-                m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
-            }
-            else
-            {
-                if (f->GetMinX()<m_minX) m_minX=f->GetMinX(); if (f->GetMaxX()>m_maxX) m_maxX=f->GetMaxX();
-                if (f->GetMinY()<m_minY) m_minY=f->GetMinY(); if (f->GetMaxY()>m_maxY) m_maxY=f->GetMaxY();
-            }
-        }
-        //node = node->GetNext();
-    }
+		if (f->HasBBox())
+		{
+			if (!FoundBBoxLayer)
+			{
+				FoundBBoxLayer = TRUE;
+				m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
+				m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
+			}
+			else
+			{
+				if (f->GetMinX()<m_minX) 
+					m_minX=f->GetMinX();
+				if (f->GetMaxX()>m_maxX)
+					m_maxX=f->GetMaxX();
+				if (f->GetMinY()<m_minY) 
+					m_minY=f->GetMinY();
+				if (f->GetMaxY()>m_maxY)
+					m_maxY=f->GetMaxY();
+			}
+		}
+		//node = node->GetNext();
+	}
 #ifdef MATHPLOT_DO_LOGGING
-    wxLogDebug(wxT("[mpWindow::UpdateBBox] Bounding box: Xmin = %f, Xmax = %f, Ymin = %f, YMax = %f"), m_minX, m_maxX, m_minY, m_maxY);
+	wxLogDebug(wxT("[mpWindow::UpdateBBox] Bounding box: Xmin = %f, Xmax = %f, Ymin = %f, YMax = %f"), m_minX, m_maxX, m_minY, m_maxY);
 #endif // MATHPLOT_DO_LOGGING
-    return FoundBBoxLayer;
+	return FoundBBoxLayer;
 }
 
 void mpWindow::UpdateAll()
@@ -2505,23 +2567,24 @@ void mpWindow::DoScrollCalc(const int position, const int orientation)
 
 void mpWindow::OnScrollThumbTrack (wxScrollWinEvent &event)
 {
-    DoScrollCalc(event.GetPosition(), event.GetOrientation());
+	DoScrollCalc(event.GetPosition(), event.GetOrientation());
 }
 
 void mpWindow::OnScrollPageUp (wxScrollWinEvent &event)
 {
-    int scrollOrientation = event.GetOrientation();
-    // Get position before page up
-    int position = GetScrollPos(scrollOrientation);
-    // Get thumb size
-    int thumbSize = GetScrollThumb(scrollOrientation);
-    // Need to adjust position by a page
-    position -= thumbSize;
-    if (position < 0)
-        position = 0;
+	int scrollOrientation = event.GetOrientation();
+	// Get position before page up
+	int position = GetScrollPos(scrollOrientation);
+	// Get thumb size
+	int thumbSize = GetScrollThumb(scrollOrientation);
+	// Need to adjust position by a page
+	position -= thumbSize;
+	if (position < 0)
+		position = 0;
 
-    DoScrollCalc(position, scrollOrientation);
+	DoScrollCalc(position, scrollOrientation);
 }
+
 void mpWindow::OnScrollPageDown (wxScrollWinEvent &event)
 {
     int scrollOrientation = event.GetOrientation();
@@ -2541,143 +2604,143 @@ void mpWindow::OnScrollPageDown (wxScrollWinEvent &event)
 
 void mpWindow::OnScrollLineUp     (wxScrollWinEvent &event)
 {
-    int scrollOrientation = event.GetOrientation();
-    // Get position before page up
-    int position = GetScrollPos(scrollOrientation);
-    // Need to adjust position by a line
-    position -= mpSCROLL_NUM_PIXELS_PER_LINE;
-    if (position < 0)
-        position = 0;
+	int scrollOrientation = event.GetOrientation();
+	// Get position before page up
+	int position = GetScrollPos(scrollOrientation);
+	// Need to adjust position by a line
+	position -= mpSCROLL_NUM_PIXELS_PER_LINE;
+	if (position < 0)
+		position = 0;
 
-    DoScrollCalc(position, scrollOrientation);
+	DoScrollCalc(position, scrollOrientation);
 }
 
 void mpWindow::OnScrollLineDown   (wxScrollWinEvent &event)
 {
-    int scrollOrientation = event.GetOrientation();
-    // Get position before page up
-    int position = GetScrollPos(scrollOrientation);
-    // Get thumb size
-    int thumbSize = GetScrollThumb(scrollOrientation);
-    // Get scroll range
-    int scrollRange = GetScrollRange(scrollOrientation);
-    // Need to adjust position by a page
-    position += mpSCROLL_NUM_PIXELS_PER_LINE;
-    if (position > (scrollRange - thumbSize))
-        position = scrollRange - thumbSize;
+	int scrollOrientation = event.GetOrientation();
+	// Get position before page up
+	int position = GetScrollPos(scrollOrientation);
+	// Get thumb size
+	int thumbSize = GetScrollThumb(scrollOrientation);
+	// Get scroll range
+	int scrollRange = GetScrollRange(scrollOrientation);
+	// Need to adjust position by a page
+	position += mpSCROLL_NUM_PIXELS_PER_LINE;
+	if (position > (scrollRange - thumbSize))
+		position = scrollRange - thumbSize;
 
-    DoScrollCalc(position, scrollOrientation);
+	DoScrollCalc(position, scrollOrientation);
 }
 
 void mpWindow::OnScrollTop(wxScrollWinEvent &event)
 {
-    DoScrollCalc(0, event.GetOrientation());
+	DoScrollCalc(0, event.GetOrientation());
 }
 
 void mpWindow::OnScrollBottom(wxScrollWinEvent &event)
 {
-    int scrollOrientation = event.GetOrientation();
-    // Get thumb size
-    int thumbSize = GetScrollThumb(scrollOrientation);
-    // Get scroll range
-    int scrollRange = GetScrollRange(scrollOrientation);
+	int scrollOrientation = event.GetOrientation();
+	// Get thumb size
+	int thumbSize = GetScrollThumb(scrollOrientation);
+	// Get scroll range
+	int scrollRange = GetScrollRange(scrollOrientation);
 
-    DoScrollCalc(scrollRange - thumbSize, scrollOrientation);
+	DoScrollCalc(scrollRange - thumbSize, scrollOrientation);
 }
 // End patch ngpaton
 
 void mpWindow::SetScaleX(double scaleX)
 {
-    if (scaleX!=0) m_scaleX=scaleX;
-    UpdateAll();
+	if (scaleX!=0) m_scaleX=scaleX;
+	UpdateAll();
 }
 
 // New methods implemented by Davide Rondini
 
 unsigned int mpWindow::CountLayers()
 {
-    //wxNode *node = m_layers.GetFirst();
-    unsigned int layerNo = 0;
-    for(wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
-        {
-        if ((*li)->HasBBox()) layerNo++;
-    // node = node->GetNext();
-        };
-    return layerNo;
+	//wxNode *node = m_layers.GetFirst();
+	unsigned int layerNo = 0;
+	for(wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)//while(node)
+		{
+		if ((*li)->HasBBox()) layerNo++;
+	// node = node->GetNext();
+		};
+	return layerNo;
 }
 
 mpLayer* mpWindow::GetLayer(int position)
 {
-    if ((position >= (int) m_layers.size()) || position < 0) return NULL;
-    return m_layers[position];
+	if ((position >= (int) m_layers.size()) || position < 0) return NULL;
+	return m_layers[position];
 }
 
 mpLayer* mpWindow::GetLayerByName( const wxString &name)
 {
-    for (wxLayerList::iterator it=m_layers.begin();it!=m_layers.end();it++)
-        if (! (*it)->GetName().Cmp( name ) )
-            return *it;
-    return NULL;    // Not found
+	for (wxLayerList::iterator it=m_layers.begin();it!=m_layers.end();it++)
+		if (! (*it)->GetName().Cmp( name ) )
+			return *it;
+	return NULL;    // Not found
 }
 
 void mpWindow::GetBoundingBox(double* bbox)
 {
-    bbox[0] = m_minX;
-    bbox[1] = m_maxX;
-    bbox[2] = m_minY;
-    bbox[3] = m_maxY;
+	bbox[0] = m_minX;
+	bbox[1] = m_maxX;
+	bbox[2] = m_minY;
+	bbox[3] = m_maxY;
 }
 
 bool mpWindow::SaveScreenshot(const wxString& filename, int type, wxSize imageSize, bool fit)
 {
-    int sizeX, sizeY;
-    int bk_scrX=-1, bk_scrY=-1;
-    if (imageSize == wxDefaultSize) {
-        sizeX = m_scrX;
-        sizeY = m_scrY;
-    } else {
-        sizeX = imageSize.x;
-        sizeY = imageSize.y;
-        bk_scrX = m_scrX;
-        bk_scrY = m_scrY;
-        SetScr(sizeX, sizeY);
-    }
+	int sizeX, sizeY;
+	int bk_scrX=-1, bk_scrY=-1;
+	if (imageSize == wxDefaultSize) {
+		sizeX = m_scrX;
+		sizeY = m_scrY;
+	} else {
+		sizeX = imageSize.x;
+		sizeY = imageSize.y;
+		bk_scrX = m_scrX;
+		bk_scrY = m_scrY;
+		SetScr(sizeX, sizeY);
+	}
 
-    wxBitmap screenBuffer(sizeX,sizeY);
-    wxMemoryDC screenDC;
-    screenDC.SelectObject(screenBuffer);
-    screenDC.SetPen( *wxTRANSPARENT_PEN );
-    wxBrush brush( GetBackgroundColour() );
-    screenDC.SetBrush( brush );
-    screenDC.DrawRectangle(0,0,sizeX,sizeY);
+	wxBitmap screenBuffer(sizeX,sizeY);
+	wxMemoryDC screenDC;
+	screenDC.SelectObject(screenBuffer);
+	screenDC.SetPen( *wxTRANSPARENT_PEN );
+	wxBrush brush( GetBackgroundColour() );
+	screenDC.SetBrush( brush );
+	screenDC.DrawRectangle(0,0,sizeX,sizeY);
 
-    if (fit) {
-        Fit(m_minX, m_maxX, m_minY, m_maxY, &sizeX, &sizeY);
-    } else {
-        Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax, &sizeX, &sizeY);
-    }
-    // Draw all the layers:
-    wxLayerList::iterator li;
-    for (li = m_layers.begin(); li != m_layers.end(); li++)
-        (*li)->Plot(screenDC, *this);
+	if (fit) {
+		Fit(m_minX, m_maxX, m_minY, m_maxY, &sizeX, &sizeY);
+	} else {
+		Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax, &sizeX, &sizeY);
+	}
+	// Draw all the layers:
+	wxLayerList::iterator li;
+	for (li = m_layers.begin(); li != m_layers.end(); li++)
+		(*li)->Plot(screenDC, *this);
 
-    if (imageSize != wxDefaultSize) {
-        // Restore dimensions
-        SetScr(bk_scrX, bk_scrY);
-                Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax, &bk_scrX, &bk_scrY);
-        UpdateAll();
-    }
-    // Once drawing is complete, actually save screen shot
-    wxImage screenImage = screenBuffer.ConvertToImage();
-    return screenImage.SaveFile(filename, (wxBitmapType) type);
+	if (imageSize != wxDefaultSize) {
+		// Restore dimensions
+		SetScr(bk_scrX, bk_scrY);
+		        Fit(m_desiredXmin, m_desiredXmax, m_desiredYmin, m_desiredYmax, &bk_scrX, &bk_scrY);
+		UpdateAll();
+	}
+	// Once drawing is complete, actually save screen shot
+	wxImage screenImage = screenBuffer.ConvertToImage();
+	return screenImage.SaveFile(filename, (wxBitmapType) type);
 }
 
 void mpWindow::SetMargins(int top, int right, int bottom, int left)
 {
-    m_marginTop = top;
-    m_marginRight = right;
-    m_marginBottom = bottom;
-    m_marginLeft = left;
+	m_marginTop = top;
+	m_marginRight = right;
+	m_marginBottom = bottom;
+	m_marginLeft = left;
 }
 
 mpInfoLayer* mpWindow::IsInsideInfoLayer(wxPoint& point)
@@ -2702,45 +2765,47 @@ mpInfoLayer* mpWindow::IsInsideInfoLayer(wxPoint& point)
 
 void mpWindow::SetLayerVisible(const wxString &name, bool viewable)
 {
-    mpLayer* lx = GetLayerByName(name);
-    if ( lx ) {
-        lx->SetVisible(viewable);
-        UpdateAll();
-    }
+	mpLayer* lx = GetLayerByName(name);
+	if ( lx ) {
+		lx->SetVisible(viewable);
+		UpdateAll();
+	}
+	UpdateBarChartCoordinates();
 }
 
 bool mpWindow::IsLayerVisible(const wxString &name )
 {
-    mpLayer* lx = GetLayerByName(name);
-    return (lx) ? lx->IsVisible() : false;
+	mpLayer* lx = GetLayerByName(name);
+	return (lx) ? lx->IsVisible() : false;
 }
 
 void mpWindow::SetLayerVisible(const unsigned int position, bool viewable)
 {
-    mpLayer* lx = GetLayer(position);
-    if ( lx ) {
-        lx->SetVisible(viewable);
-        UpdateAll();
-    }
+	mpLayer* lx = GetLayer(position);
+	if ( lx ) {
+		lx->SetVisible(viewable);
+		UpdateAll();
+	}
+	UpdateBarChartCoordinates();
 }
 
 bool mpWindow::IsLayerVisible(const unsigned int position )
 {
-    mpLayer* lx = GetLayer(position);
-    return (lx) ? lx->IsVisible() : false;
+	mpLayer* lx = GetLayer(position);
+	return (lx) ? lx->IsVisible() : false;
 }
 
 void mpWindow::SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour, const wxColour& gridColour)
 {
-    SetBackgroundColour(bgColour);
-    SetForegroundColour(drawColour);
-    m_bgColour = bgColour;
-    m_fgColour = drawColour;
-    m_axColour = axesColour;
-    m_grColour = gridColour;
-    // cycle between layers to set colours and properties to them
-    wxLayerList::iterator li;
-    for (li = m_layers.begin(); li != m_layers.end(); li++) {
+	SetBackgroundColour(bgColour);
+	SetForegroundColour(drawColour);
+	m_bgColour = bgColour;
+	m_fgColour = drawColour;
+	m_axColour = axesColour;
+	m_grColour = gridColour;
+	// cycle between layers to set colours and properties to them
+	wxLayerList::iterator li;
+	for (li = m_layers.begin(); li != m_layers.end(); li++) {
         if ((*li)->GetLayerType() == mpLAYER_AXIS) {
             wxPen axisPen = (*li)->GetPen(); // Get the old pen to modify only colour, not style or width
             axisPen.SetColour(axesColour);
@@ -2972,6 +3037,41 @@ bool mpBAR::GetNextXY(double & x, double & y)
         y = m_ys[m_index++];
         return m_index<=m_xs.size();
     }
+}
+
+wxRealPoint mpBAR::GetClosestXY(double x, double y, double scaleX, double scaleY){
+	double delta, closestX=0, closestY=0;
+	double xValue, yValue, yValue2;
+
+	delta = 999999999999;
+	std::map<double, std::tuple<double, double>>::iterator bc;
+	for (bc = barCoordinates.begin(); bc != barCoordinates.end(); bc++)
+	{
+		xValue = bc->first;
+		yValue = std::get<0>(bc->second);
+		yValue2 = std::get<1>(bc->second);
+		double thisPointDelta = std::min(sqrt(pow((x - xValue)*scaleX, 2) + pow((y - yValue)*scaleY, 2))
+										, sqrt(pow((x - xValue)*scaleX, 2) + pow((y - yValue2)*scaleY, 2)));
+		if (thisPointDelta < delta) {
+			closestX = xValue;
+			closestY = (std::get<0>(bc->second) + std::get<1>(bc->second))/2;//yValue;
+			delta = thisPointDelta;
+		}
+	}
+
+	return wxRealPoint(closestX, closestY);
+}
+
+double mpBAR::GetMaxY(){
+	double max = 0;
+
+	std::map<double, std::tuple<double, double>>::iterator bc;
+	for (bc = barCoordinates.begin(); bc != barCoordinates.end(); bc++) {
+		if (std::get<1>(bc->second) > max)
+			max = std::get<1>(bc->second);
+	}
+
+	return max;
 }
 
 void mpBAR::Clear()

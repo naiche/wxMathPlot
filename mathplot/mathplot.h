@@ -77,7 +77,7 @@
 #include <wx/string.h>
 #include <wx/print.h>
 #include <wx/image.h>
-
+#include <map>
 
 #include <deque>
 
@@ -357,7 +357,7 @@ public:
 
     /** Sets layer visibility.
         @param show visibility bool. */
-    void SetVisible(bool show) { m_visible = show; };
+    void SetVisible(bool show) { m_visible = show;};
 
     /** Get brush set for this layer.
         @return brush. */
@@ -676,7 +676,7 @@ public:
 	*/
 	virtual bool GetNextXY(double & x, double & y) = 0;
 
-	wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
+	virtual wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
 
 	/** Layer plot handler.
 		This implementation will plot the locus in the visible area and
@@ -1277,12 +1277,13 @@ public:
 
     void SetTrackBoxXvalueFormat(const wxString& format) { m_trackbox_x_fmt = format; };
 
-    wxString GetTrackBoxXvalueFormat() { return m_trackbox_x_fmt; };
+	wxString GetTrackBoxXvalueFormat() { return m_trackbox_x_fmt; };
 
-    void SetTrackBoxYvalueFormat(const wxString& format) { m_trackbox_y_fmt = format; };
+	void SetTrackBoxYvalueFormat(const wxString& format) { m_trackbox_y_fmt = format; };
 
-    wxString GetTrackBoxYvalueFormat() { return m_trackbox_y_fmt; };
-    
+	wxString GetTrackBoxYvalueFormat() { return m_trackbox_y_fmt; };
+
+    void UpdateBarChartCoordinates();
 
 protected:
 	wxString m_trackbox_x_fmt = "";
@@ -1546,41 +1547,44 @@ public:
     //    @param y Returns Y value
     bool GetNextXY(double & x, double & y);
     
+    wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
+    
     int GetLabelAlignment() {return m_flags;};
     
     bool GetShowName() { return m_showName; };
+    
+    std::map<double, std::tuple<double, double>> barCoordinates; //<x, <yBase, yTop>
 protected:
 
-    // The internal counter for the "GetNextXY" interface
-    size_t m_index;
+	// The internal counter for the "GetNextXY" interface
+	size_t m_index;
 
-    // Loaded at SetData
-    double m_minX,m_maxX,m_minY,m_maxY;
+	// Loaded at SetData
+	double m_minX,m_maxX,m_minY,m_maxY;
 
-    // Returns the actual minimum X data (loaded in SetData).
-    double GetMinX() { return m_minX; }
-    
-    // Returns the actual minimum Y data (loaded in SetData).
-    double GetMinY() { return m_minY; }
+	// Returns the actual minimum X data (loaded in SetData).
+	double GetMinX() { return m_minX; }
 
-    // Returns the actual minimum Y data (loaded in SetData).
-    double GetMinHeight() { return m_minY; }
+	// Returns the actual minimum Y data (loaded in SetData).
+	double GetMinY() { return m_minY; }
 
-    // Returns the actual maximum X data (loaded in SetData).
-    double GetMaxX() { return m_maxX; }
-    
-        /** Returns the actual maximum Y data (loaded in SetData).
-      */
-    double GetMaxY() { return m_maxY; }
+	// Returns the actual minimum Y data (loaded in SetData).
+	double GetMinHeight() { return m_minY; }
 
-    // Returns the actual maximum Y data (loaded in SetData).
-    double GetMaxHeight() { return m_maxY; }
+	// Returns the actual maximum X data (loaded in SetData).
+	double GetMaxX() { return m_maxX; }
 
-    bool IsBarChart() { return TRUE; }
+	// Returns the actual maximum Y data (loaded in SetData).      
+	double GetMaxY();// { return m_maxY; }
 
-    int     m_flags;  //!< Holds label alignment
+	// Returns the actual maximum Y data (loaded in SetData).
+	double GetMaxHeight() { return m_maxY; }
 
-    DECLARE_DYNAMIC_CLASS(mpBAR)
+	bool IsBarChart() { return TRUE; }
+
+	int     m_flags;  //!< Holds label alignment
+
+	DECLARE_DYNAMIC_CLASS(mpBAR)
 };
 
 

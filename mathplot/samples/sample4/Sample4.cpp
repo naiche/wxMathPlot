@@ -289,7 +289,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	vectorLayer->SetPen(vectorpen);
 	vectorLayer->SetDrawOutsideMargins(false);
 	m_plot->AddLayer(     vectorLayer );
-
+*/
 
 	m_log = new wxTextCtrl( this, -1, wxT("This is the log window.\n"), wxPoint(0,0), wxSize(100,100), wxTE_MULTILINE );
 	wxLog *old_log = wxLog::SetActiveTarget( new wxLogTextCtrl( m_log ) );
@@ -303,7 +303,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	SetAutoLayout( TRUE );
 	SetSizer( topsizer );
 	axesPos[0] = 0;
-	axesPos[1] = 0;*/
+	axesPos[1] = 0;
 
 	m_plot->EnableDoubleBuffer(true);
 	
