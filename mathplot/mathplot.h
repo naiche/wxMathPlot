@@ -570,88 +570,88 @@ protected:
 @{*/
 
 /** Abstract base class providing plot and labeling functionality for functions F:X->Y.
-    Override mpFX::GetY to implement a function.
-    Optionally implement a constructor and pass a name (label) and a label alignment
-    to the constructor mpFX::mpFX. If the layer name is empty, no label will be plotted.
+	Override mpFX::GetY to implement a function.
+	Optionally implement a constructor and pass a name (label) and a label alignment
+	to the constructor mpFX::mpFX. If the layer name is empty, no label will be plotted.
 */
 class WXDLLIMPEXP_MATHPLOT mpFX : public mpLayer
 {
 public:
-    /** @param name  Label
-        @param flags Label alignment, pass one of #mpALIGN_RIGHT, #mpALIGN_CENTER, #mpALIGN_LEFT.
-    */
-    mpFX(wxString name = wxEmptyString, int flags = mpALIGN_RIGHT);
+	/** @param name  Label
+		@param flags Label alignment, pass one of #mpALIGN_RIGHT, #mpALIGN_CENTER, #mpALIGN_LEFT.
+	*/
+	mpFX(wxString name = wxEmptyString, int flags = mpALIGN_RIGHT);
 
-    /** Get function value for argument.
-        Override this function in your implementation.
-        @param x Argument
-        @return Function value
-    */
-    virtual double GetY( double x ) = 0;
+	/** Get function value for argument.
+		Override this function in your implementation.
+		@param x Argument
+		@return Function value
+	*/
+	virtual double GetY( double x ) = 0;
 
-    /** Layer plot handler.
-        This implementation will plot the function in the visible area and
-        put a label according to the aligment specified.
-    */
-    virtual void Plot(wxDC & dc, mpWindow & w);
+	/** Layer plot handler.
+		This implementation will plot the function in the visible area and
+		put a label according to the aligment specified.
+	*/
+	virtual void Plot(wxDC & dc, mpWindow & w);
 
-    bool IsFX() { return TRUE; }
-    
-    bool IsTrackable() { return m_trackable; }
-    
-    void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
+	bool IsFX() { return TRUE; }
+	
+	bool IsTrackable() { return m_trackable; }
+	
+	void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
 
 protected:
-    int m_flags; //!< Holds label alignment
-    bool m_trackable = true;
+	int m_flags; //!< Holds label alignment
+	bool m_trackable = true;
 
-    DECLARE_DYNAMIC_CLASS(mpFX)
+	DECLARE_DYNAMIC_CLASS(mpFX)
 };
 
 /** Abstract base class providing plot and labeling functionality for functions F:Y->X.
-    Override mpFY::GetX to implement a function.
-    Optionally implement a constructor and pass a name (label) and a label alignment
-    to the constructor mpFY::mpFY. If the layer name is empty, no label will be plotted.
+	Override mpFY::GetX to implement a function.
+	Optionally implement a constructor and pass a name (label) and a label alignment
+	to the constructor mpFY::mpFY. If the layer name is empty, no label will be plotted.
 */
 class WXDLLIMPEXP_MATHPLOT mpFY : public mpLayer
 {
 public:
-    /** @param name  Label
-        @param flags Label alignment, pass one of #mpALIGN_BOTTOM, #mpALIGN_CENTER, #mpALIGN_TOP.
-    */
-    mpFY(wxString name = wxEmptyString, int flags = mpALIGN_TOP);
+	/** @param name  Label
+		@param flags Label alignment, pass one of #mpALIGN_BOTTOM, #mpALIGN_CENTER, #mpALIGN_TOP.
+	*/
+	mpFY(wxString name = wxEmptyString, int flags = mpALIGN_TOP);
 
-    /** Get function value for argument.
-        Override this function in your implementation.
-        @param y Argument
-        @return Function value
-    */
-    virtual double GetX( double y ) = 0;
+	/** Get function value for argument.
+		Override this function in your implementation.
+		@param y Argument
+		@return Function value
+	*/
+	virtual double GetX( double y ) = 0;
 
-    /** Layer plot handler.
-        This implementation will plot the function in the visible area and
-        put a label according to the aligment specified.
-    */
-    virtual void Plot(wxDC & dc, mpWindow & w);
+	/** Layer plot handler.
+		This implementation will plot the function in the visible area and
+		put a label according to the aligment specified.
+	*/
+	virtual void Plot(wxDC & dc, mpWindow & w);
 
-    bool IsFY() { return TRUE; }
-    
-    bool IsTrackable() { return m_trackable; }
-    
-    void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
+	bool IsFY() { return TRUE; }
+	
+	bool IsTrackable() { return m_trackable; }
+	
+	void SetTrackable(bool track) { m_trackable = track; } //Defines if layer can be shown on TrackBox
 
 protected:
-    int m_flags; //!< Holds label alignment
-    bool m_trackable = true;
+	int m_flags; //!< Holds label alignment
+	bool m_trackable = true;
 
-    DECLARE_DYNAMIC_CLASS(mpFY)
+	DECLARE_DYNAMIC_CLASS(mpFY)
 };
 
 /** Abstract base class providing plot and labeling functionality for a locus plot F:N->X,Y.
-    Locus argument N is assumed to be in range 0 .. MAX_N, and implicitly derived by enumerating
-    all locus values. Override mpFXY::Rewind and mpFXY::GetNextXY to implement a locus.
-    Optionally implement a constructor and pass a name (label) and a label alignment
-    to the constructor mpFXY::mpFXY. If the layer name is empty, no label will be plotted.
+	Locus argument N is assumed to be in range 0 .. MAX_N, and implicitly derived by enumerating
+	all locus values. Override mpFXY::Rewind and mpFXY::GetNextXY to implement a locus.
+	Optionally implement a constructor and pass a name (label) and a label alignment
+	to the constructor mpFXY::mpFXY. If the layer name is empty, no label will be plotted.
 */
 class WXDLLIMPEXP_MATHPLOT mpFXY : public mpLayer
 {
@@ -831,59 +831,59 @@ protected:
 class WXDLLIMPEXP_MATHPLOT mpScaleY : public mpLayer
 {
 public:
-    /** @param name Label to plot by the ruler
-        @param flags Set position of the scale respect to the window.
-        @param ticks Select ticks or grid. Give TRUE (default) for drawing axis ticks, FALSE for drawing the grid */
-    mpScaleY(wxString name = wxT("Y"), int flags = mpALIGN_CENTER, bool ticks = true);
+	/** @param name Label to plot by the ruler
+		@param flags Set position of the scale respect to the window.
+		@param ticks Select ticks or grid. Give TRUE (default) for drawing axis ticks, FALSE for drawing the grid */
+	mpScaleY(wxString name = wxT("Y"), int flags = mpALIGN_CENTER, bool ticks = true);
 
-    /** Layer plot handler.
-        This implementation will plot the ruler adjusted to the visible area.
-    */
-    virtual void Plot(wxDC & dc, mpWindow & w);
+	/** Layer plot handler.
+		This implementation will plot the ruler adjusted to the visible area.
+	*/
+	virtual void Plot(wxDC & dc, mpWindow & w);
 
-    /** Check whether this layer has a bounding box.
-        This implementation returns \a FALSE thus making the ruler invisible
-        to the plot layer bounding box calculation by mpWindow.
-    */
-    virtual bool HasBBox() { return FALSE; }
+	/** Check whether this layer has a bounding box.
+		This implementation returns \a FALSE thus making the ruler invisible
+		to the plot layer bounding box calculation by mpWindow.
+	*/
+	virtual bool HasBBox() { return FALSE; }
 
-    /** Set Y axis alignment.
-        @param align alignment (choose between mpALIGN_BORDER_LEFT, mpALIGN_LEFT, mpALIGN_CENTER, mpALIGN_RIGHT, mpALIGN_BORDER_RIGHT) */
-    void SetAlign(int align) { m_flags = align; };
+	/** Set Y axis alignment.
+		@param align alignment (choose between mpALIGN_BORDER_LEFT, mpALIGN_LEFT, mpALIGN_CENTER, mpALIGN_RIGHT, mpALIGN_BORDER_RIGHT) */
+	void SetAlign(int align) { m_flags = align; };
 
-    /** Set Y axis ticks
-        @param ticks TRUE to plot axis ticks. */
-    void SetTicks(bool ticks) { m_ticks = ticks; };
+	/** Set Y axis ticks
+		@param ticks TRUE to plot axis ticks. */
+	void SetTicks(bool ticks) { m_ticks = ticks; };
 
-    /** Get Y axis ticks
-        @return TRUE if plot is drawing axis ticks. */
-    bool GetTicks() { return m_ticks; };
+	/** Get Y axis ticks
+		@return TRUE if plot is drawing axis ticks. */
+	bool GetTicks() { return m_ticks; };
 
-    /** Set Y axis grid
-        @param ticks TRUE to plot axis grid. */
-    void SetGrid(bool grid) { m_grid = grid; };
+	/** Set Y axis grid
+		@param ticks TRUE to plot axis grid. */
+	void SetGrid(bool grid) { m_grid = grid; };
 
-    /** Get Y axis grid
-        @return TRUE if plot is drawing axis grid. */
-    bool GetGrid() { return m_grid; };
+	/** Get Y axis grid
+		@return TRUE if plot is drawing axis grid. */
+	bool GetGrid() { return m_grid; };
 
-    /** Set Y axis Label format.
-    @param format The format string */
-    void SetLabelFormat(const wxString& format) { m_labelFormat = format; };
+	/** Set Y axis Label format.
+	@param format The format string */
+	void SetLabelFormat(const wxString& format) { m_labelFormat = format; };
 
-    /** Get Y axis Label format.
-    @return The format string */
-    const wxString& GetLabelFormat() { return m_labelFormat; };
+	/** Get Y axis Label format.
+	@return The format string */
+	const wxString& GetLabelFormat() { return m_labelFormat; };
 
-    bool IsScaleY() { return true; }
+	bool IsScaleY() { return true; }
 
 protected:
-    int m_flags; //!< Flag for axis alignment
-    bool m_ticks; //!< Flag to toggle ticks
-    bool m_grid; //!< Flag to toggle grid
-    wxString m_labelFormat; //!< Format string used to print labels
+	int m_flags; //!< Flag for axis alignment
+	bool m_ticks; //!< Flag to toggle ticks
+	bool m_grid; //!< Flag to toggle grid
+	wxString m_labelFormat; //!< Format string used to print labels
 
-    DECLARE_DYNAMIC_CLASS(mpScaleY)
+	DECLARE_DYNAMIC_CLASS(mpScaleY)
 };
 //#pragma endregion
 
@@ -907,365 +907,365 @@ typedef std::deque<mpLayer*> wxLayerList;
 
 /** Canvas for plotting mpLayer implementations.
 
-    This class defines a zoomable and moveable 2D plot canvas. Any number
-    of mpLayer implementations (scale rulers, function plots, ...) can be
-    attached using mpWindow::AddLayer.
+	This class defines a zoomable and moveable 2D plot canvas. Any number
+	of mpLayer implementations (scale rulers, function plots, ...) can be
+	attached using mpWindow::AddLayer.
 
-    The canvas window provides a context menu with actions for navigating the view.
-    The context menu can be retrieved with mpWindow::GetPopupMenu, e.g. for extending it
-    externally.
+	The canvas window provides a context menu with actions for navigating the view.
+	The context menu can be retrieved with mpWindow::GetPopupMenu, e.g. for extending it
+	externally.
 
-    Since wxMathPlot version 0.03, the mpWindow incorporates the following features:
-        - DoubleBuffering (Default=disabled): Can be set with EnableDoubleBuffer
-        - Mouse based pan/zoom (Default=enabled): Can be set with EnableMousePanZoom.
+	Since wxMathPlot version 0.03, the mpWindow incorporates the following features:
+		- DoubleBuffering (Default=disabled): Can be set with EnableDoubleBuffer
+		- Mouse based pan/zoom (Default=enabled): Can be set with EnableMousePanZoom.
 
-    The mouse commands can be visualized by the user through the popup menu, and are:
-        - Mouse Move+CTRL: Pan (Move)
-        - Mouse Wheel: Vertical scroll
-        - Mouse Wheel+SHIFT: Horizontal scroll
-        - Mouse Wheel UP+CTRL: Zoom in
-        - Mouse Wheel DOWN+CTRL: Zoom out
+	The mouse commands can be visualized by the user through the popup menu, and are:
+		- Mouse Move+CTRL: Pan (Move)
+		- Mouse Wheel: Vertical scroll
+		- Mouse Wheel+SHIFT: Horizontal scroll
+		- Mouse Wheel UP+CTRL: Zoom in
+		- Mouse Wheel DOWN+CTRL: Zoom out
 
 */
 class WXDLLIMPEXP_MATHPLOT mpWindow : public wxWindow
 {
 public:
-    mpWindow() {}
-    mpWindow( wxWindow *parent, wxWindowID id,
-                     const wxPoint &pos = wxDefaultPosition,
-                     const wxSize &size = wxDefaultSize,
-                     long flags = 0);
-    ~mpWindow();
+	mpWindow() {}
+	mpWindow( wxWindow *parent, wxWindowID id,
+					 const wxPoint &pos = wxDefaultPosition,
+					 const wxSize &size = wxDefaultSize,
+					 long flags = 0);
+	~mpWindow();
 
-    /** Get reference to context menu of the plot canvas.
-        @return Pointer to menu. The menu can be modified.
-    */
-    wxMenu* GetPopupMenu() { return &m_popmenu; }
+	/** Get reference to context menu of the plot canvas.
+		@return Pointer to menu. The menu can be modified.
+	*/
+	wxMenu* GetPopupMenu() { return &m_popmenu; }
 
-    /** Add a plot layer to the canvas.
-        @param layer Pointer to layer. The mpLayer object will get under control of mpWindow,
-                     i.e. it will be delete'd on mpWindow destruction
-        @param refreshDisplay States whether to refresh the display (UpdateAll) after adding the layer.
-        @retval TRUE Success
-        @retval FALSE Failure due to out of memory.
-    */
-    bool AddLayer( mpLayer* layer, bool refreshDisplay = true);
+	/** Add a plot layer to the canvas.
+		@param layer Pointer to layer. The mpLayer object will get under control of mpWindow,
+					 i.e. it will be delete'd on mpWindow destruction
+		@param refreshDisplay States whether to refresh the display (UpdateAll) after adding the layer.
+		@retval TRUE Success
+		@retval FALSE Failure due to out of memory.
+	*/
+	bool AddLayer( mpLayer* layer, bool refreshDisplay = true);
 
-    /** Remove a plot layer from the canvas.
-        @param layer Pointer to layer. The mpLayer object will be destructed using delete.
-        @param alsoDeleteObject If set to true, the mpLayer object will be also "deleted", not just removed from the internal list.
-        @param refreshDisplay States whether to refresh the display (UpdateAll) after removing the layer.
-        @return true if layer is deleted correctly
+	/** Remove a plot layer from the canvas.
+		@param layer Pointer to layer. The mpLayer object will be destructed using delete.
+		@param alsoDeleteObject If set to true, the mpLayer object will be also "deleted", not just removed from the internal list.
+		@param refreshDisplay States whether to refresh the display (UpdateAll) after removing the layer.
+		@return true if layer is deleted correctly
 
-        N.B. Only the layer reference in the mpWindow is deleted, the layer object still exists!
-    */
-    bool DelLayer( mpLayer* layer, bool alsoDeleteObject = false, bool refreshDisplay = true);
+		N.B. Only the layer reference in the mpWindow is deleted, the layer object still exists!
+	*/
+	bool DelLayer( mpLayer* layer, bool alsoDeleteObject = false, bool refreshDisplay = true);
 
-    /** Remove all layers from the plot.
-        @param alsoDeleteObject If set to true, the mpLayer objects will be also "deleted", not just removed from the internal list.
-        @param refreshDisplay States whether to refresh the display (UpdateAll) after removing the layers.
-    */
-    void DelAllLayers( bool alsoDeleteObject, bool refreshDisplay = true);
+	/** Remove all layers from the plot.
+		@param alsoDeleteObject If set to true, the mpLayer objects will be also "deleted", not just removed from the internal list.
+		@param refreshDisplay States whether to refresh the display (UpdateAll) after removing the layers.
+	*/
+	void DelAllLayers( bool alsoDeleteObject, bool refreshDisplay = true);
 
 
-    /*! Get the layer in list position indicated.
-        N.B. You <i>must</i> know the index of the layer inside the list!
-        @param position position of the layer in the layers list
-        @return pointer to mpLayer
-    */
-    mpLayer* GetLayer(int position);
+	/*! Get the layer in list position indicated.
+		N.B. You <i>must</i> know the index of the layer inside the list!
+		@param position position of the layer in the layers list
+		@return pointer to mpLayer
+	*/
+	mpLayer* GetLayer(int position);
 
-    /*! Get the layer by its name (case sensitive).
-        @param name The name of the layer to retrieve
-        @return A pointer to the mpLayer object, or NULL if not found.
-    */
-    mpLayer* GetLayerByName( const wxString &name);
+	/*! Get the layer by its name (case sensitive).
+		@param name The name of the layer to retrieve
+		@return A pointer to the mpLayer object, or NULL if not found.
+	*/
+	mpLayer* GetLayerByName( const wxString &name);
 
-    /** Get current view's X scale.
-        See @ref mpLayer::Plot "rules for coordinate transformation"
-        @return Scale
-    */
-    double GetXscl() { return m_scaleX; }
-    double GetScaleX(void) const{ return m_scaleX; }; // Schaling's method: maybe another method esists with the same name
+	/** Get current view's X scale.
+		See @ref mpLayer::Plot "rules for coordinate transformation"
+		@return Scale
+	*/
+	double GetXscl() { return m_scaleX; }
+	double GetScaleX(void) const{ return m_scaleX; }; // Schaling's method: maybe another method esists with the same name
 
-    /** Get current view's Y scale.
-        See @ref mpLayer::Plot "rules for coordinate transformation"
-        @return Scale
-    */
-    double GetYscl() const { return m_scaleY; }
-    double GetScaleY(void) const { return m_scaleY; } // Schaling's method: maybe another method exists with the same name
+	/** Get current view's Y scale.
+		See @ref mpLayer::Plot "rules for coordinate transformation"
+		@return Scale
+	*/
+	double GetYscl() const { return m_scaleY; }
+	double GetScaleY(void) const { return m_scaleY; } // Schaling's method: maybe another method exists with the same name
 
-    /** Get current view's X position.
-        See @ref mpLayer::Plot "rules for coordinate transformation"
-        @return X Position in layer coordinate system, that corresponds to the center point of the view.
-    */
-    double GetXpos() const { return m_posX; }
-    double GetPosX(void) const { return m_posX; }
+	/** Get current view's X position.
+		See @ref mpLayer::Plot "rules for coordinate transformation"
+		@return X Position in layer coordinate system, that corresponds to the center point of the view.
+	*/
+	double GetXpos() const { return m_posX; }
+	double GetPosX(void) const { return m_posX; }
 
-    /** Get current view's Y position.
-        See @ref mpLayer::Plot "rules for coordinate transformation"
-        @return Y Position in layer coordinate system, that corresponds to the center point of the view.
-    */
-    double GetYpos() const { return m_posY; }
-    double GetPosY(void) const { return m_posY; }
+	/** Get current view's Y position.
+		See @ref mpLayer::Plot "rules for coordinate transformation"
+		@return Y Position in layer coordinate system, that corresponds to the center point of the view.
+	*/
+	double GetYpos() const { return m_posY; }
+	double GetPosY(void) const { return m_posY; }
 
-    /** Get current view's X dimension in device context units.
-        Usually this is equal to wxDC::GetSize, but it might differ thus mpLayer
-        implementations should rely on the value returned by the function.
-        See @ref mpLayer::Plot "rules for coordinate transformation"
-        @return X dimension.
-    */
-    int GetScrX(void) const { return m_scrX; }
-    int GetXScreen(void) const { return m_scrX; }
+	/** Get current view's X dimension in device context units.
+		Usually this is equal to wxDC::GetSize, but it might differ thus mpLayer
+		implementations should rely on the value returned by the function.
+		See @ref mpLayer::Plot "rules for coordinate transformation"
+		@return X dimension.
+	*/
+	int GetScrX(void) const { return m_scrX; }
+	int GetXScreen(void) const { return m_scrX; }
 
-    /** Get current view's Y dimension in device context units.
-        Usually this is equal to wxDC::GetSize, but it might differ thus mpLayer
-        implementations should rely on the value returned by the function.
-        See @ref mpLayer::Plot "rules for coordinate transformation"
-        @return Y dimension.
-    */
-    int GetScrY(void) const { return m_scrY; }
-    int GetYScreen(void) const { return m_scrY; }
+	/** Get current view's Y dimension in device context units.
+		Usually this is equal to wxDC::GetSize, but it might differ thus mpLayer
+		implementations should rely on the value returned by the function.
+		See @ref mpLayer::Plot "rules for coordinate transformation"
+		@return Y dimension.
+	*/
+	int GetScrY(void) const { return m_scrY; }
+	int GetYScreen(void) const { return m_scrY; }
 
-    int	GetMouseX() { return m_cursorX; }
+	int	GetMouseX() { return m_cursorX; }
   	int	GetMouseY() { return m_cursorY; }
 
-    /** Set current view's X scale and refresh display.
-        @param scaleX New scale, must not be 0.
-    */
-    void SetScaleX(double scaleX);
+	/** Set current view's X scale and refresh display.
+		@param scaleX New scale, must not be 0.
+	*/
+	void SetScaleX(double scaleX);
 
-    /** Set current view's Y scale and refresh display.
-        @param scaleY New scale, must not be 0.
-    */
-    void SetScaleY(double scaleY) { if (scaleY!=0) m_scaleY=scaleY; UpdateAll(); }
+	/** Set current view's Y scale and refresh display.
+		@param scaleY New scale, must not be 0.
+	*/
+	void SetScaleY(double scaleY) { if (scaleY!=0) m_scaleY=scaleY; UpdateAll(); }
 
-    /** Set current view's X position and refresh display.
-        @param posX New position that corresponds to the center point of the view.
-    */
-    void SetPosX(double posX) { m_posX=posX; UpdateAll(); }
+	/** Set current view's X position and refresh display.
+		@param posX New position that corresponds to the center point of the view.
+	*/
+	void SetPosX(double posX) { m_posX=posX; UpdateAll(); }
 
-    /** Set current view's Y position and refresh display.
-        @param posY New position that corresponds to the center point of the view.
-    */
-    void SetPosY(double posY) { m_posY=posY; UpdateAll(); }
+	/** Set current view's Y position and refresh display.
+		@param posY New position that corresponds to the center point of the view.
+	*/
+	void SetPosY(double posY) { m_posY=posY; UpdateAll(); }
 
-    /** Set current view's X and Y position and refresh display.
-        @param posX New position that corresponds to the center point of the view.
-        @param posY New position that corresponds to the center point of the view.
-    */
-    void SetPos( double posX, double posY) { m_posX=posX; m_posY=posY; UpdateAll(); }
+	/** Set current view's X and Y position and refresh display.
+		@param posX New position that corresponds to the center point of the view.
+		@param posY New position that corresponds to the center point of the view.
+	*/
+	void SetPos( double posX, double posY) { m_posX=posX; m_posY=posY; UpdateAll(); }
 
-    /** Set current view's dimensions in device context units.
-        Needed by plotting functions. It doesn't refresh display.
-        @param scrX New position that corresponds to the center point of the view.
-        @param scrY New position that corresponds to the center point of the view.
-    */
-    void SetScr( int scrX, int scrY) { m_scrX=scrX; m_scrY=scrY; }
+	/** Set current view's dimensions in device context units.
+		Needed by plotting functions. It doesn't refresh display.
+		@param scrX New position that corresponds to the center point of the view.
+		@param scrY New position that corresponds to the center point of the view.
+	*/
+	void SetScr( int scrX, int scrY) { m_scrX=scrX; m_scrY=scrY; }
 
-    /** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
-      * @sa p2y,x2p,y2p */
+	/** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
+	  * @sa p2y,x2p,y2p */
 //     double p2x(wxCoord pixelCoordX, bool drawOutside = true ); // { return m_posX + pixelCoordX/m_scaleX; }
-    inline double p2x(wxCoord pixelCoordX ) { return m_posX + pixelCoordX/m_scaleX; }
+	inline double p2x(wxCoord pixelCoordX ) { return m_posX + pixelCoordX/m_scaleX; }
 
-    /** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
-      * @sa p2x,x2p,y2p */
+	/** Converts mpWindow (screen) pixel coordinates into graph (floating point) coordinates, using current mpWindow position and scale.
+	  * @sa p2x,x2p,y2p */
 //     double p2y(wxCoord pixelCoordY, bool drawOutside = true ); //{ return m_posY - pixelCoordY/m_scaleY; }
-    inline double p2y(wxCoord pixelCoordY ) { return m_posY - pixelCoordY/m_scaleY; }
+	inline double p2y(wxCoord pixelCoordY ) { return m_posY - pixelCoordY/m_scaleY; }
 
-    /** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
-      * @sa p2x,p2y,y2p */
+	/** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
+	  * @sa p2x,p2y,y2p */
 //     wxCoord x2p(double x, bool drawOutside = true); // { return (wxCoord) ( (x-m_posX) * m_scaleX); }
-    inline wxCoord x2p(double x) { return (wxCoord) ( (x-m_posX) * m_scaleX); }
+	inline wxCoord x2p(double x) { return (wxCoord) ( (x-m_posX) * m_scaleX); }
 
-    /** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
-      * @sa p2x,p2y,x2p */
+	/** Converts graph (floating point) coordinates into mpWindow (screen) pixel coordinates, using current mpWindow position and scale.
+	  * @sa p2x,p2y,x2p */
 //     wxCoord y2p(double y, bool drawOutside = true); // { return (wxCoord) ( (m_posY-y) * m_scaleY); }
-    inline wxCoord y2p(double y) { return (wxCoord) ( (m_posY-y) * m_scaleY); }
+	inline wxCoord y2p(double y) { return (wxCoord) ( (m_posY-y) * m_scaleY); }
 
 
-    /** Enable/disable the double-buffering of the window, eliminating the flicker (default=disabled).
-     */
-    void EnableDoubleBuffer( bool enabled ) { m_enableDoubleBuffer = enabled; }
+	/** Enable/disable the double-buffering of the window, eliminating the flicker (default=disabled).
+	 */
+	void EnableDoubleBuffer( bool enabled ) { m_enableDoubleBuffer = enabled; }
 
-    /** Enable/disable the feature of pan/zoom with the mouse (default=enabled)
-     */
-    void EnableMousePanZoom( bool enabled ) { m_enableMouseNavigation = enabled; }
+	/** Enable/disable the feature of pan/zoom with the mouse (default=enabled)
+	 */
+	void EnableMousePanZoom( bool enabled ) { m_enableMouseNavigation = enabled; }
 
-    /** Enable or disable X/Y scale aspect locking for the view.
-        @note Explicit calls to mpWindow::SetScaleX and mpWindow::SetScaleY will set
-              an unlocked aspect, but any other action changing the view scale will
-              lock the aspect again.
-    */
-    void LockAspect(bool enable = TRUE);
+	/** Enable or disable X/Y scale aspect locking for the view.
+		@note Explicit calls to mpWindow::SetScaleX and mpWindow::SetScaleY will set
+			  an unlocked aspect, but any other action changing the view scale will
+			  lock the aspect again.
+	*/
+	void LockAspect(bool enable = TRUE);
 
-    /** Checks whether the X/Y scale aspect is locked.
-        @retval TRUE Locked
-        @retval FALSE Unlocked
-    */
-    inline bool IsAspectLocked() { return m_lockaspect; }
+	/** Checks whether the X/Y scale aspect is locked.
+		@retval TRUE Locked
+		@retval FALSE Unlocked
+	*/
+	inline bool IsAspectLocked() { return m_lockaspect; }
 
-    /** Set view to fit global bounding box of all plot layers and refresh display.
-        Scale and position will be set to show all attached mpLayers.
-        The X/Y scale aspect lock is taken into account.
-    */
-    void Fit();
+	/** Set view to fit global bounding box of all plot layers and refresh display.
+		Scale and position will be set to show all attached mpLayers.
+		The X/Y scale aspect lock is taken into account.
+	*/
+	void Fit();
 
-    /** Set view to fit a given bounding box and refresh display.
-        The X/Y scale aspect lock is taken into account.
-    If provided, the parameters printSizeX and printSizeY are taken as the DC size, and the
-        pixel scales are computed accordingly. Also, in this case the passed borders are not saved
-        as the "desired borders", since this use will be invoked only when printing.
-    */
-    void Fit(double xMin, double xMax, double yMin, double yMax,wxCoord *printSizeX=NULL,wxCoord *printSizeY=NULL);
+	/** Set view to fit a given bounding box and refresh display.
+		The X/Y scale aspect lock is taken into account.
+	If provided, the parameters printSizeX and printSizeY are taken as the DC size, and the
+		pixel scales are computed accordingly. Also, in this case the passed borders are not saved
+		as the "desired borders", since this use will be invoked only when printing.
+	*/
+	void Fit(double xMin, double xMax, double yMin, double yMax,wxCoord *printSizeX=NULL,wxCoord *printSizeY=NULL);
 
-    /** Zoom into current view and refresh display
-      * @param centerPoint The point (pixel coordinates) that will stay in the same position on the screen after the zoom (by default, the center of the mpWindow).
-      */
-    void ZoomIn( const wxPoint& centerPoint = wxDefaultPosition );
+	/** Zoom into current view and refresh display
+	  * @param centerPoint The point (pixel coordinates) that will stay in the same position on the screen after the zoom (by default, the center of the mpWindow).
+	  */
+	void ZoomIn( const wxPoint& centerPoint = wxDefaultPosition );
 
-    /** Zoom out current view and refresh display
-      * @param centerPoint The point (pixel coordinates) that will stay in the same position on the screen after the zoom (by default, the center of the mpWindow).
-      */
-    void ZoomOut( const wxPoint& centerPoint = wxDefaultPosition );
+	/** Zoom out current view and refresh display
+	  * @param centerPoint The point (pixel coordinates) that will stay in the same position on the screen after the zoom (by default, the center of the mpWindow).
+	  */
+	void ZoomOut( const wxPoint& centerPoint = wxDefaultPosition );
 
-    /** Zoom in current view along X and refresh display */
-    void ZoomInX();
-    /** Zoom out current view along X and refresh display */
-    void ZoomOutX();
-    /** Zoom in current view along Y and refresh display */
-    void ZoomInY();
-    /** Zoom out current view along Y and refresh display */
-    void ZoomOutY();
+	/** Zoom in current view along X and refresh display */
+	void ZoomInX();
+	/** Zoom out current view along X and refresh display */
+	void ZoomOutX();
+	/** Zoom in current view along Y and refresh display */
+	void ZoomInY();
+	/** Zoom out current view along Y and refresh display */
+	void ZoomOutY();
 
-    /** Zoom view fitting given coordinates to the window (p0 and p1 do not need to be in any specific order) */
-    void ZoomRect(wxPoint p0, wxPoint p1);
+	/** Zoom view fitting given coordinates to the window (p0 and p1 do not need to be in any specific order) */
+	void ZoomRect(wxPoint p0, wxPoint p1);
 
-    /** Refresh display */
-    void UpdateAll();
+	/** Refresh display */
+	void UpdateAll();
 
-    // Added methods by Davide Rondini
+	// Added methods by Davide Rondini
 
-    /** Counts the number of plot layers, excluding axes or text: this is to count only the layers which have a bounding box.
-        \return The number of profiles plotted.
-    */
-    unsigned int CountLayers();
+	/** Counts the number of plot layers, excluding axes or text: this is to count only the layers which have a bounding box.
+		\return The number of profiles plotted.
+	*/
+	unsigned int CountLayers();
 
-    /** Counts the number of plot layers, whether or not they have a bounding box.
-        \return The number of layers in the mpWindow. */
-    unsigned int CountAllLayers() { return m_layers.size(); };
+	/** Counts the number of plot layers, whether or not they have a bounding box.
+		\return The number of layers in the mpWindow. */
+	unsigned int CountAllLayers() { return m_layers.size(); };
 
-    /** Draws the mpWindow on a page for printing
-        \param print the mpPrintout where to print the graph */
-    //void PrintGraph(mpPrintout *print);
+	/** Draws the mpWindow on a page for printing
+		\param print the mpPrintout where to print the graph */
+	//void PrintGraph(mpPrintout *print);
 
 
-    /** Returns the left-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
-      * @sa Fit
-         */
-    double GetDesiredXmin() {return m_desiredXmin; }
+	/** Returns the left-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+		 */
+	double GetDesiredXmin() {return m_desiredXmin; }
 
-    /** Returns the right-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
-      * @sa Fit
-         */
-    double GetDesiredXmax() {return m_desiredXmax; }
+	/** Returns the right-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+		 */
+	double GetDesiredXmax() {return m_desiredXmax; }
 
-    /** Returns the bottom-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
-      * @sa Fit
-         */
-    double GetDesiredYmin() {return m_desiredYmin; }
+	/** Returns the bottom-border layer coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+		 */
+	double GetDesiredYmin() {return m_desiredYmin; }
 
-    /** Returns the top layer-border coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
-      * @sa Fit
-         */
-    double GetDesiredYmax() {return m_desiredYmax; }
+	/** Returns the top layer-border coordinate that the user wants the mpWindow to show (it may be not exactly the actual shown coordinate in the case of locked aspect ratio).
+	  * @sa Fit
+		 */
+	double GetDesiredYmax() {return m_desiredYmax; }
 
-    /** Returns the bounding box coordinates
-        @param bbox Pointer to a 6-element double array where to store bounding box coordinates. */
-    void GetBoundingBox(double* bbox);
+	/** Returns the bounding box coordinates
+		@param bbox Pointer to a 6-element double array where to store bounding box coordinates. */
+	void GetBoundingBox(double* bbox);
 
-    /** Enable/disable scrollbars
-      @param status Set to true to show scrollbars */
-    void SetMPScrollbars(bool status);
+	/** Enable/disable scrollbars
+	  @param status Set to true to show scrollbars */
+	void SetMPScrollbars(bool status);
 
-    /** Get scrollbars status.
-      @return true if scrollbars are visible */
-    bool GetMPScrollbars() {return m_enableScrollBars; };
+	/** Get scrollbars status.
+	  @return true if scrollbars are visible */
+	bool GetMPScrollbars() {return m_enableScrollBars; };
 
-    /** Draw the window on a wxBitmap, then save it to a file.
-      @param filename File name where to save the screenshot
-      @param type image type to be saved: see wxImage output file types for flags
-      @param imageSize Set a size for the output image. Default is the same as the screen size
-      @param fit Decide whether to fit the plot into the size*/
-    bool SaveScreenshot(const wxString& filename, int type = wxBITMAP_TYPE_BMP, wxSize imageSize = wxDefaultSize, bool fit = false);
+	/** Draw the window on a wxBitmap, then save it to a file.
+	  @param filename File name where to save the screenshot
+	  @param type image type to be saved: see wxImage output file types for flags
+	  @param imageSize Set a size for the output image. Default is the same as the screen size
+	  @param fit Decide whether to fit the plot into the size*/
+	bool SaveScreenshot(const wxString& filename, int type = wxBITMAP_TYPE_BMP, wxSize imageSize = wxDefaultSize, bool fit = false);
 
-    /** This value sets the zoom steps whenever the user clicks "Zoom in/out" or performs zoom with the mouse wheel.
-      *  It must be a number above unity. This number is used for zoom in, and its inverse for zoom out. Set to 1.5 by default. */
-    static double zoomIncrementalFactor;
+	/** This value sets the zoom steps whenever the user clicks "Zoom in/out" or performs zoom with the mouse wheel.
+	  *  It must be a number above unity. This number is used for zoom in, and its inverse for zoom out. Set to 1.5 by default. */
+	static double zoomIncrementalFactor;
 
-    /** Set window margins, creating a blank area where some kinds of layers cannot draw. This is useful for example to draw axes outside the area where the plots are drawn.
-        @param top Top border
-        @param right Right border
-        @param bottom Bottom border
-        @param left Left border */
-    void SetMargins(int top, int right, int bottom, int left);
+	/** Set window margins, creating a blank area where some kinds of layers cannot draw. This is useful for example to draw axes outside the area where the plots are drawn.
+		@param top Top border
+		@param right Right border
+		@param bottom Bottom border
+		@param left Left border */
+	void SetMargins(int top, int right, int bottom, int left);
 
-    /** Set the top margin. @param top Top Margin */
-    void SetMarginTop(int top) { m_marginTop = top; };
-    /** Set the right margin. @param right Right Margin */
-    void SetMarginRight(int right) { m_marginRight = right; };
-    /** Set the bottom margin. @param bottom Bottom Margin */
-    void SetMarginBottom(int bottom) { m_marginBottom = bottom; };
-    /** Set the left margin. @param left Left Margin */
-    void SetMarginLeft(int left) { m_marginLeft = left; };
+	/** Set the top margin. @param top Top Margin */
+	void SetMarginTop(int top) { m_marginTop = top; };
+	/** Set the right margin. @param right Right Margin */
+	void SetMarginRight(int right) { m_marginRight = right; };
+	/** Set the bottom margin. @param bottom Bottom Margin */
+	void SetMarginBottom(int bottom) { m_marginBottom = bottom; };
+	/** Set the left margin. @param left Left Margin */
+	void SetMarginLeft(int left) { m_marginLeft = left; };
 
-    /** Get the top margin. @param top Top Margin */
-    int GetMarginTop() { return m_marginTop; };
-    /** Get the right margin. @param right Right Margin */
-    int GetMarginRight() { return m_marginRight; };
-    /** Get the bottom margin. @param bottom Bottom Margin */
-    int GetMarginBottom() { return m_marginBottom; };
-    /** Get the left margin. @param left Left Margin */
-    int GetMarginLeft() { return m_marginLeft; };
+	/** Get the top margin. @param top Top Margin */
+	int GetMarginTop() { return m_marginTop; };
+	/** Get the right margin. @param right Right Margin */
+	int GetMarginRight() { return m_marginRight; };
+	/** Get the bottom margin. @param bottom Bottom Margin */
+	int GetMarginBottom() { return m_marginBottom; };
+	/** Get the left margin. @param left Left Margin */
+	int GetMarginLeft() { return m_marginLeft; };
 
-    /** Sets whether to show coordinate tooltip when mouse passes over the plot. \param value true for enable, false for disable */
-    // void EnableCoordTooltip(bool value = true);
-    /** Gets coordinate tooltip status. \return true for enable, false for disable */
-    // bool GetCoordTooltip() { return m_coordTooltip; };
+	/** Sets whether to show coordinate tooltip when mouse passes over the plot. \param value true for enable, false for disable */
+	// void EnableCoordTooltip(bool value = true);
+	/** Gets coordinate tooltip status. \return true for enable, false for disable */
+	// bool GetCoordTooltip() { return m_coordTooltip; };
 
-    /** Check if a given point is inside the area of a mpInfoLayer and eventually returns its pointer.
-        @param point The position to be checked
-        @return If an info layer is found, returns its pointer, NULL otherwise */
-    mpInfoLayer* IsInsideInfoLayer(wxPoint& point);
+	/** Check if a given point is inside the area of a mpInfoLayer and eventually returns its pointer.
+		@param point The position to be checked
+		@return If an info layer is found, returns its pointer, NULL otherwise */
+	mpInfoLayer* IsInsideInfoLayer(wxPoint& point);
 
-    /** Sets the visibility of a layer by its name.
-        @param name The layer name to set visibility
-        @param viewable the view status to be set */
-    void SetLayerVisible(const wxString &name, bool viewable);
+	/** Sets the visibility of a layer by its name.
+		@param name The layer name to set visibility
+		@param viewable the view status to be set */
+	void SetLayerVisible(const wxString &name, bool viewable);
 
-    /** Check whether a layer with given name is visible
-        @param name The layer name
-        @return layer visibility status */
-    bool IsLayerVisible(const wxString &name );
+	/** Check whether a layer with given name is visible
+		@param name The layer name
+		@return layer visibility status */
+	bool IsLayerVisible(const wxString &name );
 
-    /** Sets the visibility of a layer by its position in layer list.
-        @param position The layer position in layer list
-        @param viewable the view status to be set */
-    void SetLayerVisible(const unsigned int position, bool viewable);
+	/** Sets the visibility of a layer by its position in layer list.
+		@param position The layer position in layer list
+		@param viewable the view status to be set */
+	void SetLayerVisible(const unsigned int position, bool viewable);
 
-    /** Check whether the layer at given position is visible
-        @param position The layer position in layer list
-        @return layer visibility status */
-    bool IsLayerVisible(const unsigned int position );
+	/** Check whether the layer at given position is visible
+		@param position The layer position in layer list
+		@return layer visibility status */
+	bool IsLayerVisible(const unsigned int position );
 
-    /** Set Color theme. Provide colours to set a new colour theme.
-        @param bgColour Background colour
-        @param drawColour The colour used to draw all elements in foreground, axes excluded
-        @param axesColour The colour used to draw axes (but not their labels) */
-    void SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour, const wxColour& gridColour);
+	/** Set Color theme. Provide colours to set a new colour theme.
+		@param bgColour Background colour
+		@param drawColour The colour used to draw all elements in foreground, axes excluded
+		@param axesColour The colour used to draw axes (but not their labels) */
+	void SetColourTheme(const wxColour& bgColour, const wxColour& drawColour, const wxColour& axesColour, const wxColour& gridColour);
 
-    /** Get axes draw colour
-        @return reference to axis colour used in theme */
+	/** Get axes draw colour
+		@return reference to axis colour used in theme */
 	const wxColour& GetAxesColour() { return m_axColour; };
 
 	const wxColour& GetGridColour() {return m_grColour;};
@@ -1959,8 +1959,6 @@ protected:
 	// The shape of the bitmap:
 	double  m_min_x,m_max_x,m_min_y,m_max_y;
 };
-
-
 
 /*@}*/
 
