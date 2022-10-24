@@ -673,7 +673,9 @@ public:
 	*/
 	virtual bool GetNextXY(double & x, double & y) = 0;
 
-	virtual wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
+	//virtual wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
+	//tuple<X value, Y value, Y coordinate,>
+	virtual std::tuple<double, double, double>  GetClosestXY(double x, double y, double scaleX, double scaleY);
 
 	/** Layer plot handler.
 		This implementation will plot the locus in the visible area and
@@ -1332,7 +1334,9 @@ protected:
 	void ShowPopupMenu(int x, int y);// (wxMouseEvent     &event); //!< Mouse handler, will show context menu
 	void PanPlot();
 
-	std::pair<mpLayer*, wxRealPoint> GetClosestPoint(double x, double y, mpWindow * w);
+	//std::pair<mpLayer*, wxRealPoint> GetClosestPoint(double x, double y, mpWindow * w);
+						//tuple<X value, Y value, y coordinate,>
+	std::pair<mpLayer*,std::tuple<double, double, double>> GetClosestPoint(double x, double y, mpWindow * w);
 	void ZoomRectEnter(int x, int y);
 	void ZoomRectRelease(int x, int y);
 	void DrawTrackBox();
@@ -1528,7 +1532,9 @@ public:
 	//    @param y Returns Y value
 	bool GetNextXY(double & x, double & y);
 
-	wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
+	// //tuple<X value, Y value, Y coordinate,>
+	std::tuple<double, double, double>  GetClosestXY(double x, double y, double scaleX, double scaleY);
+	//wxRealPoint GetClosestXY(double x, double y, double scaleX, double scaleY);
 
 	int GetLabelAlignment() {return m_flags;};
 
