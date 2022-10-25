@@ -234,8 +234,8 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	{
 		//double i = 5;		
 		vectorSeries1.push_back(i);
-		vectorSeries2.push_back(i/2);
-		vectorSeries3.push_back((10.0-i)/3);
+		vectorSeries2.push_back(i/2.0);
+		vectorSeries3.push_back((8.0-i)/3);
 		vectorX.push_back(yearMonth.GetTicks());
 		vectorXdate.push_back(yearMonth);
 		yearMonth.Add(wxDateSpan(0,1,0));
@@ -257,7 +257,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	mpBAR* vectorLayer2 = new mpBAR(_(series2));
 	vectorLayer2->SetData(vectorX, vectorSeries2);
 	vectorLayer2->SetContinuity(false);
-	wxPen s2Pen(*wxRED, 5, wxPENSTYLE_SOLID);
+	wxPen s2Pen(*wxBLUE, 5, wxPENSTYLE_SOLID); //*wxRED
 	vectorLayer2->SetPen(s2Pen);
 	//vectorLayer->SetDrawOutsideMargins(true);
 	m_plot->AddLayer(vectorLayer2);
