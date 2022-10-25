@@ -1298,6 +1298,9 @@ protected:
 	mpMouseWheelCommand wheelCommand = mpWHEEL_NO_ACTION;
 	mpMouseWheelCommand shiftWheellCommand = mpWHEEL_NO_ACTION;
 	mpMouseWheelCommand ctrlWheellCommand = mpWHEEL_NO_ACTION;
+	
+	//	map < X, pair < min Y , max Y >
+	std::map<double, std::pair<double, double>> barChartMinMaxValues;
 
 	void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
 	void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes

@@ -1582,9 +1582,10 @@ mpWindow::~mpWindow()
 
   	void mpWindow::DrawTrackBox() {
 		//std::pair<mpLayer*, wxRealPoint> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()), this);
+							//tuple<X value, Y value, y coordinate,>
 		std::pair<mpLayer*, std::tuple<double, double, double>> pointInfo = GetClosestPoint(p2x(GetMouseX()), p2y(GetMouseY()), this);
-		//tuple<X value, Y value, y coordinate,>
-		//std::get<0>(pointInfo.second)
+
+		if (pointInfo.first == nullptr) return;
 
 		wxString label, valueX, valueY;
 		label.Printf(wxT("%s"), pointInfo.first->GetName());
@@ -1687,7 +1688,7 @@ mpWindow::~mpWindow()
 	//std::pair<mpLayer*, wxRealPoint> mpWindow::GetClosestPoint(double x, double y, mpWindow * w) {
 						//tuple<X value, Y value, y coordinate,>
 	std::pair<mpLayer*,std::tuple<double, double, double>> mpWindow::GetClosestPoint(double x, double y, mpWindow * w) {
-		mpLayer* layer;
+		mpLayer* layer = nullptr;
 		double coordX, coordY, valueY;
 		double previousDelta = 999999999999;
 
@@ -2143,8 +2144,9 @@ void mpWindow::OnSize( wxSizeEvent& WXUNUSED(event) )
 
 //std::map<double, std::tuple<double, double>> barCoordinates; //<x, <yBase, yTop>
 void mpWindow::UpdateBarChartCoordinates(){
-
-	std::map<double, double> baseMap; 
+	barChartMinMaxValues.clear();
+	
+	//std::map<double, double> baseMap; 
 	wxLayerList::iterator li;
 	for (li = m_layers.begin(); li != m_layers.end(); li++) //Plot BarChart
 	{
@@ -2153,14 +2155,33 @@ void mpWindow::UpdateBarChartCoordinates(){
 		mpBAR *barChart = (mpBAR*)(*li);
 		barChart->barCoordinates.clear();
 		
-		std::map<double, double>::iterator base;
+		//std::map<double, double>::iterator base;
+		std::map<double, std::pair<double, double>>::iterator base;
 		double x, y, baseY;
 		barChart->Rewind(); 
 		barChart->GetNextXY(x, y);
 		barChart->Rewind();
 		while (barChart->GetNextXY(x, y)) {
-
-			base = baseMap.find(x);
+			base = barChartMinMaxValues.find(x);
+			if (base != barChartMinMaxValues.end()){ 
+				if (y < 0) {
+					baseY = base->second.first;
+					base->second.first = baseY + y;
+				}
+				else {
+					baseY = base->second.second;
+					base->second.second = baseY + y;
+				}
+			}
+			else {
+				baseY = 0;
+				if (y < 0)
+					barChartMinMaxValues.insert({x, std::make_pair(y, 0)});
+				else
+					barChartMinMaxValues.insert({x, std::make_pair(0, y)});
+			}
+			
+			/*base = baseMap.find(x);
 			if (base != baseMap.end()){ 
 				baseY = base->second;
 				base->second = baseY + y;
@@ -2168,7 +2189,7 @@ void mpWindow::UpdateBarChartCoordinates(){
 			else {
 				baseY = 0;
 				baseMap.insert({x,y});
-			}
+			}*/
 
 //wxLogMessage(_("X=%f, Y=%f, y0 = %f, y1 = %f"), x, y, baseY, baseY+y);
 			barChart->barCoordinates.insert({x,{baseY, baseY+y}});

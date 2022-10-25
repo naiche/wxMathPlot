@@ -235,7 +235,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 		//double i = 5;		
 		vectorSeries1.push_back(i);
 		vectorSeries2.push_back(i/2);
-		vectorSeries3.push_back((18.0-i)/3);
+		vectorSeries3.push_back((10.0-i)/3);
 		vectorX.push_back(yearMonth.GetTicks());
 		vectorXdate.push_back(yearMonth);
 		yearMonth.Add(wxDateSpan(0,1,0));
