@@ -69,7 +69,7 @@ public:
 class MyLissajoux : public mpFXY
 {
 	double m_rad;
-	int    m_idx;
+	int m_idx;
 public:
 	MyLissajoux(double rad) : mpFXY( wxT("Lissajoux")) { m_rad=rad; m_idx=0; m_drawOutsideMargins = false;}
 	virtual bool GetNextXY( double & x, double & y )
@@ -122,8 +122,8 @@ public:
 	void OnBlackTheme(wxCommandEvent& event);
 	void OnScientificNotation(wxCommandEvent& event);
 
-	mpWindow        *m_plot;
-	wxTextCtrl      *m_log;
+	mpWindow	*m_plot;
+	wxTextCtrl	*m_log;
 
 private:
 	int axesPos[2];
@@ -137,7 +137,7 @@ private:
 class MyApp: public wxApp
 {
 public:
-    virtual bool OnInit();
+	virtual bool OnInit();
 };
 
 // main program
@@ -269,13 +269,13 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	// yaxis->SetLabelFormat(wxT("%p"));
 	m_plot->SetMargins(30, 30, 50, 100);
 	//     m_plot->SetMargins(50, 50, 200, 150);
-	m_plot->AddLayer(     xaxis );
-	m_plot->AddLayer(     yaxis );
+	m_plot->AddLayer(	  xaxis );
+	m_plot->AddLayer(	  yaxis );
 	m_plot->AddLayer( s = new MySIN( 10.0, 220.0 ) );
 	m_plot->AddLayer( c = new MyCOSinverse( 10.0, 100.0 ) );
 	m_plot->AddLayer( l = new MyLissajoux( 125.0 ) );
-	m_plot->AddLayer(     vectorLayer );
-	m_plot->AddLayer(     new mpText(wxT("mpText sample"), 10, 10) );
+	m_plot->AddLayer(	  vectorLayer );
+	m_plot->AddLayer(	  new mpText(wxT("mpText sample"), 10, 10) );
 	wxBrush hatch(wxColour(150,150,150), wxBRUSHSTYLE_SOLID);
 	//m_plot->AddLayer( nfo = new mpInfoLayer(wxRect(80,20,40,40), &hatch));
 	m_plot->AddLayer( nfo = new mpInfoCoords(wxRect(130,20,100,10), &hatch));    //wxRED_BRUSH));
@@ -311,7 +311,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	axesPos[1] = 0;
 
 	m_plot->EnableDoubleBuffer(true);
-	//m_plot->SetMPScrollbars(false);         //./src/gtk/window.cpp(5985): assert ""sb"" failed in SetScrollbar(): this window is not scrollable
+	//m_plot->SetMPScrollbars(false);	 //./src/gtk/window.cpp(5985): assert ""sb"" failed in SetScrollbar(): this window is not scrollable
 
 	m_plot->BindMouseButton(mpDOUBLE_CLICK, mpFIT);
 	m_plot->BindMouseButton(mpMIDDLE_DOWN, mpPAN);
@@ -396,15 +396,15 @@ void MyFrame::OnAlignXAxis( wxCommandEvent &WXUNUSED(event) )
 		m_plot->SetMarginTop(0);
 		m_plot->SetMarginBottom(0);
 	}
-    m_plot->UpdateAll();
+	m_plot->UpdateAll();
 }
 
 void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
 {
-    axesPos[1] = (int) (axesPos[1]+1)%5;
-    wxString temp;
-    temp.sprintf(wxT("YaxesPos = %d\n"), axesPos[1]);
-    m_log->AppendText(temp);
+	axesPos[1] = (int) (axesPos[1]+1)%5;
+	wxString temp;
+	temp.sprintf(wxT("YaxesPos = %d\n"), axesPos[1]);
+	m_log->AppendText(temp);
 	mpScaleX* xaxis = ((mpScaleX*)(m_plot->GetLayer(0)));
 	mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
 	if (axesPos[1] == 0) {
@@ -414,13 +414,13 @@ void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
 		m_plot->SetMarginRight(0);
 	}
 	if (axesPos[1] == 1) {
-        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_LEFT);
+		//((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_LEFT);
 		yaxis->SetAlign(mpALIGN_LEFT);
 		m_plot->SetMarginLeft(70);
 		m_plot->SetMarginRight(0);
 	}
 	if (axesPos[1] == 2) {
-        //((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_CENTER);
+		//((mpScaleY*)(m_plot->GetLayer(1)))->SetAlign(mpALIGN_CENTER);
 		yaxis->SetAlign(mpALIGN_CENTER);
 		m_plot->SetMarginLeft(0);
 		m_plot->SetMarginRight(0);
@@ -437,7 +437,7 @@ void MyFrame::OnAlignYAxis( wxCommandEvent &WXUNUSED(event) )
 		m_plot->SetMarginLeft(0);
 		m_plot->SetMarginRight(0);
 	}
-    m_plot->UpdateAll();
+	m_plot->UpdateAll();
 }
 
 void MyFrame::OnToggleTicks( wxCommandEvent& event) //&WXUNUSED(event) )
@@ -457,20 +457,20 @@ void MyFrame::OnToggleGrid( wxCommandEvent& event) //&WXUNUSED(event) )
 /*void MyFrame::OnToggleScrollbars(wxCommandEvent& event)
 {
    if (event.IsChecked())
-        m_plot->SetMPScrollbars(true);
-    else
-        m_plot->SetMPScrollbars(false);
-    event.Skip();
+		m_plot->SetMPScrollbars(true);
+	else
+		m_plot->SetMPScrollbars(false);
+	event.Skip();
 }*/
 
 void MyFrame::OnToggleInfoLayer(wxCommandEvent& event)
 {
   if (event.IsChecked())
-        nfo->SetVisible(true);
-    else
-        nfo->SetVisible(false);
-    m_plot->UpdateAll();
-    event.Skip();
+		nfo->SetVisible(true);
+	else
+		nfo->SetVisible(false);
+	m_plot->UpdateAll();
+	event.Skip();
 }
 
 void MyFrame::OnBlackTheme(wxCommandEvent& event)
@@ -501,34 +501,34 @@ void MyFrame::OnBlackTheme(wxCommandEvent& event)
 
 void MyFrame::OnScientificNotation(wxCommandEvent& event)
 {
-    mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
-    if (event.IsChecked()){	
-    	yaxis->SetLabelFormat("%1.1e ");
-    }
-    else
-    {
-        yaxis->SetLabelFormat("%1.0f ");
-    }
+	mpScaleY* yaxis = ((mpScaleY*)(m_plot->GetLayer(1)));
+	if (event.IsChecked()){	
+		yaxis->SetLabelFormat("%1.1e ");
+	}
+	else
+	{
+		yaxis->SetLabelFormat("%1.0f ");
+	}
 	m_plot->UpdateAll();
 }
 
 void MyFrame::OnPrintPreview( wxCommandEvent &WXUNUSED(event))
 {
-      // Pass two printout objects: for preview, and possible printing.
-      mpPrintout *plotPrint = new mpPrintout(m_plot);
-      mpPrintout *plotPrintPreview = new mpPrintout(m_plot);
-      wxPrintPreview *preview = new wxPrintPreview(plotPrintPreview, plotPrint);
-      wxPreviewFrame *frame = new wxPreviewFrame(preview, this, wxT("Print Plot"), wxPoint(100, 100), wxSize(600, 650));
-      frame->Centre(wxBOTH);
-      frame->Initialize();
-      frame->Show(true);
+	// Pass two printout objects: for preview, and possible printing.
+	mpPrintout *plotPrint = new mpPrintout(m_plot);
+	mpPrintout *plotPrintPreview = new mpPrintout(m_plot);
+	wxPrintPreview *preview = new wxPrintPreview(plotPrintPreview, plotPrint);
+	wxPreviewFrame *frame = new wxPreviewFrame(preview, this, wxT("Print Plot"), wxPoint(100, 100), wxSize(600, 650));
+	frame->Centre(wxBOTH);
+	frame->Initialize();
+	frame->Show(true);
 }
 
 void MyFrame::OnPrint( wxCommandEvent& WXUNUSED(event) )
 {
-      wxPrinter printer;
-      mpPrintout printout(m_plot, wxT("Plot print"));
-      printer.Print(this, &printout, true);
+	wxPrinter printer;
+	mpPrintout printout(m_plot, wxT("Plot print"));
+	printer.Print(this, &printout, true);
 }
 
 void MyFrame::OnSaveScreenshot(wxCommandEvent& event)

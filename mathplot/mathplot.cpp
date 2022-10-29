@@ -3115,6 +3115,10 @@ std::tuple<double, double, double> mpBAR::GetClosestXY(double x, double y, doubl
 	//std::map<double, std::tuple<double, double>>::iterator closestXit;
 	delta = abs( bc->first - x);
 	closestX = bc->first; 
+	yValue = std::get<0>(bc->second);
+	yValue2 = std::get<1>(bc->second);
+	closestY = (std::get<0>(bc->second) + std::get<1>(bc->second))/2;
+	closestYvalue = yValue2 - yValue;
 	bc++;
 	for (bc; bc != barCoordinates.end(); bc++){
 		double thisPointDelta = abs( bc->first - x); 
