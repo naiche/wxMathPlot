@@ -1301,6 +1301,8 @@ protected:
 	
 	//	map < X, pair < min Y , max Y >
 	std::map<double, std::pair<double, double>> barChartMinMaxValues;
+	
+	double GetBarChartInterval();
 
 	void OnPaint         (wxPaintEvent     &event); //!< Paint handler, will plot all attached layers
 	void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes

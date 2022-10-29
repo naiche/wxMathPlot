@@ -2249,9 +2249,32 @@ void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 // {
 //     dc.SetDeviceOrigin(x2p(m_minX), y2p(m_maxY));
 // }
+double mpWindow::GetBarChartInterval() {
+	double shortestDelta = GetScrX()/m_scaleX; //9999999999999999;//
+	wxLayerList::iterator li;
+	for (li = m_layers.begin(); li != m_layers.end(); li++)
+	{
+		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
+		
+		mpBAR *barChart = (mpBAR*)(*li);
+		barChart->Rewind();
+		double x, y;
+		barChart->GetNextXY(x, y);
+		double previousX = x;
+		while (barChart->GetNextXY(x, y)) {
+			if (abs(x-previousX) < shortestDelta)
+				shortestDelta = abs(x-previousX);
+		}
+	}
+	return shortestDelta;
+}
+
 
 void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 {
+	double barChartInterval = GetBarChartInterval() * m_scaleX;
+//	wxLogMessage(_("barChartInterval: %f * %f = %f"), barChartInterval, m_scaleX, barChartInterval * m_scaleX);//x2p(barChartInterval));
+	
 	wxPaintDC dc(this);
 	dc.GetSize(&m_scrX, &m_scrY);   // This is the size of the visible area only!
 //     DoPrepareDC(dc);
@@ -2309,7 +2332,15 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
 
 		mpBAR *barChart = (mpBAR*)(*li);
-		trgDc->SetPen(barChart->GetPen());
+
+	/*	wxPen  barPen = barChart->GetPen(); 
+		barPen.SetWidth(1);
+		trgDc->SetPen(wxPen(m_fgColour));//barPen);
+		wxBrush barBrush( barPen.GetColour() );
+		trgDc->SetBrush( barBrush );*/
+
+		trgDc->SetPen(barChart->GetPen());//barPen);
+		trgDc->SetBrush(barChart->GetBrush());
 
 		double x, y;
 		// Do this to reset the counters to evaluate bounding box for label positioning
@@ -2328,18 +2359,7 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 		//ViewBoundary vb;
 		std::map<double, std::tuple<double, double>>::iterator barCoords;
 		double baseY;
-		while (barChart->GetNextXY(x, y)) {
-
-			/*base = baseMap.find(x);
-			if (base != baseMap.end()){ 
-				baseY = base->second;
-				base->second = baseY + y;
-			}
-			else {
-				baseY = 0;
-				baseMap.insert({x,y});
-			}*/
-			
+		while (barChart->GetNextXY(x, y)) {			
 			barCoords = barChart->barCoordinates.find(x);
 			ix = x2p(x);
 			iybase = y2p(std::get<0>(barCoords->second));
@@ -2349,8 +2369,9 @@ void mpWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
      //wxLogMessage(_("X=%f, Y=%f, ix = %d, iy = %d, iybase = %d  ->  %f  ->  %f"), x, y, ix, iy, iybase, std::get<0>(barCoords->second), std::get<1>(barCoords->second));
 // #endif
 			if (barChart->GetDrawOutsideMargins() || ((ix >= startPx) && (ix <= endPx) && (iy >= minYpx) && (iy <= maxYpx))) {
-				trgDc->DrawLine(ix, iy, ix, iybase);
-				//vb = barChart->UpdateViewBoundary(ix, iy);
+				//trgDc->DrawLine(ix, iy, ix, iybase);
+				int d = barChartInterval/3.5;//12;
+				trgDc->DrawRectangle(ix-d, iy, 2*d, iybase-iy);
 			}
 		}
 
@@ -2837,8 +2858,8 @@ void mpWindow::SetColourTheme(const wxColour& bgColour, const wxColour& drawColo
 {
 	SetBackgroundColour(bgColour);
 	SetForegroundColour(drawColour);
-	m_bgColour = bgColour;
-	m_fgColour = drawColour;
+	m_bgColour = bgColour;		//background
+	m_fgColour = drawColour; 	//foreground
 	m_axColour = axesColour;
 	m_grColour = gridColour;
 	// cycle between layers to set colours and properties to them
@@ -3083,9 +3104,26 @@ std::tuple<double, double, double> mpBAR::GetClosestXY(double x, double y, doubl
 	double delta, closestX=0, closestY=0, closestYvalue;
 	double xValue, yValue, yValue2;
 
-	delta = 999999999999;
-	std::map<double, std::tuple<double, double>>::iterator bc;
-	for (bc = barCoordinates.begin(); bc != barCoordinates.end(); bc++)
+	//delta = 999999999999;
+	std::map<double, std::tuple<double, double>>::iterator bc = barCoordinates.begin();
+	//std::map<double, std::tuple<double, double>>::iterator closestXit;
+	delta = abs( bc->first - x);
+	closestX = bc->first; 
+	bc++;
+	for (bc; bc != barCoordinates.end(); bc++){
+		double thisPointDelta = abs( bc->first - x); 
+		if ( thisPointDelta < delta){
+			delta = thisPointDelta;
+			//closestXit = bc;
+			closestX = bc->first;
+			yValue = std::get<0>(bc->second);
+			yValue2 = std::get<1>(bc->second);
+			closestY = (std::get<0>(bc->second) + std::get<1>(bc->second))/2;//yValue;
+			closestYvalue = yValue2 - yValue;
+		}	
+	}
+		
+	/*for (bc = barCoordinates.begin(); bc != barCoordinates.end(); bc++)
 	{
 		xValue = bc->first;
 		yValue = std::get<0>(bc->second);
@@ -3098,7 +3136,7 @@ std::tuple<double, double, double> mpBAR::GetClosestXY(double x, double y, doubl
 			closestYvalue = yValue2 - yValue;
 			delta = thisPointDelta;
 		}
-	}
+	}*/
 
 	return {closestX, closestYvalue, closestY};//wxRealPoint(closestX, closestY);
 }

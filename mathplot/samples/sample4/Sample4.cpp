@@ -248,8 +248,9 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	mpBAR* vectorLayer1 = new mpBAR(_(series1));
 	vectorLayer1->SetData(vectorX, vectorSeries1);
 	vectorLayer1->SetContinuity(false);
-	wxPen s1pen(*wxGREEN, 6, wxPENSTYLE_SOLID);
+	wxPen s1pen(*wxGREEN, 1, wxPENSTYLE_SOLID);
 	vectorLayer1->SetPen(s1pen);
+	vectorLayer1->SetBrush(*wxGREEN);
 	vectorLayer1->SetDrawOutsideMargins(true);
 	m_plot->AddLayer(vectorLayer1);
 
@@ -257,16 +258,18 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	mpBAR* vectorLayer2 = new mpBAR(_(series2));
 	vectorLayer2->SetData(vectorX, vectorSeries2);
 	vectorLayer2->SetContinuity(false);
-	wxPen s2Pen(*wxBLUE, 5, wxPENSTYLE_SOLID); //*wxRED
-	vectorLayer2->SetPen(s2Pen);
+	//wxPen s2Pen(*wxBLUE, 1, wxPENSTYLE_SOLID); //*wxRED
+	//vectorLayer2->SetPen(s2Pen);
+	vectorLayer2->SetBrush(*wxBLUE);
 	//vectorLayer->SetDrawOutsideMargins(true);
 	m_plot->AddLayer(vectorLayer2);
 
 	mpBAR* vectorLayer3 = new mpBAR(_(series3));
 	vectorLayer3->SetData(vectorX, vectorSeries3);
 	vectorLayer3->SetContinuity(false);
-	wxPen s3Pen(wxColour(255,120,0), 5, wxPENSTYLE_SOLID);
+	wxPen s3Pen(wxColour(255,120,0), 1, wxPENSTYLE_SOLID);
 	vectorLayer3->SetPen(s3Pen);
+	//vectorLayer3->SetBrush(wxColour(255,120,0));
 	vectorLayer3->SetTrackable(false);
 	//vectorLayer->SetDrawOutsideMargins(true);
 	m_plot->AddLayer(vectorLayer3);
