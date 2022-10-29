@@ -280,8 +280,8 @@ public:
 	virtual void   Plot(wxDC & dc, mpWindow & w) = 0;
 
 	// Get layer name.
-	//    @return Name
-	wxString       GetName() const { return m_name; }
+	//	@return Name
+	wxString	   GetName() const { return m_name; }
 
 	/** Get font set for this layer.
 		@return Font
@@ -330,7 +330,7 @@ public:
 	/** Set layer pen
 		@param pen Pen, will be copied to internal class member
 	*/
-	void SetPen(wxPen pen)     { m_pen  = pen;  }
+	void SetPen(wxPen pen)		{ m_pen  = pen;  }
 
 	/** Set Draw mode: inside or outside margins. Default is outside, which allows the layer to draw up to the mpWindow border.
 		@param drawModeOutside The draw mode to be set */
@@ -362,7 +362,7 @@ public:
 	const wxBrush&   GetBrush() const { return m_brush; };
 
 	/** Set layer brush
-		@param brush brush, will be copied to internal class member    */
+		@param brush brush, will be copied to internal class member	*/
 	void SetBrush(wxBrush brush) { m_brush = brush; };
 
 	void SetTrackBoxYvalueFormat(const wxString& format) { m_TrackBoxYvalueFormat = format; };
@@ -373,16 +373,16 @@ public:
 
 protected:
 	wxString m_TrackBoxYvalueFormat; //!< Format string used to print TrackBox for this layer
-	wxFont   m_font;    //!< Layer's font
-	wxPen    m_pen;     //!< Layer's pen
+	wxFont   m_font;	//!< Layer's font
+	wxPen	 m_pen;		//!< Layer's pen
 	wxBrush  m_brush;   //!< Layer's brush
-	wxString m_name;    //!< Layer's name
-	bool     m_continuous; //!< Specify if the layer will be plotted as a continuous line or a set of points.
-	bool     m_contpoints; //!< Draw the layer's points in continuous mode
-	bool     m_showName; //!< States whether the name of the layer must be shown (default is true).
-	bool     m_drawOutsideMargins; //!< select if the layer should draw only inside margins or over all DC
+	wxString m_name;	//!< Layer's name
+	bool	 m_continuous; //!< Specify if the layer will be plotted as a continuous line or a set of points.
+	bool	 m_contpoints; //!< Draw the layer's points in continuous mode
+	bool	 m_showName; //!< States whether the name of the layer must be shown (default is true).
+	bool	 m_drawOutsideMargins; //!< select if the layer should draw only inside margins or over all DC
 	mpLayerType m_type; //!< Define layer type, which is assigned by constructor
-	bool     m_visible; //!< Toggles layer visibility	 
+	bool	 m_visible; //!< Toggles layer visibility	 
 
 	DECLARE_DYNAMIC_CLASS(mpLayer)
 };
@@ -393,8 +393,8 @@ protected:
 //-----------------------------------------------------------------------------
 
 /** @class mpInfoLayer
-    @brief Base class to create small rectangular info boxes
-    mpInfoLayer is the base class to create a small rectangular info box in transparent overlay over plot layers. It is used to implement objects like legends.
+	@brief Base class to create small rectangular info boxes
+	mpInfoLayer is the base class to create a small rectangular info box in transparent overlay over plot layers. It is used to implement objects like legends.
 */
 class WXDLLIMPEXP_MATHPLOT mpInfoLayer : public mpLayer
 {
@@ -716,7 +716,7 @@ protected:
 class WXDLLIMPEXP_MATHPLOT mpProfile : public mpLayer
 {
 public:
-    /** @param name  Label
+	/** @param name  Label
 		@param flags Label alignment, pass one of #mpALIGN_BOTTOM, #mpALIGN_CENTER, #mpALIGN_TOP.
 	*/
 	mpProfile(wxString name = wxEmptyString, int flags = mpALIGN_TOP);
@@ -824,9 +824,9 @@ protected:
 };
 
 /** Plot layer implementing a y-scale ruler.
-    If align is set to mpALIGN_CENTER, the ruler is fixed at X=0 in the coordinate system. If the align is set to mpALIGN_TOP or mpALIGN_BOTTOM, the axis is always drawn respectively at top or bottom of the window. A label is plotted at
-    the top-right hand of the ruler. The scale numbering automatically
-    adjusts to view and zoom factor.
+	If align is set to mpALIGN_CENTER, the ruler is fixed at X=0 in the coordinate system. If the align is set to mpALIGN_TOP or mpALIGN_BOTTOM, the axis is always drawn respectively at top or bottom of the window. A label is plotted at
+	the top-right hand of the ruler. The scale numbering automatically
+	adjusts to view and zoom factor.
 */
 class WXDLLIMPEXP_MATHPLOT mpScaleY : public mpLayer
 {
@@ -1308,7 +1308,7 @@ protected:
 	void OnSize          (wxSizeEvent      &event); //!< Size handler, will update scroll bar sizes
 	// void OnScroll2       (wxScrollWinEvent &event); //!< Scroll handler, will move canvas
 	void OnMouseRightDown(wxMouseEvent     &event); //!< Mouse handler, for detecting when the user drags with the right button or just "clicks" for the menu
-    void OnCenter        (wxCommandEvent   &event); //!< Context menu handler
+	void OnCenter        (wxCommandEvent   &event); //!< Context menu handler
 	void OnFit           (wxCommandEvent   &event); //!< Context menu handler
 	void OnZoomIn        (wxCommandEvent   &event); //!< Context menu handler
 	void OnZoomOut       (wxCommandEvent   &event); //!< Context menu handler
@@ -1503,7 +1503,7 @@ protected:
 //-----------------------------------------------------------------------------
 
 /** A class providing graphs functionality for a 2D bar chart (either continuous or a set of points), from vectors of data.
-     This class can be used directly, the user does not need to derive any new class. Simply pass the data as two vectors
+	This class can be used directly, the user does not need to derive any new class. Simply pass the data as two vectors
 
  (Added: Naiche, OCT-2022)
 */
@@ -1653,8 +1653,8 @@ public:
 //-----------------------------------------------------------------------------
 
 /** Printout class used by mpWindow to draw in the objects to be printed.
-    The object itself can then used by the default wxWidgets printing system
-    to print mppWindow objects.
+	The object itself can then used by the default wxWidgets printing system
+	to print mppWindow objects.
 */
 class WXDLLIMPEXP_MATHPLOT mpPrintout : public wxPrintout
 {
@@ -1790,15 +1790,15 @@ public:
 class WXDLLIMPEXP_MATHPLOT mpCovarianceEllipse : public mpMovableObject
 {
 public:
-    /** Default constructor.
-      * Initializes to a unity diagonal covariance matrix, a 95% confidence interval (2 sigmas), 32 segments, and a continuous plot (m_continuous=true).
-      */
+	/** Default constructor.
+	  * Initializes to a unity diagonal covariance matrix, a 95% confidence interval (2 sigmas), 32 segments, and a continuous plot (m_continuous=true).
+	  */
 	mpCovarianceEllipse(
 		double cov_00 = 1,
 		double cov_11 = 1,
 		double cov_01 = 0,
 		double quantiles = 2,
-		int    segments = 32,
+		int	   segments = 32,
 		const wxString & layerName = wxT("") ) :
 			m_cov_00(cov_00),
 			m_cov_11(cov_11),
@@ -1896,8 +1896,8 @@ public:
 // mpBitmapLayer - provided by Jose Luis Blanco
 //-----------------------------------------------------------------------------
 /** A layer that allows you to have a bitmap image printed in the mpWindow.
-    Use SetBitmap() to load the image in the right place.
-    You can retrieve the image from the layer at anytime you want with getBitmapCopy()
+	Use SetBitmap() to load the image in the right place.
+	You can retrieve the image from the layer at anytime you want with getBitmapCopy()
   */
 class WXDLLIMPEXP_MATHPLOT mpBitmapLayer : public mpLayer
 {
@@ -1955,11 +1955,11 @@ protected:
 	int m_flags; //!< Holds label alignment
 
 	// The internal copy of the Bitmap:
-	wxImage      m_bitmap;
-	wxBitmap     m_scaledBitmap;
-	wxCoord      m_scaledBitmap_offset_x,m_scaledBitmap_offset_y;
+	wxImage		m_bitmap;
+	wxBitmap	m_scaledBitmap;
+	wxCoord	m_scaledBitmap_offset_x,m_scaledBitmap_offset_y;
 
-	bool            m_validImg;
+	bool		m_validImg;
 
 	// The shape of the bitmap:
 	double  m_min_x,m_max_x,m_min_y,m_max_y;
