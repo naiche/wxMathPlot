@@ -2257,7 +2257,7 @@ void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 // }
 double mpWindow::GetBarChartInterval() {
 	double shortestDelta = GetScrX()/m_scaleX; //9999999999999999;//
-	wxLayerList::iterator li;
+	/*wxLayerList::iterator li;
 	for (li = m_layers.begin(); li != m_layers.end(); li++)
 	{
 		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
@@ -2271,6 +2271,19 @@ double mpWindow::GetBarChartInterval() {
 			if (abs(x-previousX) < shortestDelta)
 				shortestDelta = abs(x-previousX);
 		}
+	}*/
+	std::map<double, std::pair<double, double>>::iterator bcmmv = barChartMinMaxValues.begin();
+	if (bcmmv == barChartMinMaxValues.end()) return shortestDelta;
+	
+	double x, previousX = bcmmv->first;
+	bcmmv++;
+	for (bcmmv; bcmmv != barChartMinMaxValues.end(); bcmmv++)
+	{
+		x = bcmmv->first;
+		if (abs(x-previousX) < shortestDelta)
+			shortestDelta = abs(x-previousX);
+			
+		previousX = x;
 	}
 	return shortestDelta;
 }
