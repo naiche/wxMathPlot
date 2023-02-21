@@ -1558,10 +1558,10 @@ protected:
 	double GetMinX() { return m_minX; }
 
 	// Returns the actual minimum Y data (loaded in SetData).
-	double GetMinY() { return m_minY; }
+	double GetMinY();// { return m_minY; }
 
 	// Returns the actual minimum Y data (loaded in SetData).
-	double GetMinHeight() { return m_minY; }
+	//double GetMinHeight() { return m_minY; }
 
 	// Returns the actual maximum X data (loaded in SetData).
 	double GetMaxX() { return m_maxX; }
@@ -1570,7 +1570,7 @@ protected:
 	double GetMaxY();// { return m_maxY; }
 
 	// Returns the actual maximum Y data (loaded in SetData).
-	double GetMaxHeight() { return m_maxY; }
+	//double GetMaxHeight() { return m_maxY; }
 
 	bool IsBarChart() { return TRUE; }
 

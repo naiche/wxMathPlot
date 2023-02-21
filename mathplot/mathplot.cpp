@@ -2251,27 +2251,9 @@ void mpWindow::DelAllLayers( bool alsoDeleteObject, bool refreshDisplay)
 	if (refreshDisplay)  UpdateAll();
 }
 
-// void mpWindow::DoPrepareDC(wxDC& dc)
-// {
-// 		dc.SetDeviceOrigin(x2p(m_minX), y2p(m_maxY));
-// }
 double mpWindow::GetBarChartInterval() {
 	double shortestDelta = GetScrX()/m_scaleX; //9999999999999999;//
-	/*wxLayerList::iterator li;
-	for (li = m_layers.begin(); li != m_layers.end(); li++)
-	{
-		if (!(*li)->IsBarChart() || !(*li)->IsVisible()) continue;
-		
-		mpBAR *barChart = (mpBAR*)(*li);
-		barChart->Rewind();
-		double x, y;
-		barChart->GetNextXY(x, y);
-		double previousX = x;
-		while (barChart->GetNextXY(x, y)) {
-			if (abs(x-previousX) < shortestDelta)
-				shortestDelta = abs(x-previousX);
-		}
-	}*/
+
 	std::map<double, std::pair<double, double>>::iterator bcmmv = barChartMinMaxValues.begin();
 	if (bcmmv == barChartMinMaxValues.end()) return shortestDelta;
 	
@@ -2545,17 +2527,18 @@ void mpWindow::SetMPScrollbars(bool status)
 
 bool mpWindow::UpdateBBox()
 {
-	bool FoundBBoxLayer = FALSE;
+	bool foundBBoxLayer = FALSE;
+	bool foundBarChart = false;
 
 	for (wxLayerList::iterator li = m_layers.begin(); li != m_layers.end(); li++)
 	{
 		mpLayer* f = *li;
 
-		if (f->HasBBox())
+		if (f->HasBBox() && f->IsVisible())
 		{
-			if (!FoundBBoxLayer)
+			if (!foundBBoxLayer)
 			{
-				FoundBBoxLayer = TRUE;
+				foundBBoxLayer = TRUE;
 				m_minX = f->GetMinX(); m_maxX=f->GetMaxX();
 				m_minY = f->GetMinY(); m_maxY=f->GetMaxY();
 			}
@@ -2570,13 +2553,21 @@ bool mpWindow::UpdateBBox()
 				if (f->GetMaxY()>m_maxY)
 					m_maxY=f->GetMaxY();
 			}
+			if (f->IsBarChart())
+				foundBarChart = true;
 		}
 		//node = node->GetNext();
+	}
+	
+	if (foundBarChart) {
+		double barMargin = GetBarChartInterval()/2;
+		m_minX = m_minX - barMargin;
+		m_maxX = m_maxX + barMargin;
 	}
 #ifdef MATHPLOT_DO_LOGGING
 	wxLogDebug(wxT("[mpWindow::UpdateBBox] Bounding box: Xmin = %f, Xmax = %f, Ymin = %f, YMax = %f"), m_minX, m_maxX, m_minY, m_maxY);
 #endif // MATHPLOT_DO_LOGGING
-	return FoundBBoxLayer;
+	return foundBBoxLayer;
 }
 
 void mpWindow::UpdateAll()
@@ -3164,6 +3155,23 @@ std::tuple<double, double, double> mpBAR::GetClosestXY(double x, double y, doubl
 	return {closestX, closestYvalue, closestY};//wxRealPoint(closestX, closestY);
 }
 
+double mpBAR::GetMinY(){
+	double min = 0;
+
+	std::map<double, std::tuple<double, double>>::iterator bc;
+	for (bc = barCoordinates.begin(); bc != barCoordinates.end(); bc++) {
+		if (std::get<1>(bc->second) < min)
+			min = std::get<1>(bc->second);
+	}
+
+	m_minY = min;
+/*#ifdef MATHPLOT_DO_LOGGING
+		wxLogMessage(wxT("Min Y %f\n"), min);
+		wxLogMessage(wxT("m_minY: %f\n"), m_minY);
+#endif*/
+	return min;
+}
+
 double mpBAR::GetMaxY(){
 	double max = 0;
 
@@ -3172,9 +3180,11 @@ double mpBAR::GetMaxY(){
 		if (std::get<1>(bc->second) > max)
 			max = std::get<1>(bc->second);
 	}
-
+	
+	m_maxY = max;
 	return max;
 }
+
 
 void mpBAR::Clear()
 {
@@ -3214,6 +3224,7 @@ void mpBAR::SetData(const std::vector<double> &xs,const std::vector<double> &ys)
 			if (*it<m_minY) m_minY=*it;
 			if (*it>m_maxY) m_maxY=*it;
 		}
+		
 		m_minX-=0.5f;
 		m_minY-=0.5f;
 		m_maxX+=0.5f;

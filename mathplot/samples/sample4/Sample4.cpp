@@ -230,7 +230,7 @@ MyFrame::MyFrame() : wxFrame( (wxFrame *)NULL, -1, wxT("wxWindows mathplot sampl
 	std::vector<wxDateTime>  vectorXdate;
 		
 	wxDateTime yearMonth(01, wxDateTime::Month(4), 2021);
-	for (int i = 1; i <= 18; i++) 
+	for (int i = 10; i <= 18; i++) 
 	{
 		//double i = 5;		
 		vectorSeries1.push_back(i);
