@@ -1,5 +1,12 @@
 This project is based on the version of wxMathPlot found at MachMotionOpenSource/wxMathPlot and this repository's purpose is to make available any enhancements/fixes made when using this code.
 
+
+Sample1 -> mpXYVector, mpFX, mpFY and mpFXY example
+Sample2 -> Comparison of Integer Coding Algorithms
+Sample3 -> mpMovableObject example
+Sample4 -> Bar chart example (mpBAR)
+
+
 DONE:
   
   * Configurable mouse commands
@@ -48,4 +55,4 @@ DONE:
   
 TO DO:
   
-  - Implement Bar Chart functionality
+  - Improve Bar Chart functionality
