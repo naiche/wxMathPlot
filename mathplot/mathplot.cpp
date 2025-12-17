@@ -278,8 +278,8 @@ void mpInfoCoords::Plot(wxDC & dc, mpWindow & w)
 		else if (m_labelType == mpX_TIMEOFDAY) {
 				  fmt = (wxT("%02.0f:%02.0f:%02.3f"));*/
 
-		wxString line1 = wxT("x = ") + std::to_string(w.p2x(w.GetMouseX()));
-		wxString line2 = wxT("y = ") + std::to_string(w.p2y(w.GetMouseY()));
+		wxString line1 = wxString::Format(wxT("x = %d"), w.p2x(w.GetMouseX()));
+		wxString line2 = wxString::Format(wxT("y = %d"), w.p2y(w.GetMouseY()));
 		int textX1, textY1, textX2, textY2, textX, textY;
 		dc.GetTextExtent(line1, &textX1, &textY1);
 		dc.GetTextExtent(line2, &textX2, &textY2);
